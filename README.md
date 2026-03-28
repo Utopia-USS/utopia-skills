@@ -2,7 +2,6 @@
 
 Agent skills for **utopia_hooks** — the holistic Flutter state management architecture by [UtopiaSoftware](https://utopiasoft.io).
 
-Modeled after [callstackincubator/agent-skills](https://github.com/callstackincubator/agent-skills).
 
 ## What this is
 
