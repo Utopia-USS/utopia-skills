@@ -44,12 +44,12 @@ Reference these guidelines when:
 |----------|---------------------------------------|----------|-----------|
 | 1        | Screen architecture (Page/State/View) | CRITICAL | [page-state-view.md][page-state-view] |
 | 2        | Hook catalog & correct usage          | CRITICAL | [hooks-reference.md][hooks-reference] |
-| 3        | Global shared state                   | CRITICAL | [global-state.md][global-state] |
-| 4        | Async operations & loading            | HIGH     | [async-patterns.md][async-patterns] |
-| 5        | Flutter code conventions              | HIGH     | [flutter-conventions.md][flutter-conventions] |
-| 6        | Composable & widget-level hooks       | MEDIUM     | [composable-hooks.md][composable-hooks] |
-| 7        | Testing hooks in isolation            | MEDIUM   | [testing.md][testing] |
-| 8        | Dependency injection & services       | MEDIUM   | [di-services.md][di-services] |
+| 3        | Async patterns (download / upload)    | HIGH     | [async-patterns.md][async-patterns] |
+| 4        | Flutter code conventions              | HIGH     | [flutter-conventions.md][flutter-conventions] |
+| 5        | Global shared state                   | HIGH     | [global-state.md][global-state] |
+| 6        | Dependency injection & services       | MEDIUM   | [di-services.md][di-services] |
+| 7        | Composable & widget-level hooks       | MEDIUM   | [composable-hooks.md][composable-hooks] |
+| 8        | Testing hooks in isolation            | MEDIUM   | [testing.md][testing] |
 
 ## Quick Reference
 
