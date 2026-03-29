@@ -134,8 +134,9 @@ Future<void> load() async {
 Subscribes to a `Stream<T>`. Re-subscribes when `keys` change.
 
 ```dart
-// Static stream
-final snap = useMemoizedStream(FirebaseAuth.instance.userChanges);
+// Stream via injected service
+final authService = useInjected<AuthService>();
+final snap = useMemoizedStream(authService.streamUser);
 
 // Parameterized stream — re-subscribes when userId changes
 final ordersSnap = useMemoizedStream(

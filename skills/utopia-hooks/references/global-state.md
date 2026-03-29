@@ -25,8 +25,13 @@ class HomeScreen extends HookWidget {
 }
 ```
 
-**Correct (shared global state):**
+**Correct (shared global state — service layer):**
 ```dart
+// auth_service.dart
+class AuthService {
+  Stream<User?> streamUser() => FirebaseAuth.instance.userChanges();
+}
+
 // auth_state.dart
 class AuthState extends HasInitialized {
   final User? user;
@@ -36,7 +41,8 @@ class AuthState extends HasInitialized {
 }
 
 AuthState useAuthState() {
-  final snap = useMemoizedStream(FirebaseAuth.instance.userChanges);
+  final authService = useInjected<AuthService>();
+  final snap = useMemoizedStream(authService.streamUser);
   return AuthState(
     isInitialized: snap.connectionState == ConnectionState.active,
     user: snap.data,

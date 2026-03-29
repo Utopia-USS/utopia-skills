@@ -36,6 +36,35 @@ TasksPageState useTasksPageState() {
 
 ---
 
+## Services Are Stateless Infrastructure Wrappers
+
+Services own all contact with infrastructure (Firebase, gRPC, SharedPreferences, file system, HTTP). Hooks own all state. This means:
+
+- A service exposes methods that return `Stream<T>`, `Future<T>`, or synchronous `T` — it never holds mutable state
+- A hook calls `useInjected<Service>()` and passes the service's streams/futures to `useMemoizedStream`, `useAutoComputedState`, `useSubmitState`, etc.
+- The hook never knows *how* data is stored or fetched — only *what* to ask for
+
+```dart
+// ❌ Hook calls infrastructure directly
+ProfileState useProfileState() {
+  final data = useAutoComputedState(
+    () async => database.collection('profiles').doc(userId).get(),  // infra in hook
+  );
+  // ...
+}
+
+// ✅ Service wraps infrastructure, hook calls service
+ProfileState useProfileState() {
+  final profileService = useInjected<ProfileService>();
+  final data = useAutoComputedState(
+    () async => profileService.load(userId),  // hook doesn't know how/where
+  );
+  // ...
+}
+```
+
+---
+
 ## Service Types
 
 | Suffix | Responsibility | I/O | Returns |
@@ -153,6 +182,7 @@ TasksPageState useTasksPageState() {
 
 ## Common Pitfalls
 
+- **Accessing infrastructure directly in hooks** — `FirebaseDatabase.instance.ref(...)`, `SharedPreferences.getInstance()`, raw HTTP clients in a hook body. Always wrap in a service and use `useInjected<Service>()`. The hook should never know *how* data is stored or fetched — only *what* to ask for.
 - **Injecting in View** — `View extends StatelessWidget` cannot call hooks; pass services via State if needed (rare — usually pass results, not services)
 - **Forgetting `register.noarg`** — if the constructor takes no parameters and you use `register(...)`, it will fail at runtime when Injector tries to resolve dependencies
 - **Circular dependencies** — Service A → Service B → Service A will throw; redesign to extract shared logic into a third service
