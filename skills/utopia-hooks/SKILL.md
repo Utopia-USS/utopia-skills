@@ -220,11 +220,28 @@ grep -rl "useProvided" references/
 
 ## Non-Negotiable Rules
 
-- **View never calls hooks** — no `useState`, `useProvided`, `useInjected` in `*_view.dart`
+- **View never calls hooks** — no `useState`, `useProvided`, `useInjected` in `*_view.dart`. View is always `StatelessWidget`.
+- **View constructor takes ONLY `state`** — no extra `onBack`, `onNavigate`, or other parameters. All callbacks are fields on the State class.
+- **Page = pure wiring** — Page must not call `useInjected` or contain business logic. Only `useProvided<NavigatorKey>` / context-dependent values to build navigation callbacks passed to the state hook.
 - **State never imports widgets** — no Flutter widget imports in `*_page_state.dart`
 - **`useProvided` / `useInjected` only in page state hooks** — not in View, not passed down as parameters
+- **No mutable collections in State classes** — always `IList`/`IMap`/`ISet`, never `List`/`Map`/`Set`, including static data
+- **No manual loading state** — never use `useState<bool>` + `try/catch/finally` for data loading. Always `useAutoComputedState`.
 - **Prefer `useMemoized` over `useEffect`** for derived state — effects cascade; memoized values don't
 - **One State class per screen** — all screen data in one place, not scattered `useState` calls across the widget tree
+- **View files ≤ ~150 lines** — extract complex widgets to `widget/` folder, using widget-level hook pattern from [composable-hooks.md](references/composable-hooks.md) when they have own state
+
+## Self-Audit Checklist
+
+After generating a screen, verify:
+
+1. Does the View constructor take anything beyond `state`? → Move it to the State class
+2. Does the Page call `useInjected` or `useProvided` (beyond `NavigatorKey`)? → Move to state hook
+3. Are there `useState<bool>(true)` / `useState<T?>(null)` for loading/error? → Use `useAutoComputedState`
+4. Are there mutable `List<T>`, `Map<K,V>`, `Set<T>` in the State class? → Use `IList`/`IMap`/`ISet`
+5. Are there more than 2 `useSubmitState()` in one hook? → Group mutually exclusive actions
+6. Is any view file > 150 lines? → Extract widgets to `widget/` folder
+7. Does the View extend `HookWidget`? → Must be `StatelessWidget`
 
 ## Attribution
 

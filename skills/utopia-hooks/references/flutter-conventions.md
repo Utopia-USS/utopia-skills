@@ -174,13 +174,12 @@ Widget _buildFooter() { ... }
 
 | Situation | Approach |
 |-----------|----------|
-| Simple, used once in this widget | Private `_buildXxx` method in same file |
-| Complex or reused across widgets | Separate file with public widget class |
-| Reusable across the app | Common widget directory |
+| Simple, ≤ ~30 lines, used once | Private `_buildXxx` method in same file |
+| > ~40 lines or has own state | Extract to `screen/{feature}/widget/` — see [composable-hooks.md](./composable-hooks.md) for widget-level hook pattern |
+| Reusable across screens | `common/widget/` directory |
 
-- Extracted helpers are **private by default** (`_buildXxx`)
-- Only make public when intentionally part of the widget's API surface
-- If a helper grows beyond a few lines, consider promoting to a separate widget class
+- View files should stay under ~150 lines — extract beyond that
+- Stateful/HookWidget classes never live inside a view file — always extract them
 
 ---
 
