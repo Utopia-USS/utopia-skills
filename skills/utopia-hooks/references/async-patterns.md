@@ -132,23 +132,46 @@ CrazyLoader(visible: saveState.inProgress)
 onTap: saveState.inProgress ? null : onOtherAction,
 ```
 
-### Multiple submit states
+### Multiple submit states — one per independent flow, not per button
 
+Use **one `useSubmitState()` per independent user flow**. If multiple actions are mutually exclusive (user can only do one at a time), wrap them in a single submitState.
+
+**Incorrect — one submitState per button (5 submitStates for mutually exclusive actions):**
 ```dart
-// One per independent async action
-final saveState = useSubmitState();
-final deleteState = useSubmitState();
-final exportState = useSubmitState();
-
-return PageState(
-  isSaving: saveState.inProgress,
-  isDeleting: deleteState.inProgress,
-  isExporting: exportState.inProgress,
-  onSave: () => saveState.runSimple(...),
-  onDelete: () => deleteState.runSimple(...),
-  onExport: () => exportState.runSimple(...),
-);
+final voteSubmitState = useSubmitState();
+final nextRoundSubmitState = useSubmitState();
+final showResultsSubmitState = useSubmitState();
+final finishGameSubmitState = useSubmitState();
+final leaveSubmitState = useSubmitState();
 ```
+
+**Correct — group mutually exclusive actions under one submitState:**
+```dart
+// Host actions are mutually exclusive — one submitState
+final hostSubmitState = useSubmitState();
+
+void onHostAction(HostAction action) => hostSubmitState.run(() async {
+  switch (action) {
+    case HostAction.nextRound: await gameService.nextRound(...);
+    case HostAction.showResults: await gameService.showResults(...);
+    case HostAction.finishGame: await roomService.finishGame(...);
+  }
+});
+
+// Vote is independent of host actions — separate submitState
+final voteSubmitState = useSubmitState();
+
+// Leave is independent — separate submitState (only if it can run in parallel with the above)
+final leaveSubmitState = useSubmitState();
+```
+
+**When to use separate submitStates:**
+- Operations that can genuinely run **in parallel** (e.g., user can vote while host advances round)
+- Operations with **different error handling** needs
+
+**When to share a submitState:**
+- Mutually exclusive actions (user picks one, not multiple at once)
+- Actions on the same entity (save/delete same item — user does one or the other)
 
 ---
 
@@ -305,7 +328,7 @@ CrazySquashButton.withState(state: state.loginButtonState, child: const Text("Lo
 
 ## Common Pitfalls
 
-- **Multiple `useSubmitState` for the same action** — one per action, don't reuse across different operations
+- **Too many submitStates** — one per independent flow, not per button. See "Multiple submit states" section above.
 - **Swallowing errors with catch-all mapError** — default is `Never` (let it crash). Only add `mapError`/`afterKnownError` when you have specific error UX for the user. Unhandled errors should crash, not get logged and ignored
 - **`useAutoComputedState` without `shouldCompute`** — if prerequisites (like `userId`) may be null, guard with `shouldCompute: userId != null` or the future will run with null
 - **Reading `.value` before `isInitialized`** — `.value` throws `StateError`; use `.valueOrNull` for safe access
