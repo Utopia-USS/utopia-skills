@@ -325,6 +325,23 @@ grep -rn 'extends StatefulWidget' lib/screens/
 grep -rn 'context\.read<\|context\.watch<\|context\.select<\|BlocBuilder\|BlocListener\|BlocConsumer\|BlocProvider\|MultiBlocProvider' lib/
 ```
 
+### 6. Structural audit
+
+```bash
+# Navigation calls in state hooks (must be 0 — navigation injected from Page)
+grep -rn 'router\.\|Navigator\.\|GoRouter\|context\.push\|context\.pop\|context\.go(' lib/state/
+
+# BuildContext / UI framework usage in state hooks (must be 0)
+grep -rn 'BuildContext\|Overlay\.\|MediaQuery\.\|showSnackBar\|ScaffoldMessenger' lib/state/
+
+# Top-level mutable state in hook files (must be 0)
+grep -rn '^final Map\|^final List\|^final Set\|^DateTime?\|^int \|^bool ' lib/state/
+```
+
+### 7. Line count sanity check (soft gate)
+
+Compare total lines in migrated hook+state files vs original cubit+state files. If migrated code exceeds **60%** of original line count for Complex screens (50% for Medium) — investigate. This usually means missed hook features (`useAutoComputedState`, `useSubmitState`, `useMemoizedStream`) or missing decomposition.
+
 **If ANY grep returns results → fix them. The migration is not done.**
 
 ## Attribution

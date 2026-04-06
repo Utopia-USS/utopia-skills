@@ -65,6 +65,8 @@ For simple screens, skip this — proceed directly to Phase 2.
 
 ## Phase 2: Migration
 
+> **Hard gate (Complex screens only):** If Phase 1 classified the screen as Complex, you MUST have a decomposition plan from Phase 1c with sub-hooks listed. Do NOT proceed without it. Each sub-hook MUST be a separate file. No single hook file may exceed ~300 lines. If you skipped 1c — go back now.
+
 Execute the migration using patterns from [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md).
 
 ### 2a. Rename + delete files
@@ -148,7 +150,7 @@ If found → see [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md) section 
 
 - Is any hook function > ~300 lines? → Decompose (see `../utopia-hooks/references/composable-hooks.md` Pattern 3)
 - Does any hook have > ~10 `useState` calls? → Same
-- Does the State class have too many unrelated fields? → Same
+- Does the State class have > ~15 fields from unrelated domains? → Decompose into sub-states (see composable-hooks.md Pattern 3)
 
 ### 3d. Async patterns
 
@@ -170,7 +172,27 @@ Review the migrated code for:
 
 All of these should be `useEffect` with appropriate keys.
 
-### 3f. Deep review (if any check failed)
+### 3f. Navigation and UI in state hooks
+
+```bash
+# Navigation calls in state hooks (must be 0 — navigation is injected from Page)
+grep -n 'router\.\|Navigator\.\|GoRouter\|context\.push\|context\.pop\|context\.go(' <migrated_state_files>
+
+# BuildContext / UI framework usage in state hooks (must be 0)
+grep -n 'BuildContext\|Overlay\.\|MediaQuery\.\|showSnackBar\|ScaffoldMessenger' <migrated_state_files>
+```
+
+**Expected: 0 results.** Navigation and UI operations must be callbacks injected from the Page, not called directly from the hook. See [page-state-view.md](../utopia-hooks/references/page-state-view.md).
+
+### 3g. Top-level mutable state
+
+```bash
+grep -n '^final Map\|^final List\|^final Set\|^DateTime?\|^int \|^bool ' <migrated_state_files>
+```
+
+**Expected: 0 results.** Top-level mutable variables should become a registered service (`useInjected`) or global state (`_providers`). See [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md) section 15.
+
+### 3h. Deep review (if any check failed)
 
 If any check above failed and the fix isn't obvious, load the `utopia-hooks` skill and review the migrated code against its patterns. The skill's Self-Audit Checklist and async-patterns reference are particularly useful here.
 
@@ -206,7 +228,17 @@ grep -n 'extends StatefulWidget' <migrated_files>
 
 **Expected: 0 results (or justified).**
 
-### 4d. Commit
+### 4d. Structural greps (repeat from Phase 3, final confirmation)
+
+```bash
+grep -n 'router\.\|Navigator\.\|GoRouter\|context\.push\|context\.pop\|context\.go(' <migrated_state_files>
+grep -n 'BuildContext\|Overlay\.\|MediaQuery\.\|showSnackBar\|ScaffoldMessenger' <migrated_state_files>
+grep -n '^final Map\|^final List\|^final Set\|^DateTime?\|^int \|^bool ' <migrated_state_files>
+```
+
+**Expected: 0 results.**
+
+### 4e. Commit
 
 All checks pass → commit this screen. Move to the next screen (back to Phase 1).
 
