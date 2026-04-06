@@ -49,7 +49,7 @@ If any indicator is "Complex", plan the decomposition BEFORE writing code:
 3. List the sub-hooks and their inputs/outputs
 4. Identify how the main screen hook will compose them
 
-See `../utopia-hooks/references/composable-hooks.md` Pattern 3 for the decomposition pattern.
+See `../utopia-hooks/references/composable-hooks.md` Pattern 3 for the decomposition pattern and [complex-cubit-patterns.md](./complex-cubit-patterns.md) section 1 for domain identification techniques and shared state handling.
 
 **Output:** A list like:
 ```
@@ -67,7 +67,7 @@ For simple screens, skip this — proceed directly to Phase 2.
 
 > **Hard gate (Complex screens only):** If Phase 1 classified the screen as Complex, you MUST have a decomposition plan from Phase 1c with sub-hooks listed. Do NOT proceed without it. Each sub-hook MUST be a separate file. No single hook file may exceed ~300 lines. If you skipped 1c — go back now.
 
-Execute the migration using patterns from [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md).
+Execute the migration using patterns from [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md). For complex cubits, also load [complex-cubit-patterns.md](./complex-cubit-patterns.md) — it covers stream accumulation, dynamic stream creation, init/refresh de-duplication, top-level mutable state, and navigation callbacks that simple mappings don't address.
 
 ### 2a. Rename + delete files
 
@@ -247,6 +247,7 @@ All checks pass → commit this screen. Move to the next screen (back to Phase 1
 ## Related
 
 - [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md) — pattern-by-pattern mapping (sections 1-15)
+- [complex-cubit-patterns.md](./complex-cubit-patterns.md) — decomposition, stream accumulation, dynamic streams, global state (Complex screens)
 - [migration-steps.md](./migration-steps.md) — project-level migration orchestration
 - [global-state-migration.md](./global-state-migration.md) — provider tree migration
 - `../utopia-hooks/references/composable-hooks.md` — hook decomposition (Pattern 3)

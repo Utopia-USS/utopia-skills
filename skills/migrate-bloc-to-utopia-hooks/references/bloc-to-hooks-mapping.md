@@ -827,70 +827,9 @@ NotificationsScreenState useNotificationsScreenState() {
 | Latest value, simplified (data only) | `useMemoizedStreamData(() => stream)` | `T?` |
 | Both (react to events AND show latest value) | `useMemoizedStreamData` for UI + `useStreamSubscription` for side effects | — |
 
-### Stream accumulation (events → growing list)
+**Rule:** If you see `.listen(` in a state hook file, it should be `useStreamSubscription`. No exceptions. Manual subscription management is the #1 source of resource leaks in migrated code.
 
-BLoC cubits often accumulate stream events into a growing list via manual `.listen()`. In hooks this is a composition of existing hooks — no new abstraction needed.
-
-**BLoC (manual accumulation):**
-```dart
-_subscription = commentStream.listen((comment) {
-  comments.add(comment);
-  emit(state.copyWith(comments: List.from(comments)));
-});
-```
-
-**utopia_hooks — without preloading:**
-```dart
-final comments = useState<IList<Comment>>(const IList.empty());
-
-useStreamSubscription(commentStream, (comment) async {
-  comments.value = comments.value.add(comment);
-});
-```
-
-**utopia_hooks — with preloading (initial data loaded first, then stream appends):**
-```dart
-final comments = useAutoComputedState(
-  () => repository.fetchInitialComments(storyId),
-  keys: [storyId],
-);
-
-useStreamSubscription(liveCommentStream, (comment) async {
-  comments.updateValue(comments.valueOrNull!.add(comment));
-});
-```
-
-### Dynamic streams (stream created imperatively)
-
-When a BLoC creates streams dynamically (e.g., based on async checks like WiFi status, fetch mode, cache state), the solution is to **restructure so the stream is available at declaration time** — not to fall back to manual `.listen()`.
-
-**Restructuring patterns:**
-
-```dart
-// 1. Move decision to caller — pass the stream as a hook parameter
-CommentsState useCommentsState(Stream<Comment> commentStream) {
-  useStreamSubscription(commentStream, (comment) async { /* ... */ });
-}
-
-// 2. useState<Stream?> — set it when ready, subscribe reactively
-final stream = useState<Stream<Comment>?>(null);
-
-useEffect(() {
-  fetchStreamSource().then((s) => stream.value = s);
-}, []);
-
-if (stream.value != null) {
-  useStreamSubscription(stream.value!, (comment) async { /* ... */ });
-}
-
-// 3. Extract a custom hook for complex lifecycle
-CommentStreamState useCommentStream(int storyId, FetchMode mode) {
-  // encapsulates stream creation + subscription + accumulation
-  // internally uses useStreamSubscription — never raw .listen()
-}
-```
-
-**Rule:** If you see `.listen(` in a state hook file, it should be `useStreamSubscription`. No exceptions. Manual subscription management is the #1 source of resource leaks in migrated code. If the stream isn't available at declaration time, restructure — see patterns above.
+For complex stream patterns (accumulation, dynamic stream creation, init/refresh separation) see [complex-cubit-patterns.md](./complex-cubit-patterns.md) sections 2, 3, and 5.
 
 ---
 
@@ -1004,7 +943,7 @@ HomeScreenState useHomeScreenState({
 
 ## 15. Global mutable state from Cubit
 
-Cubits sometimes carry top-level mutable variables or `static` fields that act as cross-instance caches or singletons. These don't belong as top-level variables in hooks code.
+Cubits sometimes carry top-level mutable variables or `static` fields that act as cross-instance caches or singletons. These don't belong as top-level variables in hooks code. For complex cases (multiple globals, caches, rate-limit state), see [complex-cubit-patterns.md](./complex-cubit-patterns.md) section 4.
 
 ### BLoC
 

@@ -180,20 +180,26 @@ final profile = useMemoizedFutureData(
 
 ### useStreamSubscription
 
-Subscribe and react to each event — use when you need side effects per event, not just the latest value.
+Subscribe and react to each event — use when you need side effects per event, not just the latest value. Accepts `Stream<T>?` — null stream is a no-op. **Re-subscribes automatically** when the stream reference changes (internally uses `useEffect` with `[stream]`).
 
 ```dart
 useStreamSubscription(
   eventStream,
   (event) async => handleEvent(event),
   strategy: StreamSubscriptionStrategy.drop,  // drop new events while handling current
+  onDone: () => isComplete.value = true,
+  onError: (e, st) => logger.error(e),
 );
+
+// Nullable stream — no subscription until stream is available
+final stream = useMemoizedIf(isReady, () => buildStream(), [dep]);
+useStreamSubscription(stream, (event) async => handle(event));
 ```
 
 Strategies:
 | Strategy | Behavior |
 |----------|----------|
-| `parallel` | Handle events concurrently |
+| `parallel` | Handle events concurrently (default) |
 | `pause` | Pause stream while handler runs |
 | `drop` | Drop new events while handler runs |
 
