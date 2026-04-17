@@ -162,7 +162,7 @@ class CounterScreenView extends StatelessWidget {
 | [pubspec-migration.md][pubspec] | CRITICAL | Dependency changes: version resolution, BLoC removal, validation |
 | [migration-steps.md][steps] | HIGH | Project-level migration orchestration: pubspec, providers, screen loop, final cleanup |
 | [global-state-migration.md][global] | HIGH | Provider tree → _providers, RepositoryProvider → useInjected bridge |
-| [screen-migration-flow.md][flow] | HIGH | Per-screen 4-phase migration: analysis, migration, self-review, exit gate |
+| [screen-migration-flow.md][flow] | HIGH | Per-screen 4-phase migration: analysis (incl. pre-flight cleanup sweep for dead/fake code), migration, self-review, exit gate |
 
 [mapping]: references/bloc-to-hooks-mapping.md
 [pubspec]: references/pubspec-migration.md
@@ -277,6 +277,21 @@ useEffect(() { subscription.value = stream.listen(...); return () => subscriptio
 useStreamSubscription(stream, (event) async => handleEvent(event));
 // ✅ OR: useMemoizedStream / useMemoizedStreamData for reading latest value
 final data = useMemoizedStream(service.streamData);
+
+// ❌ NEVER: preserve a fake stream from the service layer (async* over in-memory data)
+// WHY: a Stream<T> whose generator body has no real await (just iterating a Map/List/Set)
+//      is synchronous iteration in disguise. Preserving it forces useStreamSubscription
+//      on synchronous data in the migrated hook — a NEW antipattern worse than the BLoC original.
+//      Kill it during Phase 1c cleanup sweep (see screen-migration-flow.md), don't port.
+Stream<Comment> getCommentsStream({required List<int> ids}) async* {
+  for (final id in ids) {
+    final c = _memoryMap[id];   // in-memory lookup, zero real await
+    if (c != null) yield c;
+  }
+}
+// ✅ INSTEAD: plain sync iteration, consumed directly
+Iterable<Comment> getComments(List<int> ids) sync* { /* ... */ }
+// In hook: final comments = ids.map(cache.getComment).whereNotNull().toList();
 ```
 
 ## Exit Gate — migration is NOT done until ALL of these pass

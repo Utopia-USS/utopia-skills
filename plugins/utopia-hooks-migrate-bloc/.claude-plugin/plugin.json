@@ -1,7 +1,7 @@
 {
   "name": "utopia-hooks-migrate-bloc",
   "description": "Migrate Flutter BLoC/Cubit codebases to utopia_hooks. Per-screen migration flow with automated exit-gate enforcement. Recommended companion: utopia-hooks plugin.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "UtopiaSoftware"
   },

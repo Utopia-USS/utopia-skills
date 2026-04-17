@@ -40,7 +40,68 @@ Before writing any code, assess the Cubit/Bloc being migrated.
 | Global mutable state | None | Static fields, top-level mutable vars |
 | Estimated hook size | <300 lines | >300 lines |
 
-### 1c. Decomposition plan (complex only)
+### 1c. Pre-flight cleanup sweep
+
+Before Phase 2, identify code that should NOT be ported. Migration is expensive — do NOT port what shouldn't exist. A faithful 1:1 translation of dead or fake code just rehomes the smell with new syntax.
+
+**Scan two things:**
+
+1. **Dead methods** — for each public method on the Cubit and each service/repo method consumed only by this Cubit, grep callers in `lib/`. No callers outside the Cubit/method itself → candidate to delete, don't migrate.
+
+   ```bash
+   grep -rn 'cubitInstance\.methodName\|someRepo\.methodName' lib/
+   ```
+
+2. **Fake streams in service layer** — for each `Stream<T>` returning method in repos/services consumed by the Cubit, open the `async*` generator body. Does it contain a **non-trivial `await`** (HTTP, disk I/O with real latency, timers)?
+   - **NO** (just iterating a `Map`/`List`/`Set` in memory) → fake stream — synchronous iteration in disguise.
+   - **YES** → real stream, migrate normally.
+
+   ```dart
+   // ❌ FAKE — async* body only reads memory, no non-trivial await
+   Stream<Item> streamCached(List<int> ids) async* {
+     for (final id in ids) {
+       final item = _memoryCache[id];          // sync Map lookup
+       if (item != null) yield item;
+     }
+   }
+
+   // ✅ REAL — each yield awaits actual I/O
+   Stream<Item> fetchFromApi(List<int> ids) async* {
+     for (final id in ids) {
+       final item = await httpClient.get(id);  // real network round-trip
+       if (item != null) yield item;
+     }
+   }
+   ```
+
+   Fake streams warrant kill, not preserve. Preserving one forces `useStreamSubscription` on synchronous data in the migrated hook — a new antipattern worse than the BLoC original. See also the "NEVER preserve a fake stream" anti-pattern in [SKILL.md](../SKILL.md#migration-anti-patterns--never-do-these).
+
+**Kill-vs-defer rule (apply per finding):**
+
+```
+1. Callers exist at all?
+   NO  → kill (zero blast radius, always safe)
+   YES → step 2
+2. All callers inside files of THIS migration?
+   YES → kill + update those callers (they're being rewritten anyway)
+   NO  → step 3
+3. External callers ≤ 2 and trivial to update?
+   YES → kill + touch those 1-2 files
+   NO  → defer — note in PR description as follow-up, do NOT fix inline (scope creep)
+```
+
+**Output:** a list with action labels, e.g.:
+
+```
+[kill]  CommentCache.getCommentsStream — dead (0 callers)
+[kill]  ItemCubit.legacyLoad — dead (0 callers)
+[kill]  repo.getCachedCommentsStream — fake (async* over Map), only consumed by this Cubit
+[defer] SharedStorage.observeAll — fake but used by 5 other screens (out of scope)
+```
+
+Phase 2 skips every `[kill]` item — delete, do not port. `[defer]` items go into the PR description as follow-up work; do NOT fix inline.
+
+### 1d. Decomposition plan (complex only)
 
 If any indicator is "Complex", plan the decomposition BEFORE writing code:
 
@@ -65,7 +126,7 @@ For simple screens, skip this — proceed directly to Phase 2.
 
 ## Phase 2: Migration
 
-> **Hard gate (Complex screens only):** If Phase 1 classified the screen as Complex, you MUST have a decomposition plan from Phase 1c with sub-hooks listed. Do NOT proceed without it. Each sub-hook MUST be a separate file. No single hook file may exceed ~300 lines. If you skipped 1c — go back now.
+> **Hard gate (Complex screens only):** If Phase 1 classified the screen as Complex, you MUST have a decomposition plan from Phase 1d with sub-hooks listed. Do NOT proceed without it. Each sub-hook MUST be a separate file. No single hook file may exceed ~300 lines. If you skipped 1d — go back now.
 
 Execute the migration using patterns from [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md). For complex cubits, also load [complex-cubit-patterns.md](./complex-cubit-patterns.md) — it covers stream accumulation, dynamic stream creation, init/refresh de-duplication, top-level mutable state, and navigation callbacks that simple mappings don't address.
 
@@ -74,6 +135,7 @@ Execute the migration using patterns from [bloc-to-hooks-mapping.md](./bloc-to-h
 ```
 □ Rename _cubit.dart / _bloc.dart → _state.dart (move to lib/state/ or screen's state/)
 □ Delete old Freezed state files, event files
+□ Apply [kill] list from Phase 1c — delete dead methods, remove fake streams, update their in-scope callers
 □ Update barrel exports
 ```
 

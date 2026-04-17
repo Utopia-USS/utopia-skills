@@ -106,7 +106,16 @@ ScreenState useScreenState() {
 
 ## 2. Streams in complex cubits
 
-Most streams emit a **complete value** — a full list, an object, a snapshot of current state. For these, use `useMemoizedStream` / `useMemoizedStreamData` and pass to View. No accumulation, no side effects:
+Streams fall into two shapes by source — the shape dictates the hook:
+
+| Source shape | Each emission | Hook |
+|---|---|---|
+| **Complete-state** (Firestore query, Stream.io feed, SQL observer, BehaviorSubject) | Full list/object/snapshot | `useMemoizedStream` / `useMemoizedStreamData` |
+| **Per-item** (recursive fetch, paged scraper, Firebase-per-document, file-by-file watcher) | One item | `useStreamSubscription` + `useState<IList<T>?>` accumulator (see below) |
+
+Both shapes are legitimate — match the hook to the source. Don't "fix" accumulation if the API genuinely produces per-item emissions, and don't force per-item handling onto a complete-state source.
+
+**Complete-state** — pass to View, no side effects needed:
 
 ```dart
 // Stream<List<Item>> — complete state per emission
@@ -129,9 +138,9 @@ useEffect(() {
 }, [rawItems]);
 ```
 
-### Stream accumulation (rare — events → growing list)
+### Stream accumulation — per-item sources
 
-Some APIs emit **individual items one by one** (e.g. recursive fetch that yields each item as it's resolved). This is NOT the typical stream pattern — most streams emit complete state. Only use accumulation when the stream genuinely emits incremental events.
+Per-item APIs emit individual items one by one — a recursive fetch yielding each resolved item, a paged scraper yielding each parsed element, a Firebase-per-document API that returns one doc at a time, a watcher emitting each new event. The hook accumulates into a list. This is not a code smell when the API genuinely produces per-item emissions — it's the right pattern for that source shape.
 
 The cubit pattern:
 

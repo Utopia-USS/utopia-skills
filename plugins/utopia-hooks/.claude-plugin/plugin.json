@@ -1,7 +1,7 @@
 {
   "name": "utopia-hooks",
   "description": "Flutter state management with utopia_hooks. Screen/State/View pattern, hook catalog, global state, and enforcement of conventions via PostToolUse checks.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "UtopiaSoftware"
   },
