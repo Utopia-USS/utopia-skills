@@ -952,6 +952,7 @@ HomeScreenState useHomeScreenState({
 | Non-text controller creation + `dispose` (e.g., `PageController`, `ScrollController`) | `useMemoized(() => Controller(), [args], (it) => it.dispose())` + listener hook. **NOT for TextEditingController** — use `useFieldState` + `TextEditingControllerWrapper` (section 12) |
 | `didChangeDependencies` | Hook body runs on every rebuild (reactive by default) |
 | `didUpdateWidget` | `useEffect` with keys matching changed widget parameters |
+| `WidgetsBindingObserver` + `didChangeAppLifecycleState` | `useAppLifecycleState(onPaused:, onResumed:, ...)` — see section 16 |
 | Side effects in `build()` (comparing old/new) | `useEffect` with keys — never put side effects in build |
 | `context.get<T>()` / `context.watch<T>()` | `useProvided<T>()` — always reactive |
 
@@ -994,6 +995,58 @@ class CollapseService {
 ```
 
 **Rule:** Top-level mutable variables and `static` mutable fields from Cubits should become either a registered service (in your DI, accessed via `useInjected`) or global state (via `_providers`). Never keep them as top-level `late` / mutable variables in hook files.
+
+---
+
+## 16. WidgetsBindingObserver / AppLifecycleState → useAppLifecycleState
+
+Screens (or app-root widgets) that react to the app going foreground/background — saving drafts on `paused`, refreshing on `resumed`, pausing timers on `inactive` — typically implement `WidgetsBindingObserver` + `didChangeAppLifecycleState` inside a `StatefulWidget`. utopia_hooks provides `useAppLifecycleState` as the direct drop-in. **Do not create a service wrapper** — the hook is the target.
+
+### BLoC / StatefulWidget
+
+```dart
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        context.read<DraftCubit>().saveDraft();
+        break;
+      case AppLifecycleState.resumed:
+        context.read<FeedCubit>().refresh();
+        break;
+      default:
+        break;
+    }
+  }
+}
+```
+
+### utopia_hooks
+
+```dart
+// Inside the state hook — no service, no observer, no dispose
+useAppLifecycleState(
+  onPaused: () => draftService.saveDraft(draft.value),
+  onResumed: () => feedState.refresh(),
+);
+```
+
+All callbacks are optional (`onResumed`, `onPaused`, `onInactive`, `onDetached`, `onHidden`) — pass only the ones you need. Auto-disposed when the hook unmounts.
+
+**Anti-pattern during migration:** wrapping `WidgetsBindingObserver` in an `AppLifecycleService` injected via `useInjected<AppLifecycleService>()`. If you find yourself writing such a service, STOP — replace with `useAppLifecycleState` directly in the state hook.
 
 ---
 

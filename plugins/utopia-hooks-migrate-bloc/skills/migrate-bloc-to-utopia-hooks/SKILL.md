@@ -163,12 +163,22 @@ class CounterScreenView extends StatelessWidget {
 | [migration-steps.md][steps] | HIGH | Project-level migration orchestration: pubspec, providers, screen loop, final cleanup |
 | [global-state-migration.md][global] | HIGH | Provider tree → _providers, RepositoryProvider → useInjected bridge |
 | [screen-migration-flow.md][flow] | HIGH | Per-screen 4-phase migration: analysis (incl. pre-flight cleanup sweep for dead/fake code), migration, self-review, exit gate |
+| [complex-cubit-patterns.md][complex] | HIGH | Decomposition, ownership graph, reactive inputs, async-setup → stream, stream accumulation, dynamic streams, navigation callbacks — read for any Complex-classified screen |
+| [post-migration-refactor-checklist.md][post] | HIGH | **5th phase** — 11 named anti-patterns with grep-shapes and fix patterns for post-migration bloat that exit-gate greps don't catch (coordination in sub-hooks, per-item state in screen scope, mutable derivations, fat aggregators). Run per Complex screen after exit gate passes. |
+| [complex-state-examples.md][complex-examples] (foundation skill) | HIGH | Five anonymised reference shapes for complex state (pipeline / dashboard / parent-owned list / per-item widget-level / multi-step flow) — what the migrated result looks like. Lives in the foundation skill because the shapes apply to new screens too. |
+| [paginated.md][paginated] (foundation skill) | HIGH | `usePaginatedComputedState` + `PaginatedComputedStateWrapper`: cursor/page/token schemes, loadMore, refresh, debounce, dedup, optimistic overlay — target pattern for any BLoC/Cubit that paginated lists manually. |
 
 [mapping]: references/bloc-to-hooks-mapping.md
 [pubspec]: references/pubspec-migration.md
 [steps]: references/migration-steps.md
 [global]: references/global-state-migration.md
 [flow]: references/screen-migration-flow.md
+[complex]: references/complex-cubit-patterns.md
+[post]: references/post-migration-refactor-checklist.md
+[complex-examples]: ../../../utopia-hooks/skills/utopia-hooks/references/complex-state-examples.md
+[composable]: ../../../utopia-hooks/skills/utopia-hooks/references/composable-hooks.md
+[paginated]: ../../../utopia-hooks/skills/utopia-hooks/references/paginated.md
+[screen-svv]: ../../../utopia-hooks/skills/utopia-hooks/references/screen-state-view.md
 
 ## Problem → Reference
 
@@ -184,9 +194,19 @@ class CounterScreenView extends StatelessWidget {
 | Adding/removing pubspec dependencies | [pubspec-migration.md][pubspec] |
 | Which package version to use | [pubspec-migration.md][pubspec] |
 | Per-screen migration with self-review | [screen-migration-flow.md][flow] |
-| Complex screen with streams/lifecycle/large state | [screen-migration-flow.md][flow] |
+| Complex screen with streams/lifecycle/large state | [complex-cubit-patterns.md][complex] + [screen-migration-flow.md][flow] Phase 1d |
+| Multi-domain cubit (fetch + search + scroll) | [complex-cubit-patterns.md][complex] §1 (decomposition) + §0 (ownership graph) |
+| Cubit has `updateX(T)` methods that trigger re-fetch | [complex-cubit-patterns.md][complex] §5 "Reactive inputs vs. mutators" |
+| Multi-await setup before stream.listen | [complex-cubit-patterns.md][complex] §3 Pattern A (extended) |
+| List item has its own state (expand, async, drafts) | [composable-hooks.md][composable] "Per-item state: three archetypes" (foundation skill) |
+| Migrating a Cubit/BLoC that loads paginated lists | [paginated.md][paginated] (foundation skill) |
+| What does good look like? | [complex-state-examples.md][complex-examples] (foundation skill) |
 | Migrating stream.listen() calls | [bloc-to-hooks-mapping.md][mapping] (section 13) |
 | Migrating StatefulWidget with lifecycle | [bloc-to-hooks-mapping.md][mapping] (section 14) |
+| Screen migrated + exit gate passed, but state/ still feels bloated | [post-migration-refactor-checklist.md][post] |
+| Sub-hook grew over ~200 LoC during migration | [post-migration-refactor-checklist.md][post] §A (coordination in wrong layer) |
+| Aggregator has 20+ `required` fields mostly proxying sub-state | [post-migration-refactor-checklist.md][post] §D1 (getter-delegate collapse) |
+| Screen file has top-level `_onXTapped(context, ...)` helpers | [screen-state-view.md][screen-svv] "Top-level helpers in Screen file" (foundation skill) |
 
 ## Non-Negotiable Migration Rules
 
@@ -304,7 +324,9 @@ See [pubspec-migration.md][pubspec] for exact steps: fetch version from pub.dev,
 
 ### 2. `dart analyze` returns zero errors
 
-Run `dart analyze`. If it reports ANY issues → fix → re-run → fix → re-run. Loop until `No issues found`.
+Run `dart analyze` (prefer Dart MCP `analyze_files`). If it reports ANY issues → fix → re-run → fix → re-run. Loop until `No issues found`.
+
+Before running analyze, always run `dart_fix` + `dart_format` on touched files first — removes analyzer-auto-fixable noise (unused imports, `prefer_const_*`, trailing commas, `lines_longer_than_80_chars`) and strips info-level diagnostics that otherwise swamp the real errors. See the migration agents' Phase 3b / Step 5 for the exact step.
 
 | Common error | Fix |
 |---|---|
@@ -359,6 +381,71 @@ grep -rn '^final Map\|^final List\|^final Set\|^DateTime?\|^int \|^bool ' lib/st
 Compare total lines in migrated hook+state files vs original cubit+state files. If migrated code exceeds **60%** of original line count for Complex screens (50% for Medium) — investigate. This usually means missed hook features (`useAutoComputedState`, `useSubmitState`, `useMemoizedStream`) or missing decomposition.
 
 **If ANY grep returns results → fix them. The migration is not done.**
+
+## Agent Orientation — canonical reference loading
+
+Every migration agent (`foundation`, `global-state`, `screen`, `review`) runs in a fresh context and needs to load the authoritative references before writing code. This table is the single source of truth — each agent's pre-flight points here with its own role-specific subset.
+
+### Resolving reference paths (CRITICAL)
+
+Agents run with CWD set to the **target Flutter project**, not this plugin's dev repo. Relative paths like `plugins/utopia-hooks/skills/utopia-hooks/` will NOT resolve — they only work in the plugin source repo.
+
+**Resolve plugin files via `${CLAUDE_PLUGIN_ROOT}`.** This env var is set by the Claude Code harness to the currently-running plugin's install dir, e.g. `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`.
+
+- **This plugin's files** (migrate-bloc skill): `${CLAUDE_PLUGIN_ROOT}/skills/migrate-bloc-to-utopia-hooks/<file>`
+- **Sibling plugin's files** (utopia-hooks foundation skill): resolve via `~/.claude/plugins/installed_plugins.json` — it gives the current `installPath` for `utopia-hooks@utopia-claude-skills`. The skill lives at `<installPath>/skills/utopia-hooks/<file>`.
+
+The installed plugin is the authoritative source — load from there first. If `${CLAUDE_PLUGIN_ROOT}` is unset or the sibling plugin is not installed, fall back to whatever you can find, but note it in `self_report.warnings`.
+
+### Migrate-bloc references (this skill)
+
+| Reference | Purpose | Loaded by |
+|---|---|---|
+| `SKILL.md` (this file) | Concept map + anti-patterns + exit gate + this table | all agents |
+| `references/bloc-to-hooks-mapping.md` | Every pattern → hooks equivalent | global-state, screen, review |
+| `references/global-state-migration.md` | `_providers` + `useInjected` bridge patterns | foundation, global-state, screen |
+| `references/pubspec-migration.md` | Dependency changes, version fetching | foundation |
+| `references/screen-migration-flow.md` | Phase 1–4 per-screen flow | screen, review |
+| `references/complex-cubit-patterns.md` | Decomposition, streams, lifecycle — **conditional** | global-state (if Cubit has `.listen`, lifecycle, or >10 methods), screen (if complexity=complex) |
+| `references/migration-steps.md` | Project-level orchestration | orchestrator only |
+
+### Foundation-skill references (sibling `utopia-hooks` plugin)
+
+Path resolution: see "Resolving reference paths" above. In short: read `~/.claude/plugins/installed_plugins.json` → pluck `installPath` for `utopia-hooks@utopia-claude-skills` → references live at `<installPath>/skills/utopia-hooks/<file>`.
+
+| Reference | Purpose | Loaded by |
+|---|---|---|
+| `SKILL.md` (foundation) | Screen/State/View + hook rules | global-state, screen |
+| `references/async-patterns.md` | Loading/submitting patterns | global-state, screen |
+| `references/paginated.md` | Pagination — **conditional** | screen (if Cubit paginates) |
+| `references/composable-hooks.md` | Decomposition — **conditional** | screen (if complex) |
+| `references/complex-state-examples.md` | Reference shapes — **conditional** | global-state, screen (non-trivial cases) |
+
+**Follow these literally.** When a pattern in the code doesn't match any mapping in the references, return `status: other_error` with the unmapped pattern cited — do not invent a translation.
+
+## Output Hygiene Protocol — canonical for all write-capable agents
+
+`foundation`, `global-state`, and `screen` agents all write files. Before returning, every such agent must run the same output-hygiene step so the downstream review agent sees formatted code with analyzer-auto-fixable noise removed.
+
+**Prefer Dart MCP** (matches the `utopia-hooks` plugin convention):
+
+1. `dart_fix` on files_touched — applies analyzer-suggested auto-fixes (unused imports, `prefer_const_constructors`, `unnecessary_this`, etc.). Safe, idempotent.
+2. `dart_format` on files_touched — normalizes style (line breaks, trailing commas, project-configured line length).
+
+**Bash fallback** when Dart MCP is unavailable:
+
+```bash
+dart fix --apply <files_touched>
+dart format <files_touched>
+```
+
+**Scope strictly to `files_touched`.** Do not format unrelated files — the per-commit diff must be tight and predictable. If `dart_fix` / `dart_format` complains about an untouched file, leave it alone and note in `self_report.warnings`.
+
+**If formatting fails** (syntax error in what you wrote) → fix the syntax, re-run format, then return. Never return unformatted code.
+
+**Report back** in `self_report.formatted: true` once the step succeeds.
+
+**Do NOT run `dart analyze`, `flutter pub get`, or tests here.** The review agent owns verification; `dart_fix`/`dart_format` are the sole exceptions — they are required output hygiene, not verification.
 
 ## Attribution
 

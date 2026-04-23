@@ -105,22 +105,64 @@ Phase 2 skips every `[kill]` item — delete, do not port. `[defer]` items go in
 
 If any indicator is "Complex", plan the decomposition BEFORE writing code:
 
-1. Group related methods by domain (e.g., fetching, search, scroll, selection)
-2. Each group becomes a sub-hook with its own state object
-3. List the sub-hooks and their inputs/outputs
-4. Identify how the main screen hook will compose them
+1. **Draw the ownership graph** — nodes = mutable state fields, edges = reads/writes between hooks. See [complex-cubit-patterns.md §0](./complex-cubit-patterns.md#0-draw-the-ownership-graph-first-write-code-second). Verify: single writer per node, acyclic, no callback-upstream edges.
+2. **Pull out per-item state** — if any state is per-list-item (expansion, per-item async, per-tile resources), it belongs in a widget-level hook per `utopia-hooks:references/composable-hooks.md` "Per-item state: three archetypes," not in screen sub-hooks. Remove from screen scope before continuing.
+3. **Reclassify `updateX(T)` methods** — those that change a config flag and re-fetch are reactive inputs, not sub-hook methods. See [complex-cubit-patterns.md §5 "Reactive inputs vs. mutators"](./complex-cubit-patterns.md#reactive-inputs-vs-mutators). Plan them as `MutableValue<T>` at the aggregator, not as sub-hook API.
+4. Group remaining methods by domain (e.g., fetching, search, scroll, selection)
+5. Each group becomes a sub-hook with its own state object
+6. List the sub-hooks and their inputs/outputs
+7. Identify how the main screen hook will compose them
 
 See `utopia-hooks:references/composable-hooks.md` Pattern 3 for the decomposition pattern and [complex-cubit-patterns.md](./complex-cubit-patterns.md) section 1 for domain identification techniques and shared state handling.
 
-**Output:** A list like:
+**Output:** An ownership graph + a sub-hook list like:
 ```
-useOrderFetchState() — handles initial load + pagination
-useOrderSearchState(orders) — filter/search, takes fetched orders as input
-useOrderScrollState(hasMore, loadMore) — infinite scroll, takes fetch callbacks
-Main useOrderScreenState() — composes all three
+Graph (state → writer):
+  items: IList<Item> → fetch
+  order: CommentsOrder → screen (reactive input)
+  searchQuery: String → search
+  scrollOffset: double → scroll
+
+Sub-hooks:
+  useOrderFetchState(order)                — handles initial load + pagination
+  useOrderSearchState(items)               — filter/search, takes fetched items as input
+  useOrderScrollState(hasMore, loadMore)   — infinite scroll, takes fetch callbacks
+  Main useOrderScreenState()               — owns `order`, composes all three
 ```
 
 For simple screens, skip this — proceed directly to Phase 2.
+
+### 1e. Widget subtree manifest
+
+A **screen** is not just `xxx_screen.dart` — it is the entire widget tree that screen renders. The migration scope MUST include every widget in that tree whose file lives in the screen's subtree directory. Otherwise the screen ends up half-migrated: Screen + State on hooks, child widgets still on BLoC.
+
+Build the manifest by walking the tree:
+
+1. **Start node:** the screen file (`lib/screens/<stem>_screen.dart` or equivalent).
+2. **Walk imports:** for each `import` in the current file that resolves inside the screen's subtree directory (`lib/screens/<stem>/**`, `lib/<stem>/widgets/**`, or project-equivalent sibling folders), open the imported file and recurse.
+3. **Walk `showDialog` / `showModalBottomSheet` / `Navigator.push(..., MaterialPageRoute(builder: …))` targets** whose builder widget class lives in the screen's subtree — include those widgets too.
+4. **Stop at shared folders** (`lib/screens/widgets/**`, `lib/common/**`, `lib/shared/**`). These are NOT in the manifest for this screen. Flag each consumed shared widget in `self_report.shared_widgets_touched` — if its dependencies (Cubits) are already migrated globally, the screen agent may still need to rewire the shared widget, but only if all other consumers of the shared widget either (a) are already migrated or (b) don't use that Cubit. Otherwise defer to a dedicated commit.
+
+**Manifest output shape:**
+
+```
+manifest:
+  owned:                         # in screen's subtree — MUST be migrated in this commit
+    - lib/screens/item/item_screen.dart
+    - lib/screens/item/item_screen_view.dart
+    - lib/screens/item/widgets/reply_box.dart
+    - lib/screens/item/widgets/more_popup_menu.dart
+    - ...
+  shared:                        # consumed but lives outside subtree — reason per entry
+    - path: lib/screens/widgets/fav_icon_button.dart
+      action: rewire             # all its Cubit deps are migrated globally, safe to flip
+    - path: lib/screens/widgets/tips/tips_overlay.dart
+      action: defer              # also consumed by 3 other unmigrated screens
+  dialogs:                       # launched via showDialog/showModalBottomSheet from owned files
+    - lib/screens/item/widgets/login_dialog.dart
+```
+
+**Phase 2 scope = `manifest.owned` + any `shared` entries with `action: rewire`.** No partial migration: if a file is in the migration scope, every `BlocBuilder` / `BlocListener` / `context.read` / `context.watch` in it must be gone by the end of Phase 2, regardless of whether it sits in `_screen.dart` or a deep `widgets/**` file.
 
 ---
 
@@ -225,6 +267,30 @@ grep -n 'useState<bool>.*loading\|useState<bool>.*isLoading\|useState.*Status' <
 - `useSubmitState` for mutations (writing)
 - `useStreamSubscription` / `useMemoizedStream` for stream-based state
 
+**Coexistence check (derived state antipattern).** A file that uses `useAutoComputedState`, `useSubmitState`, or `usePaginatedComputedState` MUST NOT also track `isLoading` / `isInProgress` / `isLoaded` / `isFetching` / `hasLoaded` via `useState<bool>`. Those flags are already derived from the computed state's value (`is ComputedStateValueInProgress`, `.inProgress`, etc.). Tracking both = duplicated state, drift-prone.
+
+```bash
+# For each file that uses a computed-state hook, it MUST NOT also have a manual loading flag.
+for f in $(grep -l 'useAutoComputedState\|usePaginatedComputedState\|useSubmitState' <migrated_state_files>); do
+  grep -nE 'useState<bool>.*\b(isLoading|isInProgress|isLoaded|isFetching|hasLoaded|loading)\b' "$f" \
+    && echo "FAIL: $f has both computed-state hook AND manual loading flag"
+done
+```
+
+**Expected: no FAIL lines.** If found → derive the flag instead:
+
+```dart
+// ❌ duplicated state
+final planState = useAutoComputedState(...);
+final isInProgress = useState(false);
+// … manually flip isInProgress.value true/false alongside planState
+
+// ✅ pochodne
+final planState = useAutoComputedState(...);
+final bool isInProgress = planState.value is ComputedStateValueInProgress;
+final bool hasData = planState.value is ComputedStateValueReady;
+```
+
 ### 3e. Side effects in build
 
 Review the migrated code for:
@@ -254,7 +320,42 @@ grep -n '^final Map\|^final List\|^final Set\|^DateTime?\|^int \|^bool ' <migrat
 
 **Expected: 0 results.** Top-level mutable variables should become a registered service (`useInjected`) or global state (`_providers`). See [bloc-to-hooks-mapping.md](./bloc-to-hooks-mapping.md) section 15.
 
-### 3h. Deep review (if any check failed)
+### 3h. No global-state re-export in State classes
+
+A screen's State class must **not** hold a field whose type is another screen's global State (e.g. `AuthGlobalState authState`, `FavGlobalState favState`). Re-exporting a whole global object forces every child widget to rebuild on any field change of that global, defeating the point of `useProvided`'s granular reactivity. It also couples the View to the global's full surface.
+
+**Two legitimate patterns for passing global data to the View:**
+
+1. **Selective projection in the State class.** State exposes only the specific primitives the View needs:
+   ```dart
+   class TaskScreenState {
+     final bool isLoggedIn;     // from authState.isLoggedIn
+     final FontSize fontSize;   // from preferenceState.fontSize
+     // NOT: final AuthGlobalState authState;
+   }
+   ```
+2. **Per-widget `useProvided` inside widget-level hooks.** The child widget (if it's a HookWidget) calls `useProvided<XGlobalState>()` itself — it reads exactly what it needs, rebuilds independently.
+
+Sub-hook state objects (from Phase 1d decomposition, e.g. `CommentsFetchState`, `CommentsScrollState` within the same screen's `state/` folder) are NOT globals and MAY be held as fields on the aggregator State class. That's what "aggregator" means. The rule is specifically about **cross-screen global State re-export**.
+
+```bash
+# Detect global-state fields: types that live in lib/state/** (the globals folder),
+# referenced as field types in files under a screen's state/ folder.
+# Heuristic: match `final XGlobalState `/`final XState ` where X's type is defined in lib/state/
+for f in <migrated_state_files_in_screen_scope>; do
+  grep -nE '^\s+final [A-Z]\w*(GlobalState|State)\s+\w+;' "$f" | while read -r line; do
+    type_name=$(echo "$line" | grep -oE '[A-Z]\w*(GlobalState|State)')
+    # If the type is defined in lib/state/<lowercase>.dart (global), fail.
+    if ls "$repo_root/lib/state/"*.dart 2>/dev/null | xargs grep -l "^class $type_name\b" >/dev/null 2>&1; then
+      echo "FAIL: $f: State re-exports global $type_name (line: $line)"
+    fi
+  done
+done
+```
+
+**Expected: no FAIL lines.** If found → replace the field with selective projections or have the consuming widget call `useProvided<XGlobalState>` itself.
+
+### 3i. Deep review (if any check failed)
 
 If any check above failed and the fix isn't obvious, load the `utopia-hooks` skill and review the migrated code against its patterns. The skill's Self-Audit Checklist and async-patterns reference are particularly useful here.
 
@@ -272,14 +373,16 @@ dart analyze
 # If ANY errors → fix → re-run → repeat until "No issues found"
 ```
 
-### 4b. BLoC artifact greps (scoped to migrated files)
+### 4b. BLoC artifact greps (scoped to manifest)
+
+Scope = full Phase 1e manifest (owned + rewired shared), not just `_screen.dart` / state files. Every file in the manifest is in scope for the BLoC audit — if it still reads a Cubit whose global version is registered, the migration is incomplete.
 
 ```bash
-grep -n 'context\.read<\|context\.watch<\|BlocBuilder\|BlocListener\|BlocProvider' <migrated_files>
-grep -n 'package:flutter_bloc' <migrated_files>
+grep -n 'context\.read<\|context\.watch<\|context\.select<\|BlocBuilder\|BlocListener\|BlocConsumer\|BlocProvider' <manifest_files>
+grep -n 'package:flutter_bloc' <manifest_files>
 ```
 
-**Expected: 0 results.**
+**Expected: 0 results for any Cubit with a migrated hook version.** If a Cubit in the result has no hook version yet (not in `_providers.dart`), it's parallel coexistence — acceptable, note in `self_report.warnings`. If it DOES have a hook version, fail: the widget was missed in Phase 2.
 
 ### 4c. Stream and lifecycle greps (repeat from Phase 3, final confirmation)
 
@@ -300,7 +403,35 @@ grep -n '^final Map\|^final List\|^final Set\|^DateTime?\|^int \|^bool ' <migrat
 
 **Expected: 0 results.**
 
-### 4e. Commit
+### 4e. Ownership-graph sanity (Complex screens only)
+
+Re-read the ownership graph drawn in Phase 1d. For each node:
+
+```
+□ Still single writer?
+□ No new edges introduced during Phase 2 that point upstream (sub-hook → parent via callback)?
+□ No cycles between sub-hooks introduced?
+```
+
+Zero-cost if the graph is up to date — it's a 30-second sanity check. Caught-here violations are usually a sub-hook that grew an `onSomething` callback parameter that reaches back into the parent's state, or a top-level `_helper()` in a state file that mutates shared state behind one hook's back.
+
+### 4f. Manual smoke-test handoff
+
+Static greps catch structural violations but not runtime behaviour. Before committing, open the migrated screen manually (runtime) and verify the golden path:
+
+```
+□ Screen renders without crash on fresh entry
+□ Primary data loads on first render (not just "hook runs" — data actually appears)
+□ Pull-to-refresh / retry actions fire and observably update UI
+□ Primary user actions (submit, edit, expand, navigate) work end-to-end
+□ Cross-screen navigation round-trip works (push, pop back, re-enter)
+```
+
+This is not an automated check — it's a handoff to yourself. Catches the class of bug where the hook compiles and all greps pass but nothing actually happens because a trigger wasn't wired (e.g. `init()` port that's never called, `useAutoComputedState` without `shouldCompute: true`, stream subscription on a stream nothing ever produces to).
+
+If automated, it belongs in your app's e2e / widget test suite. If you don't have those for the screen, the manual pass IS the test.
+
+### 4g. Commit
 
 All checks pass → commit this screen. Move to the next screen (back to Phase 1).
 
