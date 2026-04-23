@@ -1,7 +1,7 @@
 ---
 title: Async Patterns
 impact: HIGH
-tags: async, useSubmitState, useAutoComputedState, loading, error, forms
+tags: async, useSubmitState, useAutoComputedState, usePaginatedComputedState, pagination, infinite-scroll, loading, error, forms
 ---
 
 # Skill: Async Patterns
@@ -10,13 +10,14 @@ Async operations in utopia_hooks follow a **download / upload** mental model:
 
 | Direction | Hook | Trigger | Examples |
 |-----------|------|---------|----------|
-| **Download** (read) | `useAutoComputedState` | Automatic (keys change) | Load screen data, fetch list, search results |
+| **Download** (read, one-shot) | `useAutoComputedState` | Automatic (keys change) | Load screen data, fetch list, search results |
+| **Download** (read, paginated) | `usePaginatedComputedState` | Automatic first page + `loadMore` | Feeds, paginated search, chat history — see [paginated.md](./paginated.md) |
 | **Upload** (write) | `useSubmitState` | Manual (user action) | Save, delete, send, create — any mutation |
 | **Stream** (reactive) | `useMemoizedStream` | Continuous | Real-time updates, auth state, live data |
 
-**Default rule:** reading → `useAutoComputedState`, writing → `useSubmitState`, reactive → `useMemoizedStream`.
+**Default rule:** reading one-shot → `useAutoComputedState`, reading paged → `usePaginatedComputedState`, writing → `useSubmitState`, reactive → `useMemoizedStream`.
 
-## Quick Pattern
+## Why these hooks — the anti-pattern
 
 **Incorrect (manual loading flag):**
 ```dart
@@ -37,24 +38,11 @@ Future<void> submit() async {
 }
 ```
 
-**Correct (useSubmitState):**
-```dart
-final submitState = useSubmitState();
-
-// Default: let errors crash. Don't swallow exceptions.
-void submit() => submitState.runSimple<void, Never>(
-  submit: () async => service.save(data),
-  afterSubmit: (_) => navigateBack(),
-);
-
-// In State output:
-isSaving: submitState.inProgress,
-saveButtonState: submitState.toButtonState(enabled: isFormValid, onTap: submit),
-```
+For canonical signatures of `useSubmitState` / `useAutoComputedState` / `useMemoizedStream`, see [hooks-reference.md](./hooks-reference.md) §3–4. This file covers the **deep context** — when/why, error-handling strategy, and cross-hook patterns.
 
 ---
 
-## useSubmitState — your default "upload" hook
+## useSubmitState — deep context
 
 The go-to hook for any write/mutation operation. Manages the full lifecycle: idle → in progress → success/error.
 
@@ -63,9 +51,8 @@ Built-in protections:
 - **Unhandled errors crash by default** — don't swallow exceptions; only use `mapError`/`afterKnownError` when you have specific error UX (e.g. showing a snackbar for a known API error)
 - **Retry support** — `isRetryable` flag for recoverable failures
 
-### runSimple
+### runSimple — full signature
 
-Full signature:
 ```dart
 Future<void> runSimple<T, E>({
   FutureOr<bool> Function()? shouldSubmit,       // pre-check, return false to abort
@@ -80,17 +67,10 @@ Future<void> runSimple<T, E>({
 })
 ```
 
-**Default — let errors crash:**
-```dart
-final saveState = useSubmitState();
+### Error-handling strategy — let errors crash by default
 
-void save() => saveState.runSimple<void, Never>(
-  submit: () async => service.saveItem(data),
-  afterSubmit: (_) => navigateBack(),
-);
-```
+Add `mapError` / `afterKnownError` **only** when you have specific error UX to show the user. Without that UX, there's no value in swallowing — the unhandled error should surface to the error boundary / crash reporter.
 
-**With error handling — only when you have specific error UX:**
 ```dart
 void save() => saveState.runSimple<SaveResult, SaveError>(
   submit: () async => service.saveItem(data),
@@ -175,26 +155,11 @@ final leaveSubmitState = useSubmitState();
 
 ---
 
-## useAutoComputedState — your default "download" hook
+## useAutoComputedState — deep context
 
-The go-to hook for any read/load operation. Computes an async value automatically, re-fetches when `keys` change.
-Returns a state with `isInitialized`, `valueOrNull`, and `value`.
-
-### Basic usage
+`shouldCompute` is the key deep-dive — gate the load on prerequisites so the future doesn't run with `null` inputs:
 
 ```dart
-// Load data once
-final product = useAutoComputedState(
-  () async => productService.load(productId),
-);
-
-// Re-load when productId changes
-final product = useAutoComputedState(
-  () async => productService.load(productId),
-  keys: [productId],
-);
-
-// Only compute when a prerequisite is ready
 final orderHistory = useAutoComputedState(
   () async => orderService.loadHistory(userId),
   keys: [userId],
@@ -202,24 +167,9 @@ final orderHistory = useAutoComputedState(
 );
 ```
 
-### Reading the result
-
-```dart
-product.isInitialized   // false while loading
-product.valueOrNull     // null while loading, T after
-product.value           // T, throws StateError if not initialized
-
-// Typical usage in State hook
-return ProductScreenState(
-  isLoading: !product.isInitialized,
-  product: product.valueOrNull,
-);
-```
-
 ### Loading guard in View
 
 ```dart
-// View pattern for optional data
 Widget build(BuildContext context) {
   if (state.isLoading) return const CrazyLoader();
   if (state.product == null) return const EmptyState();
@@ -227,14 +177,43 @@ Widget build(BuildContext context) {
 }
 ```
 
-### useAutoComputedState vs useMemoizedStream
+### Anti-pattern: counter-as-trigger
 
-| | `useAutoComputedState` | `useMemoizedStream` |
-|---|---|---|
-| Use for | One-shot `Future<T>` | Ongoing `Stream<T>` |
-| Re-triggers on | `keys` change + `shouldCompute` | `keys` change (re-subscribes) |
-| Returns | `ComputedState<T>` | `AsyncSnapshot<T>` |
-| Initialized when | future completes | `connectionState == active` |
+Never bump a `useState<int>` to force a recompute — `MutableComputedState` already exposes `.refresh()`.
+
+```dart
+// ❌ Counter in keys carries no information, only "something happened"
+final refreshTrigger = useState(0);
+final data = useAutoComputedState(
+  () => repo.fetch(query),
+  keys: [query, refreshTrigger.value],
+);
+void onRefresh() => refreshTrigger.value++;
+
+// ✅ Imperative action → method call
+final data = useAutoComputedState(() => repo.fetch(query), keys: [query]);
+void onRefresh() => data.refresh();
+
+// ✅ Reactive to real state → key on that state
+useEffect(() { data.refresh(); related.refresh(); }, [user.id]);
+```
+
+**Rule:** imperative actions use method calls; reactive `keys` take real domain values. A `useState<int>` + `value++` + counter-in-keys is always one of those two wearing the wrong clothes — it hides fan-out in the reactivity graph and the first conditional in `onRefresh` forces a rewrite anyway. Applies to every `useState` used only to trigger an effect (`useEffect` + dummy key, `setState({})`-style rebuild bumps).
+
+### useAutoComputedState vs useMemoizedStream vs usePaginatedComputedState
+
+| | `useAutoComputedState` | `useMemoizedStream` | `usePaginatedComputedState` |
+|---|---|---|---|
+| Use for | One-shot `Future<T>` | Ongoing `Stream<T>` | Cursor-paginated list of `T` |
+| Re-triggers on | `keys` change + `shouldCompute` | `keys` change (re-subscribes) | `keys` change (refresh), `loadMore()`, `refresh()` |
+| Returns | `ComputedState<T>` | `AsyncSnapshot<T>` | `MutablePaginatedComputedState<T, C>` |
+| Initialized when | future completes | `connectionState == active` | first page loaded successfully |
+
+---
+
+## usePaginatedComputedState — pointer
+
+Cursor-paginated lists have their own deep-dive in [paginated.md](./paginated.md). The short version: `usePaginatedComputedState<T, C>(...)` covers first-page auto-load, in-flight dedup, cancellation, debouncing, and on-end pagination. Pair with `PaginatedComputedStateWrapper` for scroll + pull-to-refresh. Cursor `C` is opaque (`int` for offset/page, `String?` for token). Optimistic mutations go in a local override layer, not into `items`. Same `shouldCompute` contract as `useAutoComputedState`.
 
 ---
 
@@ -259,6 +238,8 @@ final hasError = notificationsSnap.hasError;
 ```
 
 ### isInitialized pattern for global state
+
+`HasInitialized` is defined in [global-state.md](./global-state.md#hasinitialized) — the pattern below is how stream-backed global state derives `isInitialized` from the snapshot's connection state:
 
 ```dart
 class NotificationsState extends HasInitialized {
@@ -333,9 +314,11 @@ CrazySquashButton.withState(state: state.loginButtonState, child: const Text("Lo
 - **`useAutoComputedState` without `shouldCompute`** — if prerequisites (like `userId`) may be null, guard with `shouldCompute: userId != null` or the future will run with null
 - **Reading `.value` before `isInitialized`** — `.value` throws `StateError`; use `.valueOrNull` for safe access
 - **Using `useSubmitState` for streaming** — `useSubmitState` is for one-shot operations; use `useMemoizedStream` for ongoing streams
+- **Hand-rolling pagination with `useState` + `useEffect`** — use `usePaginatedComputedState`; see [paginated.md](./paginated.md) for the full set of pagination-specific pitfalls.
 
 ## Related Skills
 
 - [hooks-reference.md](./hooks-reference.md) — useSubmitState, useAutoComputedState, useMemoizedStream in context
+- [paginated.md](./paginated.md) — `usePaginatedComputedState` + `PaginatedComputedStateWrapper` for cursor/page/token paginated lists
 - [screen-state-view.md](./screen-state-view.md) — where async state is exposed (State class) and consumed (View)
 - [global-state.md](./global-state.md) — HasInitialized for global async state

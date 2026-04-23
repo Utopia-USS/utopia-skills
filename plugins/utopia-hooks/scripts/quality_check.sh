@@ -185,6 +185,16 @@ if [[ $in_state -eq 1 ]]; then
   fi
 fi
 
+# --- Hand-rolled pagination: cursor + hasMore + items in the same state hook ---
+# Pattern: useState for cursor/pageToken/offset + hasMore, plus a list and loadMore — classic reinvention.
+if [[ $in_state -eq 1 ]] && ! grep -q 'usePaginatedComputedState' "$file"; then
+  if grep -qE '\buseState<(int|String\??)>\s*\(.*\).*(cursor|pageToken|page|offset)' "$file" \
+      && grep -qE '\b(hasMore|nextPageToken|nextCursor)\b' "$file" \
+      && grep -qiE '\bloadMore\b' "$file"; then
+    add "state file hand-rolls pagination (cursor + hasMore + loadMore) — use usePaginatedComputedState + PaginatedComputedStateWrapper (paginated.md)"
+  fi
+fi
+
 # --- Report ---
 if [[ ${#violations[@]} -eq 0 ]]; then
   exit 0

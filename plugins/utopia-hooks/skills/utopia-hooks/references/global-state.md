@@ -193,6 +193,8 @@ if (!profile.isInitialized) return UserProfileScreenState.loading();
 if (state.isLoading) return const CrazyLoader();
 ```
 
+For stream-backed global state, `isInitialized` is derived from the snapshot's connection state — see [async-patterns.md § isInitialized pattern for global state](./async-patterns.md#isinitialized-pattern-for-global-state).
+
 ---
 
 ## MutableValue

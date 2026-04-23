@@ -420,6 +420,203 @@ Sub-hooks live in the same `state/` directory as the main hook. They are private
 
 ---
 
+## Per-item state: three archetypes
+
+A list of N items where each item has its own state (expansion, per-item async, validation, drafts, UI resources) raises one question: **where does that state live?** Three valid archetypes — the choice depends on whether the parent needs to read or modify individual item state.
+
+### Decision tree
+
+| Does parent need to read/modify individual item state? | N of items | Per-item complexity | Recommended |
+|---|---|---|---|
+| No — parent only cares when done | Any | Any | **9-A**: Widget-level Pattern 1 (full `widget/state/view`), optional feedback callback |
+| Yes — parent aggregates / coordinates | **Fixed** (known at code-time) | Multi-field / async / lifecycle | **9-B.1**: Composed hook called multiple times (`final a = useX(); final b = useX();`) |
+| Yes — parent aggregates / coordinates | **Dynamic** (runtime add/remove) | Multi-field / async / lifecycle | **9-B.2**: `useMap<Key, useX>` at parent |
+| Yes — parent reads often | Any | Single small flag | **9-C**: Screen-state `Map<Key, Flag>` (OK, but reconsider if state grows) |
+
+`useMap` is the dynamic-N variant of 9-B.1 — same coupling shape (parent-owns-state, widget-gets-prop), just with runtime-growing keys. For fixed N, just call the hook multiple times; reaching for `useMap` is overkill.
+
+### 9-A: Widget-level Pattern 1 — per-item state is self-contained
+
+Use when parent never needs to inspect individual item state. The tile owns its own async, flags, caches; if parent needs "it's done," a single feedback callback suffices.
+
+**Worked example — tile with lazy-loaded content + expansion, parent-agnostic:**
+
+```dart
+// widgets/item_tile/state/item_tile_state.dart
+class ItemTileState {
+  final Item item;
+  final MutableValue<bool> expandedState;
+  final ItemDetails? details;
+  final bool isLoadingDetails;
+  final void Function() onReload;
+
+  const ItemTileState({
+    required this.item,
+    required this.expandedState,
+    required this.details,
+    required this.isLoadingDetails,
+    required this.onReload,
+  });
+}
+
+ItemTileState useItemTileState({
+  required Item item,
+  required void Function(ItemId, ItemDetails)? onResultLoaded,  // optional feedback
+}) {
+  final service = useInjected<ItemService>();
+  final expandedState = useState(false);
+
+  // Per-item async, self-cached across expand/collapse
+  final detailsState = useComputedState(() async => service.loadDetails(item.id));
+
+  // Trigger load when expanded; notify parent when done (if caller cares)
+  useEffect(() async {
+    if (expandedState.value && detailsState.value is! ComputedStateValueInProgress) {
+      final data = await detailsState.refresh();
+      onResultLoaded?.call(item.id, data);
+    }
+    return null;
+  }, [expandedState.value, item]);
+
+  return ItemTileState(
+    item: item,
+    expandedState: expandedState,
+    details: detailsState.valueOrNull,
+    isLoadingDetails: expandedState.value && !detailsState.isInitialized,
+    onReload: detailsState.refresh,
+  );
+}
+```
+
+Parent screen only passes the item + an optional feedback callback. `loadMore`, `expandedIds`, `loadedDetails` concerns disappear from the screen state entirely.
+
+File structure (full Pattern 1):
+
+```
+widgets/item_tile/
+  item_tile.dart          ← HookWidget shell, calls useItemTileState
+  state/item_tile_state.dart  ← state class + hook above
+  view/item_tile_view.dart    ← StatelessWidget, reads state, renders UI
+```
+
+### 9-B.1: Fixed N — just call the hook multiple times
+
+When parent needs to aggregate and N is known at code-time, no special primitive is needed. Call the hook directly per instance.
+
+```dart
+// Parent state hook — two specific editors on one form
+EditorFormScreenState useEditorFormScreenState() {
+  final primary = useEditorItemState(label: 'Primary');
+  final secondary = useEditorItemState(label: 'Secondary');
+
+  final allValid = primary.isValid && secondary.isValid;
+
+  void submitAll() => [primary, secondary].forEach((it) => it.save());
+
+  return EditorFormScreenState(
+    primary: primary,
+    secondary: secondary,
+    canSubmit: allValid,
+    onSubmit: submitAll,
+  );
+}
+```
+
+The widgets receive the state:
+
+```dart
+Column([
+  EditorItemTile(state: state.primary),
+  EditorItemTile(state: state.secondary),
+])
+```
+
+This is just Pattern 2 with two instances. No `useMap`, no ceremony.
+
+### 9-B.2: Dynamic N — `useMap<Key, useXState>`
+
+When N grows/shrinks at runtime, `useMap` gives you one hook instance per key, stable across rebuilds. Parent holds the Map; widgets look up by key.
+
+```dart
+// The per-item hook — non-trivial, multiple internal hooks
+EditorItemState useEditorItemState({required ItemId id}) {
+  final value = useFieldState();
+  final label = useFieldState();
+  final saveState = useSubmitState();
+  final isValid = value.value.isNotEmpty && label.value.isNotEmpty;
+
+  return EditorItemState(
+    id: id,
+    value: value,
+    label: label,
+    isValid: isValid,
+    isSaving: saveState.inProgress,
+    save: () => saveState.runSimple<void, Never>(
+      submit: () async => service.save(id, value.value, label.value),
+    ),
+    reset: () {
+      value.value = '';
+      label.value = '';
+    },
+  );
+}
+
+// Parent — one instance per dynamic id, aggregates and coordinates
+EditorListScreenState useEditorListScreenState({required IList<ItemId> itemIds}) {
+  final itemStates = useMap(
+    itemIds.toSet(),
+    (id) => useEditorItemState(id: id),
+  );
+
+  final allValid = itemStates.values.every((it) => it.isValid);
+
+  void submitAll() =>
+      itemStates.values.map((it) => {'id': it.id, 'value': it.value.value}).toList();
+      //                                                                    ^ → API
+
+  void resetAll() => itemStates.values.forEach((it) => it.reset());
+
+  return EditorListScreenState(
+    itemStates: itemStates,
+    canSubmit: allValid,
+    onSubmit: submitAll,
+    onResetAll: resetAll,
+  );
+}
+```
+
+Widget receives the per-item state via Map lookup:
+
+```dart
+for (final id in itemIds)
+  EditorItemTile(state: state.itemStates[id]!)
+```
+
+Key lifecycle: adding an id to `itemIds` → new hook instance initialised; removing an id → that instance disposed. `useMap` keeps the Map identity stable across rebuilds so list identity doesn't churn.
+
+### 9-C: Screen-state `Map<Key, Flag>` — only for trivial single-flag cases
+
+If per-item state is one small flag and parent always reads it, the screen hook can hold `Map<Key, Flag>` directly.
+
+```dart
+// Dismissible banners — screen tracks which are dismissed
+final dismissedBanners = useState<ISet<BannerId>>(const ISet.empty());
+
+void dismiss(BannerId id) =>
+    dismissedBanners.value = dismissedBanners.value.add(id);
+```
+
+Don't scale this: the moment per-item state adds a second field, async, or lifecycle, move to 9-A or 9-B.
+
+### Anti-patterns
+
+- **Don't use `useMap` when 9-A suffices.** Parent doesn't need per-item access? Stay widget-level. Reaching for `useMap` couples parent to item state it doesn't use.
+- **Don't use 9-A when 9-B is needed.** If parent has a "submit-all" or "reset-all" action, you'll end up plumbing N feedback callbacks per item — at which point 9-B is cleaner.
+- **Don't use 9-C when 9-B is needed.** A `Map<Key, Flag>` doesn't scale to per-item async or lifecycle. Convert to per-item hook (9-A or 9-B) as complexity grows.
+- **Don't use 9-B when 9-A suffices.** Running per-item hooks at the parent when the parent never reads them just pushes per-item lifecycle into the screen hook unnecessarily.
+
+---
+
 ## Decision Guide
 
 | Situation | Pattern |
@@ -449,3 +646,4 @@ Sub-hooks live in the same `state/` directory as the main hook. They are private
 - [screen-state-view.md](./screen-state-view.md) — same rules apply at widget scope
 - [hooks-reference.md](./hooks-reference.md) — useState, useAutoComputedState inside widget-level hooks
 - [async-patterns.md](./async-patterns.md) — lazy loading in widget-level hooks
+- [complex-state-examples.md](./complex-state-examples.md) — full worked examples of the three per-item archetypes and screen decomposition shapes

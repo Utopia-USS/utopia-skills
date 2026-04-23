@@ -308,6 +308,10 @@ await container.waitUntil<StateA>((it) => it.isReady);
 - **Asserting before async completes** — check `isLoading` first, then wait, then check the result
 - **Testing View in hook tests** — View is a `StatelessWidget`, test it separately via widget tests if needed; hook tests cover the State hook
 
+## Running Tests
+
+Prefer the Dart MCP `run_tests` tool (instead of shell `dart test` / `flutter test`) — it returns structured per-test results and uses the active SDK. Fall back to `dart test` / `flutter test` only in CI scripts or when MCP isn't available. See the **Dart Tooling** section in [SKILL.md](../SKILL.md) for setup.
+
 ## Related Skills
 
 - [hooks-reference.md](./hooks-reference.md) — all hooks used in state hooks under test

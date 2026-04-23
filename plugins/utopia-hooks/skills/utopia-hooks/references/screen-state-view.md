@@ -223,6 +223,159 @@ class ItemScreenView extends StatelessWidget {
 }
 ```
 
+### The same rule applies to the Screen file — no top-level `_onXTapped(context, ...)` helpers
+
+The "closures in View" prohibition has a mirror in the Screen file: **do not write top-level
+private functions in the Screen file that accept `BuildContext` + state objects and orchestrate
+dialogs/sheets/navigation.** They are business callbacks wearing a disguise — relocation debt
+parked at file scope.
+
+Symptom shape:
+
+```dart
+// ❌ Forbidden — Screen file with 9 top-level helpers
+class ItemScreen extends HookWidget {
+  Widget build(BuildContext context) {
+    final state = useItemScreenState(/* ... */);
+    return ItemScreenView(
+      state: state,
+      onMoreTapped: (item, rect) => _onMoreTapped(
+        context, item, rect,
+        authState: state.auth,        // ← closure captures state
+        favState: state.fav,
+        splitViewState: state.splitView,
+      ),
+      onFlagTapped: (item) => _onFlagTapped(context, item, authState: state.auth),
+      onBlockTapped: (item, isBlocked) => _onBlockTapped(context, item, isBlocked: isBlocked),
+      onShareTapped: (item, rect) => _onShareTapped(context, item, rect),
+      onFontSizeTapped: () => _onFontSizeTapped(
+        context,
+        fontSizeKey: state.fontSizeIconButtonKey,
+        preferenceState: state.preference,
+      ),
+      // ... 5 more
+    );
+  }
+}
+
+// 290 LoC of private helpers at the bottom of item_screen.dart:
+void _onMoreTapped(BuildContext ctx, Item item, Rect? rect, {
+  required AuthGlobalState authState, required FavGlobalState favState,
+  required SplitViewGlobalState splitViewState,
+}) {
+  showModalBottomSheet<MenuAction>(context: ctx, builder: /* ... */).then((action) {
+    switch (action) {
+      case MenuAction.fav: _onFavTapped(ctx, item, favState: favState);
+      case MenuAction.flag: _onFlagTapped(ctx, item, authState: authState);
+      // ...
+    }
+  });
+}
+
+void _onFlagTapped(BuildContext ctx, Item item, {required AuthGlobalState authState}) { /* ... */ }
+void _onBlockTapped(BuildContext ctx, Item item, {required bool isBlocked}) { /* ... */ }
+void _onShareTapped(BuildContext ctx, Item item, Rect? rect, {Item? parent}) { /* ... */ }
+// ...
+```
+
+This compiles, passes the exit-gate greps, and is completely wrong. The `_onMoreTapped` helper
+reads global state (`authState`, `favState`), opens a modal, and dispatches to more helpers.
+**That is the state hook's job.** Keeping it at file scope in the Screen file means:
+
+- The state hook doesn't expose `onMoreTapped` — the View asks the Screen to build it each `build()`.
+- Tests for `onMoreTapped` behaviour have to go through the Screen + a fake BuildContext, not the hook.
+- Any future widget that wants the same action re-imports the helper — spread through the subtree.
+
+**Fix:** the Screen injects small, typed **UI primitives** (`showLoginDialog`, `showFlagDialog`,
+`showMoreSheet`, `navigateToItem`, `showSnackBar`). The state hook composes the business
+callbacks (`onMoreTapped`, `onFlagTapped`, ...) using those primitives **plus state it already
+owns** (`authState`, `favState` obtained via `useProvided` inside the hook).
+
+```dart
+// ✅ Correct — Screen is ~80 LoC, no top-level helpers
+class ItemScreen extends HookWidget {
+  @override
+  Widget build(BuildContext context) {
+    final state = useItemScreenState(
+      item: item,
+      // Thin primitives — each one just opens a UI surface and returns a result.
+      // The hook composes onMoreTapped/onFlagTapped/etc. from these.
+      showLoginDialog: () => showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const LoginDialog(),
+      ),
+      showFlagConfirmation: (byUser) => showDialog<bool>(
+        context: context,
+        builder: (_) => FlagDialog(byUser: byUser),
+      ),
+      showMoreSheet: (item) => showModalBottomSheet<MenuAction>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => MorePopupMenu(item: item),
+      ),
+      navigateToItem: (args) => context.push(Paths.item, extra: args),
+      showSnackBar: (msg, {action, label}) =>
+        context.showSnackBar(content: msg, action: action, label: label),
+      showErrorSnackBar: () => context.showErrorSnackBar(),
+    );
+
+    return ItemScreenView(state: state);
+  }
+}
+
+// In useItemScreenState — the hook composes actions from primitives + its own state:
+ItemScreenState useItemScreenState({
+  required Item item,
+  required Future<void> Function() showLoginDialog,
+  required Future<bool?> Function(String byUser) showFlagConfirmation,
+  required Future<MenuAction?> Function(Item item) showMoreSheet,
+  required void Function(ItemScreenArgs) navigateToItem,
+  required void Function(String, {VoidCallback? action, String? label}) showSnackBar,
+  required void Function() showErrorSnackBar,
+}) {
+  final authState = useProvided<AuthGlobalState>();
+  final favState = useProvided<FavGlobalState>();
+  // ...
+
+  Future<void> onMoreTapped(Item item) async {
+    final action = await showMoreSheet(item);
+    switch (action) {
+      case MenuAction.fav:
+        if (favState.favIds.contains(item.id)) {
+          favState.onRemoveFav(item.id);
+          showSnackBar('Removed from favorites.');
+        } else {
+          favState.onAddFav(item.id);
+          showSnackBar('Added to favorites.');
+        }
+      case MenuAction.flag:
+        final yes = await showFlagConfirmation(item.by);
+        if (yes ?? false) {
+          authState.onFlag(item);
+          showSnackBar('Comment flagged!');
+        }
+      // ...
+      default: break;
+    }
+  }
+
+  return ItemScreenState(onMoreTapped: onMoreTapped, /* ... */);
+}
+```
+
+**Weight check:** for Complex screens, the Screen file should typically sit under ~100 LoC.
+Over that, audit for top-level helpers. A Screen at 400+ LoC with 5+ private helpers is the
+unambiguous symptom of this anti-pattern.
+
+**Quick grep** (signatures may span multiple lines — match any top-level `_fn(` first, then inspect each hit):
+```bash
+grep -nE '^(Future<[^>]+>|void|bool|int|\w+) _[a-z]\w*\(' <screen_file>
+```
+
+If that returns more than a handful of results and each captures `BuildContext` + state
+(visible in the multi-line signature block) → move them into the hook's action composition.
+
 ## Step-by-Step: Creating a new screen
 
 ### 1. State class — define your data contract
@@ -257,6 +410,12 @@ Rules for the State class:
 - **`MutableValue<T>` / `MutableFieldState`** for fields the View needs to read AND update
 - **`void Function()` callbacks** for user actions — navigation/dialogs passed from Screen
 - No widget imports, no `BuildContext`, no Flutter dependencies
+- **No global-state re-export.** State must NOT hold a cross-screen global (e.g. `AuthState authState`, `SettingsState settingsState`) as a field. Re-exporting the whole global forces every field read on the View to rebuild the entire subtree when any unrelated field of that global changes, defeating `useProvided`'s granular reactivity. Instead:
+  - Project selectively: expose the specific primitives the View needs (`final bool isLoggedIn;` instead of `final AuthState authState;`).
+  - OR have the consuming widget call `useProvided<AuthState>()` in its own widget-level hook, so it rebuilds independently of the screen state.
+  Sub-hook states from the same screen's `state/` folder (composition pattern, see [composable-hooks.md][composable-hooks]) are NOT re-exports and MAY be held as fields — they're the point of the aggregator. The rule targets cross-screen globals only.
+
+[composable-hooks]: composable-hooks.md
 
 ### 2. State hook — implement logic
 

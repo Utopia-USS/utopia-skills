@@ -17,6 +17,7 @@ Complete reference for utopia_hooks, organized by what you're trying to do.
 | Subscribe to a Stream | `useMemoizedStream` / `useMemoizedStreamData`, `useStreamSubscription` |
 | **Load / download data** (read operation) | `useAutoComputedState` (default), `useComputedState` (manual refresh) |
 | **Save / upload / mutate** (write operation) | `useSubmitState` (default) |
+| **Paginated / infinite-scroll list** (cursor/page/token) | `usePaginatedComputedState` + `PaginatedComputedStateWrapper` |
 | Build a form field with validation | `useFieldState` |
 | Access global state | `useProvided<T>` |
 | Access a service | `useInjected<T>` |
@@ -258,8 +259,9 @@ The two core async primitives map to a simple mental model:
 |-----------|------|---------|-------------|
 | **Download** (read) | `useAutoComputedState` | Automatic (keys change) | Load data, fetch lists, compute results |
 | **Upload** (write) | `useSubmitState` | Manual (user action) | Save, delete, send, create — any mutation |
+| **Paginated download** (cursor) | `usePaginatedComputedState` | Automatic first page + scroll/button `loadMore` | Feeds, search results, chat history, any paged list |
 
-**Default rule:** reading data → `useAutoComputedState`. Writing/mutating data → `useSubmitState`.
+**Default rule:** reading one-shot data → `useAutoComputedState`. Writing/mutating → `useSubmitState`. Cursor-paginated data → `usePaginatedComputedState`.
 
 ### useAutoComputedState
 
@@ -321,6 +323,29 @@ state.value.when(
   failed: (e) => ErrorView(e.toString()),
 );
 ```
+
+### usePaginatedComputedState
+
+**Your default "cursor-paginated download" hook.** Handles the full lifecycle of a paginated list: first-page auto-load, `loadMore`, pull-to-refresh, keys-triggered refresh, debouncing, deduplication, cancellation. Pairs with `PaginatedComputedStateWrapper` for infinite scroll + pull-to-refresh. Full coverage in [paginated.md](./paginated.md).
+
+```dart
+final users = usePaginatedComputedState<User, String?>(
+  initialCursor: null,
+  (token) async {
+    final response = await api.getUsers(pageToken: token);
+    return PaginatedPage(items: response.items, nextCursor: response.nextPageToken);
+  },
+  keys: [query],                    // refresh on query change (items stay visible)
+  debounceDuration: 300.ms,         // debounce the first-page load after keys change
+  deduplicateBy: (u) => u.id,       // drop items whose id already appears
+);
+
+users.items                         // List<T>? — null until first successful load
+users.hasMore / users.isLoading / users.error
+users.loadMore() / users.refresh({bool clearCache = false}) / users.clear()
+```
+
+Cursor `C` is opaque — use `int` for offset/page or `String?` (nullable) for opaque tokens. See [paginated.md](./paginated.md) for the three cursor schemes and the optimistic-overlay pattern.
 
 ### usePersistedState
 
@@ -428,11 +453,18 @@ TasksScreenState useTasksScreenState() {
 
 ### useInjected\<T\>
 
-Gets a service from your DI via the bridge hook you define. Only valid in State hooks. See [di-services.md](./di-services.md).
+Gets a service from your DI container. **Not a framework hook** — it's a one-liner bridge you write yourself over your project's DI (get_it / service locator / provider). Only valid in State hooks (screen or global), never in View or Screen. Full bridge setup and service-type conventions in [di-services.md](./di-services.md).
 
 ```dart
+// In a state hook
 final taskService = useInjected<TaskService>();
 final analytics = useInjected<AnalyticsService>();
+```
+
+Typical bridge (get_it):
+```dart
+// lib/hooks/use_injected.dart
+T useInjected<T extends Object>() => GetIt.I<T>();
 ```
 
 ---
@@ -633,5 +665,6 @@ if (!allReady.isInitialized) return const SplashScreen();
 - [screen-state-view.md](./screen-state-view.md) — where hooks live (State hook)
 - [global-state.md](./global-state.md) — global state registration and useProvided
 - [async-patterns.md](./async-patterns.md) — useSubmitState and useAutoComputedState in depth
+- [paginated.md](./paginated.md) — `usePaginatedComputedState` + `PaginatedComputedStateWrapper`, cursor schemes, optimistic overlays
 - [composable-hooks.md](./composable-hooks.md) — useMap and useIf in widget-level hooks
 - [testing.md](./testing.md) — testing hooks with SimpleHookContext
