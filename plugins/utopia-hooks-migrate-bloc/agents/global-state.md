@@ -18,6 +18,7 @@ Prompt from orchestrator:
 - `target_state_path` — e.g. `lib/state/auth_state.dart`, `lib/state/fav_state.dart`
 - `target_hook_name` — e.g. `useAuthState`, `useFavState`
 - `providers_path` — location of `_providers.dart`
+- `provider_registration` — `self` (legacy, agent edits `_providers.dart`) or `orchestrator` (default when called from the wave-parallel orchestrator; agent does NOT edit `_providers.dart`, returns `provider_entry` string instead). See § *Provider registration mode* below.
 - `retry_feedback` — optional fix_list if this is a retry
 
 ## Pre-flight — load authoritative references
@@ -26,7 +27,7 @@ Prompt from orchestrator:
 
 Per `SKILL.md` § *Agent Orientation*, the `global-state` role loads:
 
-- migrate-bloc: `SKILL.md`, `references/bloc-to-hooks-mapping.md`, `references/global-state-migration.md`
+- migrate-bloc: `SKILL.md`, `references/bloc-to-hooks-state.md`, `references/global-state-migration.md`
 - migrate-bloc: `references/complex-cubit-patterns.md` — **only if** the Cubit has `.listen`, lifecycle work, or >10 public methods
 - foundation skill: `SKILL.md`, `references/async-patterns.md`
 - foundation skill: `references/complex-state-examples.md` — **only if** the Cubit is non-trivial
@@ -88,10 +89,14 @@ If the Cubit's logic is entangled with UI/navigation/BuildContext (it shouldn't 
 
 Create:
 - `<target_state_path>` — State class + `useXState()` hook
-- Update `<providers_path>` — register the new state
 
 Modify:
 - `<cubit_path>` — add `@Deprecated('Use <target_hook_name> — see <target_state_path>')` annotation on the Cubit class. Do NOT delete the Cubit — screens that haven't been migrated still use it.
+
+**`_providers.dart` handling depends on `provider_registration`:**
+
+- `provider_registration: self` — also update `<providers_path>` to register the new state. Files_touched includes `_providers.dart`.
+- `provider_registration: orchestrator` (default for wave-parallel) — do NOT edit `<providers_path>`. Instead, produce the exact entry string the orchestrator should append under the `_providers` map, and return it in `self_report.provider_entry`. Files_touched does NOT include `_providers.dart`. The orchestrator owns this file because multiple wave agents would otherwise race on it.
 
 ### Step 4 — Self-check
 
@@ -106,11 +111,34 @@ All must be zero. Fix before returning.
 
 ### Step 5 — Output hygiene (mandatory before returning)
 
-Run the **Output Hygiene Protocol** from `SKILL.md` on the 3 files in `files_touched` (new state file, `_providers.dart`, annotated old Cubit). Report back `self_report.formatted: true`.
+Run the **Output Hygiene Protocol** from `SKILL.md` on the files in `files_touched`:
+- `provider_registration: self` → 3 files (new state, `_providers.dart`, annotated old Cubit).
+- `provider_registration: orchestrator` → 2 files (new state, annotated old Cubit). Skip `_providers.dart` — orchestrator runs `dart_format` after applying the entry.
+
+Report back `self_report.formatted: true`.
+
+## Provider registration mode
+
+This agent runs in one of two modes controlled by the `provider_registration` input:
+
+**`orchestrator` mode (default for wave-parallel Phase A):**
+- Agent touches exactly 2 files: new state file (create) + old Cubit file (annotate).
+- Agent does NOT read or edit `_providers.dart`.
+- Agent returns `self_report.provider_entry` — the literal string the orchestrator will insert under the `_providers` map. Match the existing file's indentation and trailing-comma convention (peek at one existing entry if you need to — read-only, no edit).
+- Example `provider_entry` value: `    AuthState: (context) => useAuthState(),` (exact format: follow existing entries in `_providers.dart`; do not invent a new format).
+
+**`self` mode (legacy / single-threaded callers):**
+- Agent touches 3 files: new state file + `_providers.dart` + annotated Cubit.
+- Agent edits `_providers.dart` directly per `global-state-migration.md`.
+- `provider_entry` in self_report is optional in this mode (orchestrator won't read it).
+
+The hook rules, anti-patterns, and every other rule below apply identically in both modes — only the `_providers.dart` write behavior differs.
 
 ## Scope discipline
 
-- **You touch exactly 3 files:** the new state file (create), `_providers.dart` (modify), and the old Cubit file (annotate). Nothing else.
+- **File budget depends on `provider_registration`:**
+  - `orchestrator` mode (default): exactly 2 files — new state file (create) + old Cubit (annotate). Do NOT touch `_providers.dart`.
+  - `self` mode: exactly 3 files — new state file (create) + `_providers.dart` (modify) + old Cubit (annotate).
 - If you find yourself wanting to modify a screen or widget → STOP and return `status: scope_exceeded`. The orchestrator will escalate.
 - If the Cubit depends on ANOTHER un-migrated Cubit → return `status: dep_not_ready` with the other Cubit's name. Orchestrator orders.
 
@@ -120,12 +148,14 @@ Run the **Output Hygiene Protocol** from `SKILL.md` on the 3 files in `files_tou
 status: success | scope_exceeded | dep_not_ready | needs_refactor | other_error
 
 files_touched:
+  # orchestrator mode (default): 2 files
   - path: lib/state/auth_state.dart
     action: created
-  - path: lib/_providers.dart
-    action: modified
   - path: lib/blocs/auth/auth_bloc.dart
     action: annotated   # @Deprecated added
+  # self mode adds:
+  # - path: lib/_providers.dart
+  #   action: modified
 
 proposed_commit_message: "migrate: AuthState (global, parallel to AuthBloc)"
 
@@ -140,6 +170,10 @@ self_report:
     - "useMemoized(() => prefsService.loadLastUser()) for persistent hydration"
   deviations:                  # non-obvious structural notes for orchestrator to surface in the final report
     - "persistent-state: moved hydration from HydratedCubit<T>.fromJson/toJson to PrefsService load/save — Cubit and hook both delegate to service, diverge-safe"
+  provider_entry: "    AuthState: (context) => useAuthState(),"
+    # orchestrator mode: the exact string to append under the _providers map; match the
+    # existing file's indentation and trailing-comma convention. Omit in self mode
+    # (or set to the same string if you want — orchestrator just ignores it then).
   formatted: true              # Step 5 ran successfully on all files_touched
   warnings:
     - "AuthBloc subscribes to FirebaseAuth.authStateChanges — new hook does the same independently, both listening simultaneously during migration"
@@ -152,8 +186,9 @@ dep_not_ready:
 
 - **NEVER commit.** Orchestrator commits after review.
 - **NEVER delete the old Cubit.** Only annotate with `@Deprecated`. Orchestrator removes it in final cleanup after all consumers are migrated.
-- **NEVER touch screens or widgets.** Scope is strictly: new state file, `_providers`, old Cubit annotation. Nothing else.
+- **NEVER touch screens or widgets.** Scope is strictly: new state file + old Cubit annotation (+ `_providers.dart` in `self` mode only). Nothing else.
+- **NEVER edit `_providers.dart` in `orchestrator` mode.** Race hazard with parallel wave peers. Return the entry string via `provider_entry`; the orchestrator applies it.
 - **NEVER wrap the old Cubit** — the new hook is an independent implementation over the same underlying services. Wrapping is Case C (interop) territory, not this migration.
 - **NEVER run `dart analyze`, `flutter pub get`, or tests.** Review agent owns verification. `dart_format` and `dart_fix` are exceptions — they are **required** output hygiene (Step 5), not verification.
-- **NEVER invent patterns.** If the Cubit uses a pattern not in `bloc-to-hooks-mapping.md`, return `status: other_error` with the unmapped pattern cited.
+- **NEVER invent patterns.** If the Cubit uses a pattern not in `bloc-to-hooks-state.md`, return `status: other_error` with the unmapped pattern cited.
 - **NEVER use Equatable, copyWith, Status enum, Freezed, part files, or emit() wrapper.** Anti-patterns from SKILL.md apply.

@@ -29,7 +29,7 @@ You review the output of two plugins, so you load from both. Migration correctne
 
 - migrate-bloc: `SKILL.md` — "Migration Anti-Patterns" and "Exit Gate" sections are your checklist
 - migrate-bloc: `references/screen-migration-flow.md` — Phase 3 (Self-Review) and Phase 4 (Per-Screen Exit Gate)
-- migrate-bloc: `references/bloc-to-hooks-mapping.md` — cross-check unusual patterns
+- migrate-bloc: `references/bloc-to-hooks-state.md`, `references/bloc-to-hooks-widget.md` — cross-check unusual patterns
 - **utopia-hooks: `SKILL.md`** — the target architecture; every migration output is evaluated against these rules, not just against "no BLoC left"
 - **utopia-hooks: `references/screen-state-view.md`** — Screen/State/View separation + the "no top-level `_onXTapped(context, ...)` helpers in Screen file" anti-pattern (backs checks §E and §L1)
 - **utopia-hooks: `references/async-patterns.md`** — which hook for which operation (`useAutoComputedState` for reads, `useSubmitState` for writes, `useMemoizedStream` for streams); backs check §L1
@@ -42,6 +42,10 @@ You review the output of two plugins, so you load from both. Migration correctne
 - **utopia-hooks: `references/composable-hooks.md`** — Pattern 3 sub-hook decomposition + "Per-item state: three archetypes" (backs post-migration checklist §B1/B2)
 - **utopia-hooks: `references/complex-state-examples.md`** — the five reference shapes; Complex screens should resemble one of them (backs check §L3)
 - utopia-hooks: `references/paginated.md` — if the migrated Cubit was paginated
+
+**Load only for multi-page shells:**
+
+- **utopia-hooks: `references/multi-page-shell.md`** — if the screen contains `TabController` / `TabBarView` / `PageView` / `IndexedStack` / `BottomNavigationBar` / `NavigationBar`, every inner page must follow Screen/State/View pattern the same as any top-level screen. Backs check §F4 (multi-page shell inner pages).
 
 **Load only if A–L2 pass (§M post-migration sweep):**
 
@@ -127,17 +131,64 @@ Only `useXScreenState(...)` is allowed in screen files.
 
 ### F. View discipline
 
-View files must be `StatelessWidget` and must not call hooks:
+**F1. View file exists** — every migrated screen must have `lib/screens/<stem>/view/*_screen_view.dart`. Missing View file = Screen/State/View split was never performed = hard fail.
+
+```bash
+# For each migrated screen stem:
+test -f lib/screens/<stem>/view/*_screen_view.dart || echo "FAIL: <stem> missing view/*_screen_view.dart"
+```
+
+**F2. View is StatelessWidget, no hooks** — view files must extend `StatelessWidget` and call zero hooks:
 
 ```bash
 grep -n 'extends HookWidget' <view_files>
 grep -nE '\buse[A-Z][A-Za-z0-9_]*\s*\(' <view_files>
 ```
 
+Both expected 0 results. Any hit = fail.
+
+**F3. Mis-classified View in `widgets/`** — a `widgets/*.dart` that extends `HookWidget` AND calls `useProvided`/`useInjected` is almost always a View wearing a different name (e.g. `widgets/main_view.dart` consuming global state). Soft-warn per file:
+
+```bash
+for f in lib/screens/<stem>/widgets/*.dart; do
+  if grep -qE "extends HookWidget" "$f" && \
+     grep -qE "useProvided|useInjected" "$f"; then
+    echo "WARN: $f is HookWidget calling useProvided/useInjected — probable mis-classified View. Expected fix: rename to view/*_screen_view.dart, convert to StatelessWidget, hoist useProvided/useInjected to the state hook. See utopia-hooks:references/screen-state-view.md 'Mis-classified View living in widgets/'."
+  fi
+done
+```
+
+Any match must appear in `self_report.warnings` with explicit justification (e.g. "genuinely composable, used from 3 Views" — rare). Default recommendation: fix before commit.
+
+**F4. Multi-page shell inner pages have their own Page/State/View** — if the screen is a multi-page shell (Phase 1f flagged `[multi_page_shell]`), every inner page folder must have the triple:
+
+```bash
+# Only if the shell exists
+if [ -d lib/screens/<stem>/pages ]; then
+  for page_dir in lib/screens/<stem>/pages/*/; do
+    page_name=$(basename "$page_dir")
+    [ -f "${page_dir}${page_name}_page.dart" ] || echo "FAIL: ${page_dir} missing ${page_name}_page.dart"
+    [ -d "${page_dir}state" ]                 || echo "FAIL: ${page_dir} missing state/ folder"
+    [ -d "${page_dir}view" ]                  || echo "FAIL: ${page_dir} missing view/ folder"
+    # Inner pages must not themselves be HookWidget calling useProvided (same mis-classification risk)
+    grep -qE "extends HookWidget" "${page_dir}${page_name}_page.dart" 2>/dev/null && \
+      grep -qE "useProvided|useInjected" "${page_dir}${page_name}_page.dart" 2>/dev/null && \
+      echo "WARN: ${page_name}_page.dart directly calls useProvided/useInjected — inner page should delegate to its state hook, same as any Screen"
+  done
+fi
+
+# Also: if the screen has TabController/TabBarView/PageView/IndexedStack in the main View but no pages/ folder,
+# that's a violation — inner tabs are inlined instead of being split into Page/State/View triples.
+if grep -qE "TabController|TabBarView|PageView|IndexedStack|BottomNavigationBar|NavigationBar\b" lib/screens/<stem>/view/*_screen_view.dart 2>/dev/null; then
+  [ -d lib/screens/<stem>/pages ] || echo "FAIL: <stem> is a multi-page shell but has no pages/ folder — inner pages must each have their own Screen/State/View triple. See utopia-hooks:references/multi-page-shell.md."
+fi
+```
+
 ### G. Size budgets (Phase 3c)
 
 Per file type:
-- State file: soft 300 lines, red >400
+- Screen state file (`lib/screens/<stem>/state/*.dart`): soft 300 lines, red >400
+- Global state file (`lib/state/*.dart`): soft 300 lines, red >400 — same threshold (per `utopia-hooks:SKILL.md` Non-Negotiable Rules). Over-limit = global spans multiple domains; split into separate globals (one per domain in `_providers`).
 - Screen file: soft 100 lines, red >200
 - View file: soft 300 lines, red >400
 
@@ -150,6 +201,41 @@ State file also: count hook calls:
 grep -cE '\b(useState|useAutoComputedState|useSubmitState|useMemoizedStream|useStreamSubscription|useEffect|useMemoized|useInjected|useProvided)\b' <state_file>
 ```
 Budget: 10. If >10 → recommend decomposition.
+
+**Dumb 1:1 migration heuristics** — a common failure mode is porting the Cubit field-for-field, method-for-method, without the adjustments that hook-idiom invites (derived state as getters/`useMemoized`, redundant flag fields collapsed into getters, dummy effects that should be memoized values, boilerplate `copyWith` remnants). Size is often the symptom. When a state file trips any of these, append `post_migration_sweep_required: true` in the output and list specific patterns found — the fix plan should reference `references/post-migration-refactor-checklist.md` §A/C/D:
+
+```bash
+# 1. useEffect count in state hook — high count is a smell, not a fail. Each useEffect
+#    is a candidate to be rewritten as: (a) useMemoized if the effect only derives a value,
+#    (b) a plain `final x = ...` or a getter if the derivation is cheap and doesn't need
+#    memoization, (c) a pure helper function inside the file when logically grouped,
+#    (d) kept as useEffect if it has real side-effects (subscriptions, imperative controller
+#    calls, callbacks to services). Examine each hit — don't rewrite mechanically.
+grep -cE '\buseEffect\s*\(' <state_file>
+# >3 → WARN "examine each useEffect; many state-hook effects are derivations in disguise. See §C of post-migration-refactor-checklist."
+
+# 2. Suspicious derived-state fields: look for state fields immediately computed from other state
+grep -nE '^\s+final \w+ \w+ = .*\.\w+ \? .* : .*;' <state_file>
+# Any hit that's a boolean derivation of a nullable field = probably a getter, not a field
+
+# 3. copyWith remnants (should be zero post-migration)
+grep -nE '\bcopyWith\b|\bequals\b.*@override|\bhashCode\b.*@override' <state_file>
+# Any hit → FAIL (§2b of screen-migration-flow: no copyWith, no Equatable)
+
+# 4. Reactive input stored as useState (should be MutableValue or input param)
+# See post-migration-refactor-checklist §A4 for the pattern — not grep-detectable cleanly, but:
+grep -nE 'useState\s*\(.*// ?reactive|useState\s*\(.*// ?config' <state_file>
+# Weak signal; humans catch this better than greps
+
+# 5. State file significantly larger than the Cubit it replaced
+if [ -n "$baseline_cubit_size" ]; then
+  NEW_SIZE=$(wc -l < <state_file>)
+  RATIO=$(echo "scale=2; $NEW_SIZE / $baseline_cubit_size" | bc)
+  # If ratio > 1.5 → WARN "state file grew significantly; dumb 1:1 port likely, run post-migration sweep"
+fi
+```
+
+If **any** of checks 1-4 fires (or size ratio > 1.5 if baseline available), treat as if §M post-migration sweep is mandatory (not optional). Output field: `post_migration_sweep_required: true` with the specific patterns cited. Do NOT pass through as advisory — the agent must run the sweep before commit.
 
 ### H. Compilation — delta vs baseline
 
@@ -246,11 +332,13 @@ Concrete apply-mechanics:
 
 **Self-check:** if you find yourself writing a check here that could live in `utopia-hooks` foundation refs, stop — add it there instead and cite it. This section is a lens, not a replacement.
 
-### M. Post-migration refactor sweep (advisory, run ONLY if checks A–L2 pass)
+### M. Post-migration refactor sweep (advisory by default; MANDATORY if §G heuristics trip)
 
-**Trigger:** all of A–K AND L1/L2 pass, AND `dart analyze` returns zero new issues. Migration is correct AND idiomatic — this sweep looks for **post-migration bloat** (coordination in wrong layer, flat aggregator boilerplate, per-item state in screen scope, top-level helpers in Screen file). It does NOT affect pass/fail; it populates `post_migration_hits` so the orchestrator can schedule a follow-up refactor commit. (L3 shape-conformance hits also land in `post_migration_hits` — same channel.)
+**Default trigger (advisory):** all of A–K AND L1/L2 pass, AND `dart analyze` returns zero new issues. Migration is correct AND idiomatic — this sweep looks for **post-migration bloat** (coordination in wrong layer, flat aggregator boilerplate, per-item state in screen scope, top-level helpers in Screen file). By default it populates `post_migration_hits` so the orchestrator can schedule a follow-up refactor commit.
 
-**Skip if:** migration is Simple (≤10 methods, no streams, no lifecycle). Post-migration bloat is a Complex-screen phenomenon.
+**Mandatory trigger (blocks pass):** §G "Dumb 1:1 migration heuristics" tripped (useEffect count >3 in state hook, state file >300 lines, size ratio >1.5× vs baseline Cubit, derived-state-as-field patterns, `copyWith` remnants). These heuristics strongly suggest the migration mechanically ported Cubit shape without the hook-idiom adjustments — post-migration sweep is not optional, it's part of completing the migration. Set `recommendation: needs_post_migration_sweep`; populate `post_migration_hits` as below; the migration is not considered complete until the sweep fixes are applied. (L3 shape-conformance hits also land in `post_migration_hits` — same channel, advisory-severity.)
+
+**Skip if:** migration is Simple (≤10 methods, no streams, no lifecycle) AND none of the §G mandatory triggers fired. Post-migration bloat is a Complex-screen phenomenon in the default case, but a bloated "Simple" screen is itself suspect — re-examine.
 
 **How to run:** load `references/post-migration-refactor-checklist.md` and walk the 12 anti-patterns (§A1–A4, §B1–B2, §C1–C3, §D1–D2, §E1) against `files_touched`. Each anti-pattern has a grep-shape in the checklist. Report each hit with the anti-pattern ID, file/line, and the fix pattern name from the checklist.
 

@@ -136,9 +136,11 @@ Any "Complex" hit → `complexity: complex`, else `simple`.
 
 For complex screens, attempt a **preliminary decomposition sketch** (to pass to screen-migration agent as hint): group Cubit methods by domain (fetch / search / scroll / selection / …). If you can't classify confidently, write `decomposition: needs-in-agent-planning` and let the screen agent figure it out in its Phase 1d.
 
-## Step 6 — Blocked detection
+## Step 6 — Blocked detection (screens AND global states)
 
-Flag as `blocked` (do NOT include in `next_wave`):
+Two parallel blocked categories:
+
+### 6a. Blocked **screens** (do NOT include in `next_wave`)
 
 - Cubit has **dispose side-effects** with real I/O (beyond subscription cancel):
   ```bash
@@ -147,18 +149,40 @@ Flag as `blocked` (do NOT include in `next_wave`):
 - Cubit is consumed by more than 3 other screens AND none of them are migrated yet — indicates high coordination cost, human should choose migration order
 - Screen has `TODO`/`FIXME`/`HACK` comments in the Cubit (auto-flag for human review before migration)
 
-## Step 7 — Compute next_wave AND dependencies_to_migrate_first
+### 6b. Blocked **global states** (do NOT include in `dependencies_to_migrate_first`)
+
+Apply the same signals to each un-migrated **global** Cubit from Step 4. A blocked global cascades: any other global or screen that reads it is automatically blocked-by-that-global (see Step 7 cascade logic).
+
+Detection per global Cubit:
+- Dispose side-effects with real I/O (same grep as 6a)
+- `TODO` / `FIXME` / `HACK` comments in the Cubit body
+- Cubit depends on another Cubit that is itself blocked (transitive — computed in Step 7, not here — but flag the direct cases you can see)
+- Human-authored skip signal: state-name listed in `MIGRATION.md` under a `## Skipped — user opt-out` line that references a global state (if present)
+
+Emit each blocked global with: `state_name`, `cubit_path`, `reason`, `blocked_by` (empty if it's a direct block, populated for transitive — Step 7 fills this in).
+
+## Step 7 — Compute next_wave, dependencies_to_migrate_first, phase_a_waves, AND cascade-block
 
 Migration model: **global states first, screens after.** Each un-migrated Cubit that a target screen reads is migrated in its own commit by the `global-state` agent BEFORE the screen agent runs. Only the screen itself (plus screen-local state) belongs to the screen agent's commit.
 
-1. Filter `remaining` → exclude `blocked` and `skipped`
-2. **Dependencies to migrate first** (ALWAYS populate, regardless of `--screens` filter):
-   - For each screen in-scope (respecting `--screens` filter from args), collect its un-migrated Cubit deps
-   - Union across scope → candidate global states to migrate
-   - Order: Cubits with no dependencies on other Cubits first; Cubits that depend on others later. If A needs B migrated first, B comes first in the list.
-   - For each, compute `target_state_name`, `target_state_path`, `target_hook_name` per project convention (see `global-state-migration.md`)
-3. **Screen next_wave**: screens where ALL Cubit deps are either already migrated OR present in `dependencies_to_migrate_first` (i.e. will be migrated in Phase A of this run). Sort: simple before complex, alphabetical tiebreak. Take up to 3 for first wave.
-4. **File-disjoint check for the screen wave only** — `dependencies_to_migrate_first` is migrated serially (one commit per state) so no parallelism conflict there. For screens that share `_providers.dart` writes, serialize them in the wave.
+1. Filter `remaining` screens → exclude `blocked` (6a) and `skipped`.
+2. **Candidate globals**: un-migrated Cubits read by any in-scope screen (respecting `--screens` filter). Union across scope.
+3. **Cascade-block globals** — transitively close over `depends_on`:
+   - Start with globals directly blocked by 6b (call this set `blocked_roots`).
+   - For every candidate global X with `depends_on` intersecting `blocked_roots` (or any transitively-blocked global) → mark X blocked with `blocked_by: <nearest blocked ancestor>`. Keep the reason chain tight — don't explode into full transitive list, just the nearest blocker.
+   - Repeat until fixed-point.
+   - Final output: `blocked_globals` = list of every blocked global (roots + cascaded), each with `state_name`, `cubit_path`, `reason` (for roots) or `blocked_by` (for cascaded).
+4. **`dependencies_to_migrate_first`** = candidate globals MINUS `blocked_globals`. Ordered: dep-of-dep first. For each, compute `target_state_name`, `target_state_path`, `target_hook_name` per project convention (see `global-state-migration.md`).
+5. **`phase_a_waves`** — topological layering of `dependencies_to_migrate_first` so the orchestrator can run wave members in parallel (file-disjoint; `_providers.dart` is owned by the orchestrator in wave mode):
+   - `already_migrated` = set of global states already on the hooks side (from step 3's cross-reference in the main scan).
+   - `wave_0` = items whose `depends_on ⊆ already_migrated` (blocked globals are already excluded from the input, so they can't appear in waves).
+   - `wave_N` (N ≥ 1) = items whose `depends_on ⊆ (already_migrated ∪ items in waves < N)`.
+   - Stop when no more items qualify. If a cycle prevents layering (shouldn't happen with a DAG), report it in `notes` and exclude those items from `phase_a_waves`.
+   - **Cap each wave at 3 items.** If a wave would exceed 3, split greedily by original order into consecutive 3-packs — they share the same dependency layer, splitting is only for parallelism cost.
+   - Wave members are file-disjoint by construction (each touches its own state file + its own Cubit file). `_providers.dart` is NOT included — the orchestrator owns it.
+6. **Cascade-block screens**: any screen whose deps intersect `blocked_globals` is added to `blocked` screens with `reason: "depends on blocked global <X>"`. Don't include in `next_wave`.
+7. **Screen `next_wave`**: screens (post-cascade-filter) where ALL Cubit deps are either already migrated OR present in `dependencies_to_migrate_first` (i.e. will be migrated in Phase A of this run). Sort: simple before complex, alphabetical tiebreak. Take up to 3 for first wave.
+8. **File-disjoint check for the screen wave only** — Phase A wave members are auto-disjoint per step 5's construction. For screens that share `_providers.dart` writes, serialize them in the wave.
 
 Estimate `files_expected` per screen (AFTER deps are migrated — screen agent won't create states):
 - `lib/screens/<stem>_screen.dart` (rewrite)
@@ -253,6 +277,20 @@ skipped:
 blocked:
   - screen: admin_dashboard
     reason: "AdminBloc.close() does _storage.clear() — confirm behavior"
+  - screen: admin_users_screen
+    reason: "depends on blocked global AdminState"
+    blocked_by: AdminState
+
+blocked_globals:
+  # Globals that cannot be auto-migrated; cascades to any dependent global/screen.
+  - state_name: AdminState
+    cubit_path: lib/cubits/admin/admin_cubit.dart
+    reason: "AdminCubit.close() does _storage.clear() — confirm behavior"
+    # direct block — no blocked_by
+  - state_name: AdminDashboardState
+    cubit_path: lib/cubits/admin/admin_dashboard_cubit.dart
+    blocked_by: AdminState
+    # cascaded — reason omitted, chain is carried by blocked_by
 
 dependencies_to_migrate_first:
   # Ordered — dep-of-dep first. Each entry becomes one Phase A commit.
@@ -270,6 +308,13 @@ dependencies_to_migrate_first:
     target_hook_name: useAnalyticsState
     complexity: complex
     depends_on: [AuthState]   # migrate AuthState first (already migrated in this example, so no blocker)
+
+phase_a_waves:
+  # Topological layering of dependencies_to_migrate_first so the orchestrator can
+  # run wave members in parallel. Items in the same wave have all their depends_on
+  # satisfied by earlier waves or by already-migrated globals. Max 3 per wave.
+  - [FeedState, AnalyticsState]   # wave 0 — both have depends_on ⊆ already_migrated
+  # - [OtherState]                 # wave 1 — would depend on FeedState or AnalyticsState
 
 next_wave:
   # Screens ready AFTER dependencies_to_migrate_first is processed

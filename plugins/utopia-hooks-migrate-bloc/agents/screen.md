@@ -30,11 +30,12 @@ Prompt from orchestrator:
 
 Per `SKILL.md` § *Agent Orientation*, the `screen` role loads:
 
-- migrate-bloc: `SKILL.md`, `references/bloc-to-hooks-mapping.md`, `references/screen-migration-flow.md`, `references/global-state-migration.md`
+- migrate-bloc: `SKILL.md`, `references/bloc-to-hooks-state.md`, `references/bloc-to-hooks-widget.md`, `references/screen-migration-flow.md`, `references/global-state-migration.md`
 - migrate-bloc: `references/complex-cubit-patterns.md` — **only if** `complexity=complex`
-- foundation skill: `SKILL.md`, `references/async-patterns.md`, `references/complex-state-examples.md`
+- foundation skill: `SKILL.md`, `references/async-patterns.md`, `references/complex-state-examples.md`, `references/screen-state-view.md`
 - foundation skill: `references/composable-hooks.md` — **only if** decomposing a complex screen
 - foundation skill: `references/paginated.md` — **only if** the Cubit paginates
+- foundation skill: `references/multi-page-shell.md` — **MANDATORY if** Phase 1f flagged `[multi_page_shell]` (screen contains `TabController` / `TabBarView` / `PageView` / `IndexedStack` / `BottomNavigationBar` / `NavigationBar`)
 
 You're not memorizing these — you're using them as the authoritative recipe while writing code. Don't invent patterns.
 
@@ -46,6 +47,7 @@ You're not memorizing these — you're using them as the authoritative recipe wh
 2. **Pre-flight cleanup sweep** (§1c): for each Cubit method and consumed service method, check callers. Mark dead methods and fake streams for deletion (don't port them).
 3. **Decomposition plan** (§1d, complex only): use `decomposition_plan` from input if provided; otherwise draw the ownership graph and list sub-hooks now. If the decomposition takes >5 minutes of planning, stop and return with `status: needs_human_planning` and your best-effort graph.
 4. **Widget subtree manifest** (§1e): walk the screen's widget tree, enumerate every file in the screen's subtree directory (widgets, dialogs, sheets), classify shared widgets as `rewire` or `defer`. This manifest IS your Phase 2 scope — not just the screen file + state. Verify every manifest file appears in `allowed_file_list`; if not, return `status: scope_exceeded` listing the missing entries.
+5. **Target structure plan** (§1f, MANDATORY for every screen): produce the current-vs-target file map. Run the detection greps from §1f (mis-classified Views in `widgets/` via `HookWidget` + `useProvided`/`useInjected`; multi-page shell via `TabController`/`TabBarView`/`PageView`/`IndexedStack`/`BottomNavigationBar`/`NavigationBar`; Screen file > ~100 lines; missing `view/` folder). List every target file with path + kind + rough line estimate BEFORE writing any code. This is the primary gate against the #1 failure mode (state migrated, View never extracted, 400+ line `*_screen.dart` with inline Scaffold chrome). If `[multi_page_shell]` is flagged, load `utopia-hooks:references/multi-page-shell.md` and the target plan MUST list each inner page's `pages/<name>/` folder with its own `_page.dart` + `state/` + `view/` triple. If `[misplaced_view]` is flagged, the target plan MUST address each flagged file with an explicit transformation (rename+move+convert+hoist, or justification for keeping as composable). Phase 2 executes against this plan; Phase 4 (review agent) verifies conformance.
 
 ### Phase 2 — Migration (writes files)
 
@@ -57,7 +59,7 @@ A file is in scope iff it is in `manifest.owned` OR `manifest.shared[*].action =
 
 2. **Design State class + hook** (§2b): flat class with nullable `T?`, `bool` flags, `void Function()` callbacks. No `copyWith`, no Equatable, no Status enum, no Freezed, no part files.
 
-3. **Migrate patterns** (§2c): use the table in `screen-migration-flow.md` to pick the right section of `bloc-to-hooks-mapping.md` per pattern encountered. For `context.read<XCubit>()` / `context.watch<XCubit>()` → replace with `useProvided<XState>()` — the hook version already exists from Phase A.
+3. **Migrate patterns** (§2c): use the table in `screen-migration-flow.md` to pick the right section of `bloc-to-hooks-{state,widget}.md` per pattern encountered. For `context.read<XCubit>()` / `context.watch<XCubit>()` → replace with `useProvided<XState>()` — the hook version already exists from Phase A.
 
 4. **Wire Screen + View** (§2d): Screen is `HookWidget`, calls hook, passes state to View. View is `StatelessWidget`, pure UI. Navigation callbacks injected from Screen into hook.
 
@@ -174,4 +176,4 @@ self_report:
 - **NEVER delete an old screen-local Cubit from Phase A's scope.** Only delete the current screen's own `_cubit.dart` / `_bloc.dart` if they're purely screen-local. Global Cubits stay untouched (Phase A annotated them).
 - **NEVER touch files outside `allowed_file_list`.** Scope is orchestrator's contract for safe parallelism.
 - **NEVER write comments like `// State`, `// Hook`, `// ---`, or narrate what was changed.** Clean code only. Anti-pattern rules from SKILL.md apply.
-- **Follow the skill literally.** If a pattern in the code doesn't match any mapping in `bloc-to-hooks-mapping.md`, return `status: other_error` with the unmapped pattern — don't invent a translation.
+- **Follow the skill literally.** If a pattern in the code doesn't match any mapping in `bloc-to-hooks-{state,widget}.md`, return `status: other_error` with the unmapped pattern — don't invent a translation.

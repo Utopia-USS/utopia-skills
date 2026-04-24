@@ -1,7 +1,7 @@
 {
   "name": "utopia-hooks-migrate-bloc",
   "description": "Migrate Flutter BLoC/Cubit codebases to utopia_hooks. Two-phase migration (global states first, then screens) with per-commit granularity, dart analyze baseline (Dart MCP preferred), screen-local vs global Cubit classification, and universal pattern-family handling (persistent-state, stream-source, reactive-input, lifecycle). Includes /utopia-hooks-migrate-bloc:migrate orchestrator coordinating inventory, foundation, global-state, screen, and review sub-agents. Recommended companion: utopia-hooks plugin.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": {
     "name": "UtopiaSoftware"
   },
