@@ -106,6 +106,10 @@ if [[ $in_state -eq 1 ]]; then
   if grep -qE '^final[[:space:]]+(Map|List|Set)\b|^(int|bool|double|String|DateTime\??)[[:space:]]+[a-zA-Z_]+[[:space:]]*=' "$file"; then
     add "state file has top-level mutable state — use useInjected service or _providers global state instead"
   fi
+  # Mutable collections in class body / hook body (indented) — flutter-conventions §2
+  if grep -qE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' "$file"; then
+    add "state file declares mutable List/Map/Set field — use IList/IMap/ISet from fast_immutable_collections (flutter-conventions §2)"
+  fi
   if grep -qE 'void[[:space:]]+emit\(' "$file"; then
     add "state file defines an emit() wrapper — mutate useState fields directly"
   fi

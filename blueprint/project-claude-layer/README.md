@@ -248,14 +248,20 @@ jobs:
    conventions apply, mirroring each skill's `applicability`. Default
    `warn` (exit 1); `block` (exit 2) switchable via env var.
 
-Plus two siblings:
+Plus one sibling:
 
-- `<repo>_git_push_guard.sh` — pre-push branch allowlist.
 - `<repo>_skills_drift.sh` — dead-link scan.
 
 Hooks are **guarded**: each script proves it's in scope before doing
 anything. Out-of-scope = silent `exit 0`. Foundation and project
 hooks coexist without conflict.
+
+**Push protection is not a hook responsibility.** Two existing layers
+already cover it: (a) `permissions.allow` — leave `git push` off the
+allowlist so every push prompts the user; (b) GitHub branch protection
+on `master` / `main` / `staging`. A `PreToolUse` push-guard duplicates
+both and runs on every Bash invocation. Reintroduce only in a repo
+that has neither layer.
 
 ---
 
@@ -272,10 +278,30 @@ Every repo using this blueprint has one. It documents:
 4. **Rejected alternatives** — designs that were considered and not
    taken, each with: alternative, case for, case against here,
    reversal criterion.
+5. **Toolchain canon** — *recorded fact, not a chosen design.* The
+   primary-language toolchain pin (e.g. FVM for Dart, nvm for Node)
+   and the canonical command form that goes into agents, slash
+   commands, scripts, and `permissions.allow`. **Pick one form and
+   apply it everywhere — no `cmd / fvm cmd` slashes, no per-file
+   if/else.** Either the repo uses FVM or it doesn't; the answer is
+   binary. Bare-toolchain ambiguity (bash resolving against whatever
+   `$PATH` exposes) has bitten teams before — this section exists to
+   short-circuit that. No "case for / against": it's a recorded fact,
+   one short paragraph.
+6. **MCP assumption** — for Dart projects, an MCP dart server (e.g.
+   `dart-mcp`, `jolly-dart`) is **assumed present** and is the
+   preferred surface for routine ops (`dart_format`, `pub`,
+   `run_tests`). Bash via the toolchain canon (item 5 above) is the
+   fallback, and is authoritative for `analyze` (MCP `analyze_files`
+   is known to miss errors). The blueprint assumes this layer because
+   there is no good reason to skip it in a Dart repo.
 
 The Rejected alternatives section pays for itself. It's why future-you
 doesn't re-litigate decisions, and why someone new can tell a
-deliberate omission from an oversight.
+deliberate omission from an oversight. The Toolchain / MCP sections
+pay for themselves the first time someone runs `dart analyze` against
+a system Dart that doesn't match the FVM pin and ships green code
+that fails on CI.
 
 ---
 
@@ -337,54 +363,14 @@ ships with the symlink — add the script only if needed.
 
 ### Cursor IDE — skill discovery
 
-Cursor 3 (April 2026) ships native skills using the same `SKILL.md +
-frontmatter (name, description)` format as Claude Code. Cursor's
-default scan path is `.cursor/skills/<name>/SKILL.md`; it does **not**
-read `.claude/skills/` automatically.
-
-For Cursor users on a Claude-first repo, the cleanest single-source-
-of-truth recipe is a directory symlink:
-
-```
-.cursor/skills → ../.claude/skills
-```
-
-Both clients read the same files. Rules (`.cursor/rules/*.mdc`) and
-their long-form docs (`.cursor/docs/`) become redundant — their
-content already lives in `.claude/skills/<area>/references/`.
-
-**Don't commit this symlink.** Reasons:
-
-- Windows clients without symlink support get a regular file
-  containing the literal path string — Cursor sees a 18-byte file,
-  not a directory, and silently fails to discover any skills.
-- A committed symlink is one more thing to drift if the target
-  layout changes — recreating it from a bootstrap script keeps the
-  recipe in one place.
-
-Recipe:
-
-```gitignore
-# .gitignore
-.cursor/skills
-```
-
-```yaml
-# whatever bootstrap your repo runs (melos, npm postinstall, make setup)
-post: '[ -e .cursor/skills ] || ln -s ../.claude/skills .cursor/skills'
-```
+Cursor reads `.claude/skills/` directly. No symlink, no bootstrap
+recipe, no `.gitignore` entry needed — empirically verified on a
+Claude-first repo where `.cursor/` only contains `mcp.json`.
 
 `.cursor/mcp.json` (Cursor-specific MCP server config) is unrelated
-and stays committed. If you add Cursor subagents later, the same
-recipe applies to `.cursor/agents → ../.claude/agents`.
-
-**Verification (ask in Cursor after `bootstrap`):**
-> "What do you know about \<one of your skill domains\>?"
-
-A specific answer naming symbols from the referenced module ⇒ symlink
-followed and skills discovered. A generic answer ⇒ Cursor didn't
-follow the symlink; invert the direction (physical dir at
-`.cursor/skills/`, symlink from `.claude/skills/`).
+and stays committed where it exists. Earlier blueprint revisions
+prescribed a `.cursor/skills → ../.claude/skills` symlink; that step
+has been retired as redundant.
 
 ---
 
@@ -405,8 +391,11 @@ short architectural exercise plus mechanical copying of file shapes.
 
 3. **Draft `.claude/docs/claude-architecture.md`.** Fill in §2 (skill split
    table), §3 (which reference styles each skill will use), §8
-   (rejected alternatives — what you considered but didn't pick).
-   This is where the architectural decisions live.
+   (rejected alternatives — what you considered but didn't pick),
+   plus the §9 toolchain-canon and MCP-assumption notes — record the
+   FVM-or-not call (or the equivalent for non-Dart toolchains) once
+   here, then propagate the chosen form into every agent, command,
+   script, and `permissions.allow` entry. No alternation slashes.
 
 4. **Copy the file shapes into your repo.** Working from the
    blueprint:
@@ -419,20 +408,13 @@ short architectural exercise plus mechanical copying of file shapes.
    .claude/settings.json                  ← adjust hook paths
    .claude/agents/<repo>-{architect,maintainer,reviewer,precommit-auditor}.md
    .claude/commands/<repo>-{implement,audit,audit-skills}.md
-   .claude/scripts/<repo>_{quality_check,git_push_guard,skills_drift}.sh
+   .claude/scripts/<repo>_{quality_check,skills_drift}.sh
    .claude/skills/<repo>-<area>/SKILL.md  ← one per skill from your design
    .claude/refs/                          ← empty; populate as cross-skill needs emerge
    ```
 
-   **If your team has Cursor users**, add the §11 recipe:
-
-   ```bash
-   # .gitignore (append)
-   .cursor/skills
-
-   # repo bootstrap hook (melos post / npm postinstall / make setup)
-   [ -e .cursor/skills ] || ln -s ../.claude/skills .cursor/skills
-   ```
+   Cursor reads `.claude/skills/` natively — no extra recipe needed
+   (see §11).
 
 5. **Replace placeholders.** Sed `<repo>` → your repo's prefix
    (`bp`, `jolly`, etc.), `<project name>` → human name. Strip the
@@ -472,9 +454,8 @@ myrepo/                                            (repo root)
 ├── CLAUDE.md                                      agent context (Claude Code reads this)
 ├── AGENTS.md                       ─symlink─→ CLAUDE.md  (Codex / OpenAI tools read this)
 │
-├── .cursor/                                       (optional) Cursor IDE compatibility — see §11
-│   ├── mcp.json                                   Cursor-specific MCP server config (committed)
-│   └── skills/                     ─symlink─→ ../.claude/skills  (gitignored, recreated by bootstrap hook)
+├── .cursor/                                       (optional) only if Cursor users need committed Cursor-specific config
+│   └── mcp.json                                   Cursor-specific MCP server config (committed). Cursor reads `.claude/skills/` natively — no symlink needed.
 │
 ├── .claude/                                       AI architecture — self-contained
 │   ├── settings.json                              hooks wired to scripts below
@@ -502,7 +483,6 @@ myrepo/                                            (repo root)
 │   │   └── myrepo-audit-skills.md                 /audit-skills — drift scan
 │   ├── scripts/
 │   │   ├── myrepo_quality_check.sh                PostToolUse: path → skill nudges, block generated
-│   │   ├── myrepo_git_push_guard.sh               PreToolUse: branch allowlist
 │   │   └── myrepo_skills_drift.sh                 dead-link scanner
 │   └── skills/
 │       ├── myrepo-<area-1>/                       e.g. myrepo-flutter — Flutter-heavy area
