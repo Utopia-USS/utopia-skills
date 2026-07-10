@@ -92,14 +92,42 @@ continue past.
 
 ### 3. `generate_theme` - Flutter theme code
 
-Role-level (see the stub below for the exact CLI): reads `design/tokens.json`
-and emits a Dart file exposing a `UtopiaThemeData` factory built via
-`UtopiaThemeData.fromTokens` plus `copyWith` for the semantic slots
-(SPEC.md 5). Round-trip guarantee: exporting `defaultTheme` and then running
-`generate_theme` on that export MUST produce a theme equal to `defaultTheme`
-up to 8-bit color quantization (colors compare by ARGB32 value). Exact
-output path is not yet contracted - do not guess it; invoke the tool per its
-own `--help`/contract once available.
+Fully contracted (verbatim, ships in `utopia_design_tools`):
+
+```
+dart run utopia_design_tools:generate_theme [<tokens-file>] [-o <path>] [--json]
+```
+
+- Default `<tokens-file>`: `design/tokens.json` if present, else
+  `tokens/utopia.tokens.json`, else exit `2` with the same bootstrap
+  copy-command message as `validate_tokens`.
+- Default `-o`: `lib/theme/utopia_theme.g.dart` under the current working
+  directory (the consumer project); parent directories are created and the
+  written path is printed.
+- It VALIDATES the input first (the full `validate_tokens` gates): on any
+  error it exits `1`, prints the findings (same format and `--json` envelope
+  as `validate_tokens`) and writes NOTHING. Step 1 is still worth running
+  separately - a broken document should stop the workflow before the drift
+  check - but nothing slips past this second gate.
+- Output: a `dart_style`-formatted Dart file exposing
+  `UtopiaThemeData buildUtopiaTheme()`, built via `UtopiaThemeData.fromTokens`
+  plus a minimal `copyWith` (only slots that differ from the `fromTokens`
+  arithmetic) and minimal optional colors. Deterministic: the same input
+  produces byte-identical output; the file's header comment carries the input
+  path and the regeneration command.
+- Exit codes and `--json`: the shared convention (`0`/`1`/`2`).
+- Round-trip guarantee (SPEC.md 5): the theme generated from the canonical
+  default-theme export equals `UtopiaThemeData.defaultTheme` up to 8-bit
+  color quantization (colors compare by ARGB32 value).
+
+**Wire it or nothing changes.** Generated code is inert until the app uses
+it: the app must pass the generated theme explicitly, typically
+`UtopiaTheme(data: buildUtopiaTheme(), child: ...)` at the top of the widget
+tree. Without that wiring a completed rebrand shows NO visual change and no
+error - `UtopiaTheme.of` silently falls back to `defaultTheme`.
+`generate_theme` prints this next step after writing. Do not consider a
+first sync done until the wiring exists (once wired, it stays wired - later
+syncs only regenerate the file).
 
 ### 4. `generate_twin` - the HTML twin
 
@@ -121,11 +149,12 @@ Role-level (see the stub below for the exact CLI): the literals linter plus
 why. Not required to consider a sync run complete, but recommended before
 the twin output is viewed or shipped.
 
-## Exact generate CLI (pin when A4/A5/A6 land - RFC-B3)
+## Exact generate CLI (pin when A4/A5 land - RFC-B3)
 
-`generate_theme`, `generate_twin`, and `validate_twin` are contracted today
-only at the role level above (SPEC.md section 5) - their tool executables
-are not yet published. Do **not**
+`generate_twin` and `validate_twin` are contracted today only at the role
+level above (SPEC.md section 5) - their tool executables are not yet
+published (`generate_theme` is now fully contracted in step 3 above and no
+longer belongs to this stub). Do **not**
 invent specific flags, defaults, or output paths for them. Once their CLI
 lands, invoke each per its own contract or `--help` output, following the
 shared convention already locked for every command in this family: exit `0`

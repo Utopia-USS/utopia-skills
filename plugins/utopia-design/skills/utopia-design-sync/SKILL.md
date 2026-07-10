@@ -91,8 +91,11 @@ and 5 lives in [drift-and-verify.md][drift-and-verify].
    mismatch means the generated artifacts would not match the resolved
    library - treat it as a real error, not a warning to shrug off. See
    [drift-and-verify.md][drift-and-verify].
-3. **`generate_theme`.** Produces the app's Dart theme code from
-   `design/tokens.json`.
+3. **`generate_theme`.** Produces the app's Dart theme code
+   (`buildUtopiaTheme()`) from `design/tokens.json`. On the FIRST sync, also
+   confirm the app wires it - `UtopiaTheme(data: buildUtopiaTheme(),
+   child: ...)` - or the rebrand silently changes nothing; see
+   [regeneration.md][regeneration].
 4. **`generate_twin`.** Produces `twin/tokens.css`, `twin/tokens.tailwind.css`,
    and the `DESIGN.md` front matter from the same `design/tokens.json`. Steps
    3 and 4 are independent - both read only `design/tokens.json`, so either

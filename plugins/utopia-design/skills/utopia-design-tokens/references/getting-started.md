@@ -77,6 +77,12 @@ overwrite it - move straight to editing.
 3. Regenerate the Flutter theme and the HTML twin. Regeneration itself is
    **utopia-design-sync's** job - invoke that skill rather than hand-writing
    generated Dart or CSS.
+4. First time only: make sure the app actually USES the generated theme -
+   `UtopiaTheme(data: buildUtopiaTheme(), child: ...)` at the top of the
+   widget tree. Without that wiring a completed rebrand shows no visual
+   change and no error (`UtopiaTheme.of` silently falls back to the default
+   theme). `generate_theme` prints this step after writing;
+   **utopia-design-sync** owns the details.
 
 This loop is the entire "consumer rebrands by owning one file" story: the
 token document is the only artifact a human or agent edits by hand.
