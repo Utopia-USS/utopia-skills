@@ -46,7 +46,8 @@ generated from it, and screens are built from manifest components.
 
 Four skills cover the protocol - invoke the matching one (Skill tool) before
 doing design work:
-  - utopia-design-tokens - edit or rebrand design/tokens.json.
+  - utopia-design-tokens - create design/tokens.json (from the packaged
+    default theme) if absent, then edit or rebrand it.
   - utopia-design-sync - regenerate the Flutter theme and twin surfaces from
     tokens.
   - utopia-design-import - bring in an external design source (a Figma DTCG
