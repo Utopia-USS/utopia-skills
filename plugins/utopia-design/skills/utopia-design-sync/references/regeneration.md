@@ -131,15 +131,35 @@ syncs only regenerate the file).
 
 ### 4. `generate_twin` - the HTML twin
 
-Role-level (see the stub below for the exact CLI): reads
-`design/tokens.json` and emits `twin/tokens.css`, `twin/tokens.tailwind.css`,
-and the `DESIGN.md` front-matter block (SPEC.md 5, 4.1-4.3). CSS custom
-property naming, the Tailwind `@theme` mapping, and the `DESIGN.md` front
-matter shape are all specified in SPEC.md section 4 - this command is what
-produces them for a *consumer's* rebranded tokens, distinct from the
-default-theme twin `utopia_ui` ships pre-generated in its own pub tarball
-(SPEC.md section 1). Exact output location and flags are not yet
-contracted - do not guess them.
+Fully contracted (verbatim, ships in `utopia_design_tools`):
+
+```
+dart run utopia_design_tools:generate_twin [<tokens-file>] [-o <twin-dir>] [--json] [--skip-tailwind] [--skip-design-md]
+```
+
+- Default `<tokens-file>`: the same resolution and bootstrap message as
+  `validate_tokens`. Default `-o`: `./twin` under the current working
+  directory in a consumer project (inside the `utopia_ui` repo itself it
+  targets the package's own `twin/`).
+- It VALIDATES the input first: on an invalid token document it exits `1`
+  with findings and writes NOTHING - the same double-gate posture as
+  `generate_theme`.
+- Writes `tokens.css` (every token as a `--utopia-*` custom property per
+  SPEC.md 4.2, including the `textStyle-colors` fold), `tokens.tailwind.css`
+  (the SPEC.md 4.3 `@theme` mapping; unmapped families kept as comments), and
+  `DESIGN.md` - regenerating ONLY the front-matter block and preserving the
+  prose body byte-for-byte (malformed front-matter markers fail safe with a
+  stderr warning rather than losing the body).
+- `--skip-tailwind` / `--skip-design-md` skip those two outputs.
+- Deterministic (byte-identical reruns); exit codes and `--json` follow the
+  shared convention.
+
+This command produces the twin for a *consumer's* rebranded tokens, distinct
+from the default-theme twin `utopia_ui` ships pre-generated in its own pub
+tarball (SPEC.md section 1). Note: whether a sync should generate the twin
+by default for app-only projects with no design surface in play is an open
+protocol question (tracked as RFC-B4 in the working ledger); until it is
+answered, this skill's "regenerate both surfaces together" rule stands.
 
 ### 5. `validate_twin` - optional post-check
 
@@ -149,14 +169,14 @@ Role-level (see the stub below for the exact CLI): the literals linter plus
 why. Not required to consider a sync run complete, but recommended before
 the twin output is viewed or shipped.
 
-## Exact generate CLI (pin when A4/A5 land - RFC-B3)
+## Exact generate CLI (pin when A5 lands - RFC-B3)
 
-`generate_twin` and `validate_twin` are contracted today only at the role
-level above (SPEC.md section 5) - their tool executables are not yet
-published (`generate_theme` is now fully contracted in step 3 above and no
-longer belongs to this stub). Do **not**
-invent specific flags, defaults, or output paths for them. Once their CLI
-lands, invoke each per its own contract or `--help` output, following the
+`validate_twin` is contracted today only at the role level above (SPEC.md
+section 5) - its tool executable is not yet published (`generate_theme` and
+`generate_twin` are now fully contracted in steps 3 and 4 above and no
+longer belong to this stub). Do **not**
+invent specific flags, defaults, or output paths for it. Once its CLI
+lands, invoke it per its own contract or `--help` output, following the
 shared convention already locked for every command in this family: exit `0`
 success / `1` validation-or-generation failure / `2` usage-or-IO error,
 `--json` for machine-readable output, installed via

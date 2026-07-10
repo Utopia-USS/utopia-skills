@@ -25,7 +25,7 @@ flutter pub add --dev utopia_design_tools
 
 Until it is published to pub.dev, `flutter pub add` cannot find it - install
 it as a git dependency instead (the package lives nested in the utopia-ui
-repo):
+repo), and add a `dependency_overrides` entry for `utopia_ui` alongside it:
 
 ```yaml
 dev_dependencies:
@@ -33,11 +33,22 @@ dev_dependencies:
     git:
       url: https://github.com/Utopia-USS/utopia-ui.git
       path: tool/utopia_design_tools
+
+dependency_overrides:
+  utopia_ui:
+    git:
+      url: https://github.com/Utopia-USS/utopia-ui.git
 ```
 
-Add `ref: <branch-or-tag>` if the tool has not reached the repo's default
-branch yet; delete this fallback once the package is on pub.dev. Do not
-assume the command is available - install-then-run.
+The override is required, not optional: `utopia_design_tools` declares a
+hosted `utopia_ui` dependency (correct once both are published), so without
+the override pub fails to solve against a project whose `utopia_ui` comes
+from git or a path - the override makes your project's `utopia_ui` source
+win. Use the same source (git or `path:`) for the override as your app's own
+`utopia_ui` dependency, add `ref: <branch-or-tag>` if the tool has not
+reached the repo's default branch yet, and delete this whole fallback block
+once the packages are on pub.dev. Do not assume the command is available -
+install-then-run.
 
 ## The validate_tokens contract
 
