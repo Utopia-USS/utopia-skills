@@ -1,0 +1,13 @@
+name: with_utopia_ui_fixture
+description: Fixture app that depends on utopia_ui (usage gate should FIRE).
+publish_to: none
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  utopia_ui: ^0.1.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

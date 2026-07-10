@@ -1,0 +1,9 @@
+{
+  "name": "utopia-design",
+  "description": "👾 Utopia Design Protocol for utopia_ui: edit/rebrand design/tokens.json (DTCG), regenerate the Flutter theme plus an HTML twin surface, import external design sources (Figma, tokens.css/Tailwind @theme, a Claude Design handoff bundle, DESIGN.md), and build screens from designs using only manifest components - all gated on the project resolving utopia_ui. SessionStart detects utopia_ui and activates the skills; PostToolUse flags hardcoded theme values and malformed tokens files.",
+  "version": "0.1.0",
+  "author": {
+    "name": "UtopiaSoftware"
+  },
+  "license": "BSD-2-Clause"
+}
