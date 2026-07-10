@@ -6,8 +6,8 @@
     "url": "https://utopiasoft.io"
   },
   "metadata": {
-    "description": "👾 Flutter skills for Claude Code by UtopiaSoftware - hooks-based state management, project architecture scaffolding, BLoC migration, admin/CMS panels, the Dart/Flutter language server, and pub.dev README/branding.",
-    "version": "0.6.0"
+    "description": "👾 Flutter skills for Claude Code by UtopiaSoftware - hooks-based state management, project architecture scaffolding, BLoC migration, admin/CMS panels, the Dart/Flutter language server, pub.dev README/branding, and the Utopia Design Protocol (design tokens, HTML twin, screens from designs).",
+    "version": "0.7.0"
   },
   "plugins": [
     {
@@ -93,6 +93,18 @@
       "source": "./plugins/utopia-pubdev",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-pubdev",
+      "author": {
+        "name": "UtopiaSoftware",
+        "email": "hello@utopiasoft.io"
+      }
+    },
+    {
+      "name": "utopia-design",
+      "description": "👾 The Utopia Design Protocol for utopia_ui apps. Edit/rebrand DTCG design tokens (design/tokens.json) with validation gates, import external designs (Figma DTCG exports, tokens.css / Tailwind @theme, handoff bundles, DESIGN.md), regenerate the Flutter theme and HTML twin from tokens, and build screens from the component manifest with explicit gap reporting. SessionStart detection plus PostToolUse token/literal gates; silent outside utopia_ui projects.",
+      "version": "0.1.0",
+      "source": "./plugins/utopia-design",
+      "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
+      "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-design",
       "author": {
         "name": "UtopiaSoftware",
         "email": "hello@utopiasoft.io"

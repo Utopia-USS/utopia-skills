@@ -84,6 +84,7 @@ dart pub global activate utopia_cli
 /plugin install utopia-ai-arch@utopia-flutter-skills
 /plugin install utopia-hooks-migrate-bloc@utopia-flutter-skills
 /plugin install utopia-pubdev@utopia-flutter-skills
+/plugin install utopia-design@utopia-flutter-skills
 ```
 
 ### Codex
@@ -124,6 +125,7 @@ You get a Flutter app with `utopia_hooks` + `utopia_arch` scaffolding **and** an
 - [Screen/State/View pattern](plugins/utopia-hooks/skills/utopia-hooks/SKILL.md)
 - [Hook catalog](plugins/utopia-hooks/skills/utopia-hooks/references/)
 - [CMS / admin-panel guide](plugins/utopia-cms/skills/utopia-cms/SKILL.md)
+- [Utopia Design Protocol - tokens & rebranding](plugins/utopia-design/skills/utopia-design-tokens/SKILL.md) (companion tooling ships as `utopia_design_tools`; a git dependency until it reaches pub.dev - see the skill's validation reference)
 
 ## Companion packages
 
