@@ -44,7 +44,7 @@ Utopia Design Protocol: a shared design/tokens.json (DTCG format) is the
 single source of truth, the Flutter theme and an HTML twin surface are both
 generated from it, and screens are built from manifest components.
 
-Four skills cover the protocol - invoke the matching one (Skill tool) before
+These skills cover the protocol - invoke the matching one (Skill tool) before
 doing design work:
   - utopia-design-tokens - create design/tokens.json (from the packaged
     default theme) if absent, then edit or rebrand it.
@@ -59,7 +59,6 @@ doing design work:
 
 Screens compose with the utopia-hooks Screen/State/View pattern - defer to
 that skill for state management. A PostToolUse hook checks edits to
-design/*.tokens.json and flags hardcoded theme values in Dart edits; invoke
-the matching skill above before doing design work.
+design/*.tokens.json and flags hardcoded theme values in Dart edits.
 EOF
 exit 0

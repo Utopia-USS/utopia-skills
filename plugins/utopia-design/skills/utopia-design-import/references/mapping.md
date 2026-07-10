@@ -94,6 +94,12 @@ coincidental.
 - This gap discipline mirrors **utopia-design-screen**'s component-gap
   reporting: the same "report it, don't paper over it" posture applied to
   tokens instead of components.
+- Two gaps are predictable enough to have a scripted answer - a dark palette
+  (single-context protocol, out of v0 by design) and success/warning
+  semantic colors (no `UtopiaThemeColors` slot to land in). See
+  **utopia-design-tokens**'s
+  [token-profile.md](../../utopia-design-tokens/references/token-profile.md)
+  "Known v0 limits" for the exact response; do not improvise one.
 
 ## Anti-patterns
 

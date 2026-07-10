@@ -130,6 +130,24 @@ surface. If a design needs a value this tree has no slot for, that is a
 protocol gap to raise upstream, not something to patch around by inventing a
 token name.
 
+## Known v0 limits (say this, don't improvise)
+
+Two collisions come up in almost every real brand kit - both are known,
+deliberate v0 limits, and the correct response is to state them plainly:
+
+- **Dark mode / theme modes.** The token document is single-context by
+  design (SPEC.md 2.1: no modes, no themes-in-one-file; the DTCG Resolver
+  module is out of scope in v0). Do not attempt to encode a dark palette
+  into this tree - not as a second file wired into the protocol, not as
+  invented `dark*` names. Tell the user dark mode is outside protocol v0
+  and leave their dark values untouched wherever they live today.
+- **success / warning semantic colors.** `color.*` has no success or
+  warning slot because `UtopiaThemeColors` has no such fields - the tree
+  cannot land what the theme cannot hold (a known library gap, already
+  raised upstream). Map `error` (the slot that exists); report success /
+  warning values as unmapped gaps (via **utopia-design-import**'s gap
+  reporting when importing), never shoehorn them into unrelated slots.
+
 ## See also
 
 - [rebranding.md](rebranding.md) - the rules for changing values inside this tree safely

@@ -43,9 +43,14 @@ Every GAP, regardless of the element, is reported with exactly these five parts:
    the props it needs (name + portable type per SPEC.md 3.5), its interaction states,
    and the token bindings it would read (SPEC.md 3.6 vocabulary).
 
+Proportionality: when the honest suggested action is "drop it" rather than "scaffold
+it" (a decorative flourish, a genuine one-off), parts 2, 3 and 5 may compress to a
+line each - all five parts stay present, but their depth scales with how likely the
+element is to become a real component.
+
 Gaps are surfaced in **two** places, always together, never just one:
 
-- In the **final response** to whoever asked for the screen, using the four-part format
+- In the **final response** to whoever asked for the screen, using the five-part format
   above.
 - As a `// TODO` comment at the exact insertion point in the generated screen code,
   summarizing the gap inline so it survives beyond the conversation (a future reader of

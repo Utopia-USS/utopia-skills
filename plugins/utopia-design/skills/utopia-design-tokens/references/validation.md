@@ -23,8 +23,21 @@ fails with a package-resolution error, install it first as a dev dependency:
 flutter pub add --dev utopia_design_tools
 ```
 
-Until it is published to pub.dev this is a git dependency on the tools repo.
-Do not assume the command is available - install-then-run.
+Until it is published to pub.dev, `flutter pub add` cannot find it - install
+it as a git dependency instead (the package lives nested in the utopia-ui
+repo):
+
+```yaml
+dev_dependencies:
+  utopia_design_tools:
+    git:
+      url: https://github.com/Utopia-USS/utopia-ui.git
+      path: tool/utopia_design_tools
+```
+
+Add `ref: <branch-or-tag>` if the tool has not reached the repo's default
+branch yet; delete this fallback once the package is on pub.dev. Do not
+assume the command is available - install-then-run.
 
 ## The validate_tokens contract
 
@@ -115,8 +128,8 @@ the project actually resolves `utopia_design_tools` (pubspec or lockfile
 entry plus a fetched `.dart_tool/package_config.json`) it also runs
 `validate_tokens` on the edited file and surfaces the first findings (capped
 at 8; needs `dart` on PATH; skipped when the structural check already flagged
-the file; set `UTOPIA_DESIGN_VALIDATOR=off` to keep the hook
-structural-only). It is
+the file; the very first run may pay a one-time `dart run` compile cost; set
+`UTOPIA_DESIGN_VALIDATOR=off` to keep the hook structural-only). It is
 still not a substitute for running the CLI: the hook can be muted, truncates
 findings, skips the validator when the tool is not fetched, and stays silent
 on environment problems. Treat the hook as a tripwire and `validate_tokens`

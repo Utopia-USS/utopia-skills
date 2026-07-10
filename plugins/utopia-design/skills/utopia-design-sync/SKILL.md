@@ -71,8 +71,9 @@ flutter pub add --dev utopia_design_tools
 
 This is the identical prerequisite **utopia-design-tokens**'s
 [validation.md](../utopia-design-tokens/references/validation.md) documents
-for `validate_tokens` - do not assume the tools are available, install then
-run.
+for `validate_tokens`, including the pre-publish git-dependency fallback
+when `pub add` cannot find the package - do not assume the tools are
+available, install then run.
 
 ## The Regenerate Workflow (the spine)
 
