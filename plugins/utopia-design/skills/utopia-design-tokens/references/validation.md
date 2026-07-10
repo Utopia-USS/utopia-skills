@@ -108,14 +108,20 @@ actually targets - see `SKILL.md` "Non-Negotiable Rules."
 
 ## Hook vs CLI - don't confuse the two
 
-This plugin's PostToolUse hook (`quality_check.sh`) does a **structural JSON
-sanity check** on `design/*.tokens.json` edits - `jq empty` plus "is the top
-level an object" - purely so a broken edit gets flagged immediately, before
-the real validator is wired in as its follow-up call. It is not a substitute
-for `validate_tokens` and never will be a full re-implementation of it: treat
-the hook as a tripwire and `validate_tokens` as the actual gate. Always run
-the CLI yourself after an edit - do not rely on hook silence as a validation
-pass.
+This plugin's PostToolUse hook (`quality_check.sh`) is a tripwire on
+`design/*.tokens.json` edits, not the gate. It always runs a **structural
+JSON sanity check** (`jq empty` plus "is the top level an object"), and when
+the project actually resolves `utopia_design_tools` (pubspec or lockfile
+entry plus a fetched `.dart_tool/package_config.json`) it also runs
+`validate_tokens` on the edited file and surfaces the first findings (capped
+at 8; needs `dart` on PATH; skipped when the structural check already flagged
+the file; set `UTOPIA_DESIGN_VALIDATOR=off` to keep the hook
+structural-only). It is
+still not a substitute for running the CLI: the hook can be muted, truncates
+findings, skips the validator when the tool is not fetched, and stays silent
+on environment problems. Treat the hook as a tripwire and `validate_tokens`
+as the actual gate. Always run the CLI yourself after an edit - do not rely
+on hook silence as a validation pass.
 
 ## See also
 
