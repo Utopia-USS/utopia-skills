@@ -25,6 +25,12 @@ gets matched onto a path in it.
 
 ## Rules
 
+Rules 1-3 are the matching side (SPEC.md 6.2's priority: `sourceRef`, then
+the token-path tier - split here into literal name/path and semantic role;
+SPEC's third tier, the value fingerprint, applies only on re-import ->
+[three-way-diff.md](three-way-diff.md)). Rules 4-5 govern value conversion
+and scope, not matching.
+
 1. **Match priority when re-importing an already-synced token: `sourceRef`
    first.** If an external token carries (or is known by) the same opaque
    id recorded in a utopia token's `$extensions["io.utopiasoft.design"].sourceRef`,

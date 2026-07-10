@@ -67,18 +67,20 @@ token where only one side changed is not a conflict - it's a plain update
 (source changed, local didn't) or a plain local edit to leave alone (local
 changed, source didn't).
 
-The four conflict modes and the conflict definition are from SPEC.md section
-6.2. What that section does NOT pin down is whether the sync metadata
-advances when a conflict is resolved via `ours` or `skip`; the per-mode
-metadata behavior below is this skill's applied convention (chosen so a
-resolved conflict does not loop forever, while a deferred one deliberately
-resurfaces), not a SPEC.md mandate. If the protocol later specifies it, this
-is the paragraph to reconcile.
+The four conflict modes, the conflict definition, and the
+`lastSyncedValue` / `lastSyncedAt` advancement below are all normative
+SPEC.md section 6.2: resolving via `theirs` or `ours` refreshes them to the
+resolved value (the decision becomes the new merge base, so a resolved
+conflict does not loop forever), while `skip` leaves them untouched, so a
+deferred conflict deliberately resurfaces on the next import. One detail is
+this skill's convention rather than a SPEC mandate: `sourceRef` is recorded
+or refreshed on every applied resolution (`theirs` and `ours` alike) - the
+binding to the matched external token survives whichever side won.
 
 Conflict modes:
 
 - **`ask` (default)** - report the conflict, write nothing for that token.
-  Example: `color.primary` was `#546dfe` at last sync; the local file now
+  Example: `color.primary` was `#536dfe` at last sync; the local file now
   has `#22c55e` (a manual rebrand) and the new export has `#3b82f6` (a
   designer change) - both differ from `lastSyncedValue`, so `ask` reports
   both values side by side and waits.
@@ -90,7 +92,8 @@ Conflict modes:
   change for this token. Same example: the token stays `#22c55e`;
   `lastSyncedValue` / `lastSyncedAt` still refresh to record that this
   conflict was seen and resolved in favor of the local value, so the same
-  diff doesn't resurface next time for no reason.
+  diff doesn't resurface next time for no reason; `sourceRef` refreshes the
+  same way it does under `theirs`, keeping the external binding intact.
 - **`skip`** - leave this one token untouched entirely, including its sync
   metadata, and continue processing every other token normally. Same
   example: nothing changes for `color.primary` at all; because

@@ -68,19 +68,20 @@ Flutter theme code or twin CSS - those are generated, never hand-edited.
 
 ### A color change
 
-Before:
+Before (the canonical default-theme value):
 
 ```json
 "primary": { "$type": "color", "$value": {
-  "colorSpace": "srgb", "components": [0.329, 0.427, 0.996],
-  "alpha": 1, "hex": "#546dfe" } }
+  "colorSpace": "srgb", "components": [0.32549, 0.427451, 0.996078],
+  "alpha": 1, "hex": "#536dfe" } }
 ```
 
-After (rebrand to a green primary):
+After (rebrand to a green primary; components stay `channel / 255` at up to
+6 fractional digits so the `hex` cross-check keeps passing):
 
 ```json
 "primary": { "$type": "color", "$value": {
-  "colorSpace": "srgb", "components": [0.133, 0.773, 0.369],
+  "colorSpace": "srgb", "components": [0.133333, 0.772549, 0.368627],
   "alpha": 1, "hex": "#22c55e" } }
 ```
 

@@ -12,18 +12,21 @@ closed utopia tree is [mapping.md](mapping.md)'s job, not this one.
 - **What it looks like:** a JSON file conforming to the same DTCG format
   module `design/tokens.json` itself uses, but produced by a Figma
   variables-to-DTCG export. Group names, nesting, and modes are Figma's own
-  - they will not match the utopia tree's paths. It commonly carries
-  `$extensions["com.figma.*"]` entries (variable ids, collection, mode)
-  alongside standard `$type`/`$value` per token.
+  - they will not match the utopia tree's paths. It may carry foreign
+  `$extensions` metadata (variable ids, collection, mode) alongside standard
+  `$type`/`$value` per token; the exact key varies by exporter (SPEC.md uses
+  `com.figma.*` as its illustrative vendor-namespace example, while e.g. the
+  Figma Console MCP tool stamps the literal key `figma-console-mcp`).
 - **Where the values live:** standard DTCG `$value` per token, nested under
   Figma's own group hierarchy rather than utopia's.
 - **How to extract:** read it as a plain DTCG document (the same parsing
   habits as `design/tokens.json`). The challenge is never the format - it's
   that names don't line up with the utopia tree at all; every path needs
   explicit mapping (-> [mapping.md](mapping.md)).
-- **Format notes:** preserve `$extensions["com.figma.*"]` untouched - it's a
-  foreign vendor namespace under DTCG's round-trip rule (SPEC.md section
-  2.1). When a Figma variable id is present in that namespace, it is a good
+- **Format notes:** preserve whatever foreign `$extensions` namespace is
+  present, untouched - DTCG's round-trip rule plus the vendor-namespace
+  clause (SPEC.md sections 2.1, 2.6). When a Figma variable id is present
+  in such a namespace, it is a good
   candidate for the `sourceRef` recorded on apply (-> the tokens skill's
   edit loop), since it stays stable across re-exports of the same variable.
   There is no Figma write-API integration in v0 - this file-export path is

@@ -203,7 +203,7 @@ for v in "${violations[@]}"; do
 done
 detail="$detail
 
-Invoke the matching utopia-design skill (Skill tool) before continuing. Set UTOPIA_DESIGN_MODE=block to make these blocking, or =silent to mute."
+Invoke the matching utopia-design skill (Skill tool) before continuing. (mode: $mode - UTOPIA_DESIGN_MODE=warn|block|silent adjusts this gate.)"
 
 if [[ "$mode" == "block" ]]; then
   # exit 2 + stderr is the house blocking mechanism - reaches the model, must be addressed.

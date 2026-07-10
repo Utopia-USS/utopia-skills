@@ -16,7 +16,7 @@ and what loop to run afterwards.
 Before anything else, confirm the project actually resolves `utopia_ui`
 (declared in `pubspec.yaml`, or resolved transitively in `pubspec.lock`). If
 it does not, stop - the protocol has no meaning without the library. See
-`SKILL.md` "Usage gate" for the exact check and install guidance.
+`SKILL.md` "Usage Gate" for the exact check and install guidance.
 
 ### 1. Resolve the version-matched packaged artifacts
 
@@ -41,7 +41,9 @@ echo "$utopia_ui_root"
 
 `rootUri` is either an absolute `file://` URI (typical for a pub-cache
 install) or a URI relative to `.dart_tool/` (typical for a path dependency);
-the `case` above handles both. Once resolved, `$utopia_ui_root` contains:
+the `case` above handles both. The snippet needs `jq` - without it, read
+`.dart_tool/package_config.json` with any JSON reader and apply the same
+two-branch `rootUri` logic. Once resolved, `$utopia_ui_root` contains:
 
 - `tokens/utopia.tokens.json` - the packaged default-theme export (today's
   bootstrap source)
