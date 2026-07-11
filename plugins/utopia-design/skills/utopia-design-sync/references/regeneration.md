@@ -177,7 +177,11 @@ dart run utopia_design_tools:validate_twin [--twin-dir <dir>] [--manifest <path>
 
 - Defaults: the twin directory and the manifest are resolved from the
   `utopia_ui` root (repo checkout, else the pub cache) - the same resolution
-  style as every other tool in the family; the flags override.
+  style as every other tool in the family; the flags override. In a consumer
+  project this means a NO-ARGS run validates the PACKAGE'S shipped twin, not
+  your project-local `twin/` from step 4 - point it at yours explicitly
+  (`--twin-dir twin --manifest <resolved manifest path>`) when that is what
+  you mean to check.
 - Gates: the literals linter over hand-authored twin CSS AND inline
   `<style>` blocks in the twin HTML (full SPEC.md 4.5 rule set, including
   the `/* utopia-literal-ok: <reason> */` same-line exception), plus
@@ -186,6 +190,18 @@ dart run utopia_design_tools:validate_twin [--twin-dir <dir>] [--manifest <path>
   directions against the manifest (note entries count as covered); and
   tokens.css freshness (regenerate-and-byte-compare, invocation-independent).
 - Exit codes and `--json`: the shared convention (`0`/`1`/`2`).
+
+Scope caveat for consumer projects: the `data-utopia-id` coverage gate
+presupposes a FULL twin bundle including `components.html` - which is
+hand-authored (maintainer-side), never produced by `generate_twin`. A
+project-local twin that holds only the three generated files will therefore
+hard-fail that gate for every manifest component, by construction, telling
+you nothing. Treat `validate_twin` as meaningful for a full or curated twin
+bundle (the package's shipped one, or a project twin that also carries the
+hand-authored HTML/CSS); for a generated-files-only project twin, skip it -
+the files were just written from a validated document and have nothing to
+lint. Whether the tool should gain a partial-twin mode is an open upstream
+question.
 
 See [drift-and-verify.md](drift-and-verify.md) for what each gate flags and
 why. Not required to consider a sync run complete, but recommended before
