@@ -112,7 +112,12 @@ dart run utopia_design_tools:generate_theme [<tokens-file>] [-o <path>] [--json]
 - Output: a `dart_style`-formatted Dart file exposing
   `UtopiaThemeData buildUtopiaTheme()`, built via `UtopiaThemeData.fromTokens`
   plus a minimal `copyWith` (only slots that differ from the `fromTokens`
-  arithmetic) and minimal optional colors. Deterministic: the same input
+  arithmetic) and minimal optional colors. Consequence worth knowing: a
+  base-derived value that still matches its formula (e.g. `fieldMinHeight`
+  after an `x` rescale) will usually NOT appear as a literal number in the
+  generated file - it flows through `fromTokens` at runtime. Verify a rescale
+  through the running theme (or the twin's `tokens.css`), not by grepping
+  the generated Dart for the new number. Deterministic: the same input
   produces byte-identical output; the file's header comment carries the input
   path and the regeneration command.
 - Exit codes and `--json`: the shared convention (`0`/`1`/`2`).
