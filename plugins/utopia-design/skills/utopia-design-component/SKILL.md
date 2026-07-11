@@ -132,13 +132,17 @@ fallback block; it is not re-derived here.
   3. Write the opt-in overlay YAML at `design/overlay/<local-part>.yaml`. A component
      exists in the project manifest **exactly when** its overlay file exists - there is
      no other registration mechanism.
-  4. Regenerate the project + merged manifests. **This is the one pin spot** - see
-     [scaffold-and-register.md][scaffold-and-register]'s "Pin when `H5: READY` flips"
-     section for the exact CLI; do not invent flags or outputs beyond what SPEC.md 3.8
-     already states (emits BOTH `design/project.manifest.json` and
-     `design/merged.manifest.json`, deterministic, never hand-edited).
-  5. Validate: run zero-arg `validate_manifest` and confirm its SPEC.md 3.8 gates pass -
-     namespace enforcement, `utopiaUiVersion` freshness, embedded-library equality,
+  4. Regenerate the project + merged manifests:
+     `dart run utopia_design_tools:generate_manifest --project` from inside the
+     project. It emits BOTH `design/project.manifest.json` and
+     `design/merged.manifest.json` (fixed paths), self-validates before writing
+     (exit `1` + findings, nothing written, on failure) and reruns
+     byte-identically. Exact flags, defaults, and the shadow-class warning:
+     [scaffold-and-register.md][scaffold-and-register].
+  5. Validate: run `validate_manifest` pointed at `design/merged.manifest.json`
+     (a ZERO-ARG run validates the shipped library manifest instead - not what
+     you want here) and confirm the SPEC.md 3.8 gates pass - namespace
+     enforcement, `utopiaUiVersion` freshness, embedded-library equality,
      referential integrity across the merge, flat model-name uniqueness. See
      [overlay-and-manifests.md][overlay-and-manifests].
   6. The namespaced id is now live - screen building maps to it via the merged manifest
@@ -171,8 +175,9 @@ After running this skill's loop, verify:
    plainly-named project constant, documented as project-specific - not smuggled into
    the token tree, not left as an unexplained magic literal.
 3. An overlay YAML exists at `design/overlay/<local-part>.yaml` for the component, using
-   only the real overlay keys (`states`, `notes`, `examples`, `tokenBindingsAdd`) - see
-   [overlay-and-manifests.md][overlay-and-manifests].
+   only the real overlay keys (`states`, `notes`, `examples`, `tokenBindingsAdd`, and
+   the optional `class:` binding when the filename is not the class's kebab
+   derivation) - see [overlay-and-manifests.md][overlay-and-manifests].
 4. The component's id is namespaced `<projectPackageName>:<kebab-name>` - never bare.
 5. Both `design/project.manifest.json` and `design/merged.manifest.json` were
    regenerated (never hand-edited) after the overlay changed.

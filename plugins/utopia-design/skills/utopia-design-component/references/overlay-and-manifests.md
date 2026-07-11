@@ -9,16 +9,17 @@ introduces for project components - what each document is, what marks it, and wh
 
 ## The overlay key reference
 
-All four keys are optional - include only the ones that apply to the component.
+All keys are optional - include only the ones that apply to the component.
 An overlay file carries curated facts the static analyzer cannot derive on its own
 (SPEC.md 3.7: "a hand-maintained per-component overlay... carrying facts that cannot be
 derived statically"). Project overlays at `design/overlay/<local-part>.yaml` use the
 **same schema and drift gates as** the library overlay at
-`tool/utopia_design_tools/overlay/<id>.yaml` (SPEC.md 3.8). That schema is exactly four
-keys - no others are read by the loader:
+`tool/utopia_design_tools/overlay/<id>.yaml` (SPEC.md 3.8), plus one project-only key
+(`class`). That schema is five keys - no others are read by the loader:
 
 | Key | Shape | Real example |
 |---|---|---|
+| `class` | string, a Dart class name (project overlays only) | binds the overlay's filename to its class when the filename is NOT the class's kebab derivation - the SPEC.md 3.3 local-part override; the committed `project_consumer` fixture registers `DemoRatingStars` as `star-rating` this way |
 | `states` | list of strings, from a **closed** vocabulary | `button.yaml`: `states: [hover, loading, disabled]`; `table.yaml`: `states: [empty, loading, hover]`; `date-picker.yaml`: `states: [open]` |
 | `notes` | free-text block | `card.yaml`: "A raised, rounded, hairline-bordered surface..."; `divider.yaml`: "A hairline divider drawn in the theme's divider colour..." |
 | `examples` | list of repo-relative paths | `button.yaml`: `[example/lib/sections/buttons_section.dart, example/lib/sections/dialogs_section.dart]` |
@@ -141,8 +142,7 @@ such reference actually resolves on the merged view.
 ## See also
 
 - [scaffold-and-register.md](scaffold-and-register.md) - the loop this schema is written
-  into, worked end-to-end, including the single `H5: READY` pin spot for the
-  `generate_manifest --project` CLI itself
+  into, worked end-to-end, including the exact `generate_manifest --project` CLI
 - **utopia-design-tokens**'s
   [token-profile.md](../../utopia-design-tokens/references/token-profile.md) - why a
   project-specific visual value is a constant, never a new token

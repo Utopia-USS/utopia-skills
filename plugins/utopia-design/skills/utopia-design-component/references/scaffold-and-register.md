@@ -124,14 +124,15 @@ that.
 A component exists in the project manifest **exactly when** its overlay file exists, at
 `design/overlay/<local-part>.yaml` (SPEC.md 3.8) - same schema and drift gates as the
 library overlay (SPEC.md 3.7). The `<local-part>` is the id's local part per SPEC.md
-3.3: kebab-case of the Dart class name (`MarketTile` -> `market-tile`; no prefix
-stripping unless the class carries the project's own prefix; the overlay MAY override
-the local part). The overlay FILENAME and the component's extracted local part must
-agree - a file whose name matches no extracted component is a generation-time drift
-error. The real house shape, from the shipped
-`tool/utopia_design_tools/overlay/*.yaml` files, has exactly four keys: `states`,
-`notes`, `examples`, `tokenBindingsAdd` - all optional, include only what applies (full
-reference in [overlay-and-manifests.md](overlay-and-manifests.md)).
+3.3: kebab-case of the Dart class name (`MarketTile` -> `market-tile`), with NO prefix
+stripping in v0. To register under a DIFFERENT local part than the class derivation,
+name the file as desired and bind it explicitly with a `class: <ClassName>` key inside
+the overlay - the SPEC.md 3.3 local-part override (the reference fixture registers
+`DemoRatingStars` as `star-rating` exactly this way). A filename that matches no class
+derivation and carries no `class:` binding is a generation-time error. The real house
+shape has five keys: `states`, `notes`, `examples`, `tokenBindingsAdd`, plus the
+optional `class` binding - all optional, include only what applies (full reference in
+[overlay-and-manifests.md](overlay-and-manifests.md)).
 
 `design/overlay/market-tile.yaml`:
 
@@ -205,31 +206,40 @@ to screen building - **utopia-design-screen**'s
 documents the merged manifest as the preferred mapping target once it exists. This
 skill's job ends here; it does not itself wire the component into a screen.
 
-## Pin when `H5: READY` flips (A11's `generate_manifest --project` CLI)
+## Step 4's exact CLI: `generate_manifest --project`
 
-Everything above Step 4's mechanics is safe to build against today - it is SPEC.md 3.8,
-frozen. Two neighbors are ALREADY published and are not what this pin waits for:
-`validate_manifest` (Step 5) is shipped and fully contracted (see
-**utopia-design-sync**'s
-[regeneration.md](../../utopia-design-sync/references/regeneration.md)), and a
-`generate_manifest` executable exists today for the LIBRARY manifest (maintainer-only).
-What is **not** published yet is the `--project` mode this loop's Step 4 needs - its
-exact invocation:
+Fully contracted (verbatim, ships in `utopia_design_tools`):
 
-- The literal command line: flag names, positional-vs-named arguments, defaults (e.g.
-  whether an overlay directory or output paths are overridable, and their default
-  values).
-- Exact stdout/stderr message text and `--json` shape for this command specifically
-  (the shared conventions - exit `0`/`1`/`2`, `--json` for machine-readable output,
-  install via `flutter pub add --dev utopia_design_tools` - already apply per SPEC.md
-  section 5, but this command's own flags are not yet published).
-- Anything H5 adds beyond what SPEC.md 3.8 already states about the two emitted files.
+```
+dart run utopia_design_tools:generate_manifest --project [--project-dir <dir>] [--overlay-dir <dir>] [--json] [--timestamp]
+```
 
-Do **not** invent flags, defaults, or output paths ahead of an unpublished CLI - the
-standing discipline every tool in this family followed before its contract shipped.
-Once the `--project` contract is published, this section is the single place to update
-with the real CLI - invoke it per its own contract or `--help` output, following the
-shared convention already locked for every command in this family.
+- Run from inside the consumer project. Default `--project-dir`: walk-up to
+  the nearest `pubspec.yaml` that is not `utopia_ui`; exit `2` with guidance
+  when none is found, when `utopia_ui` is not resolvable from it, or when NO
+  overlay files exist (that message explains the opt-in model - an empty
+  overlay dir is a usage error, not an empty manifest).
+- Default `--overlay-dir`: `design/overlay/` under the project root.
+  Registration and the `class:` override work exactly as Step 3 describes.
+- Writes BOTH fixed-path files (SPEC.md 3.8): `design/project.manifest.json`
+  (only custom components, namespaced ids, own models/helpers,
+  `utopiaUiVersion` stamped from the resolved `utopia_ui`) and
+  `design/merged.manifest.json` (`merged: true`; the library half is
+  byte-faithful from the pub-cache manifest, never re-extracted; the project
+  half is appended; a model-name collision across the halves FAILS the
+  merge). It self-validates both before writing: exit `1` plus findings and
+  NOTHING written on failure. Deterministic byte-identical reruns.
+- On success it may print WARN lines to stderr when a project class shadows
+  a library component class name (`composes` resolution is parse-only) -
+  heed them and rename the class if the shadowing is accidental.
+- Exit codes and `--json`: the shared convention (`0`/`1`/`2`).
+
+A live, committed reference exists: `tool/utopia_design_tools/test/fixtures/
+project_consumer/` in the utopia-ui repo - a real mini package (`demo_consumer`) with a
+`MarketTile` (composes `card` + `chip`, a `Quote` model, project-local color constants:
+the values-on-the-side pattern), a `DemoRatingStars` registered via the `class:`
+override as `demo_consumer:star-rating`, and an `UnregisteredWidget` proving opt-out.
+Run the CLI against a COPY of that fixture to see live output end-to-end.
 
 ## See also
 
