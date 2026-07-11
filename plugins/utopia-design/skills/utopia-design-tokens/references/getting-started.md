@@ -35,6 +35,7 @@ case "$root_uri" in
   file://*) utopia_ui_root="${root_uri#file://}" ;;
   *)        utopia_ui_root="$(cd ".dart_tool/$root_uri" && pwd)" ;;
 esac
+utopia_ui_root="${utopia_ui_root//\%20/ }"  # rootUri is a URI - decode the space-encoding (full percent-decoding is out of scope for this shell snippet)
 
 echo "$utopia_ui_root"
 ```
