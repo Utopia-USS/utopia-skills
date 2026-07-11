@@ -56,6 +56,9 @@ doing design work:
   - utopia-design-screen - build a Flutter screen from an outside design
     using ONLY manifest components; unmapped elements are reported as gaps,
     never hand-rolled.
+  - utopia-design-component - turn a component gap into a live project
+    component: scaffold, overlay YAML, regenerate the project + merged
+    manifests.
 
 Screens compose with the utopia-hooks Screen/State/View pattern - defer to
 that skill for state management. A PostToolUse hook checks edits to
