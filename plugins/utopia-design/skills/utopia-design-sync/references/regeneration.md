@@ -158,30 +158,32 @@ This command produces the twin for a *consumer's* rebranded tokens, distinct
 from the default-theme twin `utopia_ui` ships pre-generated in its own pub
 tarball (SPEC.md section 1). Note: whether a sync should generate the twin
 by default for app-only projects with no design surface in play is an open
-protocol question (tracked as RFC-B4 in the working ledger); until it is
-answered, this skill's "regenerate both surfaces together" rule stands.
+protocol question; until it is answered upstream, this skill's "regenerate
+both surfaces together" rule stands.
 
 ### 5. `validate_twin` - optional post-check
 
-Role-level (see the stub below for the exact CLI): the literals linter plus
-`data-utopia-id` coverage check against the manifest (SPEC.md 4.5, 4.4). See
-[drift-and-verify.md](drift-and-verify.md) for what it actually flags and
+Fully contracted (verbatim, ships in `utopia_design_tools`):
+
+```
+dart run utopia_design_tools:validate_twin [--twin-dir <dir>] [--manifest <path>] [--json]
+```
+
+- Defaults: the twin directory and the manifest are resolved from the
+  `utopia_ui` root (repo checkout, else the pub cache) - the same resolution
+  style as every other tool in the family; the flags override.
+- Gates: the literals linter over hand-authored twin CSS AND inline
+  `<style>` blocks in the twin HTML (full SPEC.md 4.5 rule set, including
+  the `/* utopia-literal-ok: <reason> */` same-line exception), plus
+  `style="..."` attributes (raw colors/fonts hard-fail there; raw dimensions
+  are allowed as specimen scaffolding); `data-utopia-id` coverage in BOTH
+  directions against the manifest (note entries count as covered); and
+  tokens.css freshness (regenerate-and-byte-compare, invocation-independent).
+- Exit codes and `--json`: the shared convention (`0`/`1`/`2`).
+
+See [drift-and-verify.md](drift-and-verify.md) for what each gate flags and
 why. Not required to consider a sync run complete, but recommended before
 the twin output is viewed or shipped.
-
-## Exact generate CLI (pin when A5 lands - RFC-B3)
-
-`validate_twin` is contracted today only at the role level above (SPEC.md
-section 5) - its tool executable is not yet published (`generate_theme` and
-`generate_twin` are now fully contracted in steps 3 and 4 above and no
-longer belong to this stub). Do **not**
-invent specific flags, defaults, or output paths for it. Once its CLI
-lands, invoke it per its own contract or `--help` output, following the
-shared convention already locked for every command in this family: exit `0`
-success / `1` validation-or-generation failure / `2` usage-or-IO error,
-`--json` for machine-readable output, installed via
-`flutter pub add --dev utopia_design_tools`. This section is the single
-place to update once that CLI is published.
 
 ## No runtime sync - regeneration is explicit
 

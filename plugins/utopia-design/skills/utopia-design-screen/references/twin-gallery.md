@@ -4,27 +4,23 @@
 
 The packaged HTML twin (`twin/` in the resolved `utopia_ui` package) as both a design
 input in its own right and a visual reference while mapping a design element to a
-manifest id. This doc is authored against a **frozen structural contract**, not against
-the real shipped twin files - see the status note immediately below before relying on
-anything here for a specific component's actual rendered appearance.
+manifest id. The structural contract documented here matches the shipped files; for a
+specific component's actual rendered appearance, the shipped files themselves are the
+truth - see "Reading specimen specifics" at the end of this doc.
 
-## Status note: frozen draft, not yet shipped
+## Status note: shipped
 
-As of this writing, `A5` (the task that produces the real twin files - `components.html`,
-`gallery.html`, `components.css` - plus screenshot comparisons against the example app)
-has not landed yet. What follows is authored against the frozen structural contract
-recorded in `ledger/A.md`'s "H4 draft - twin gallery structure" section, which the
-project has explicitly sanctioned authoring against at the workflow level. Everything
-below that is structural (bundle layout, markup contract, naming rules, which components
-are tier-1) is safe to rely on. Anything about the **actual content** of a specific
-specimen - exact markup, exact CSS, an actual screenshot - is out of scope until then;
-see "Pin when H4: READY flips" at the end of this doc for the one place that gap is
-tracked.
+The real twin files ship in the `utopia_ui` package: `components.html` covers all 32
+manifest ids (styled specimens for the tier-1 sixteen, explicit "no visual twin" /
+deferred note entries for the rest), `gallery.html` carries the 11 example-app sections,
+`components.css` is `var(--utopia-*)`-only, and `validate_twin` passes with zero
+findings. The structural contract below matches the shipped files exactly - and the
+files themselves, read from the resolved package root, are always the final truth for
+any specific specimen's markup or CSS.
 
 ## The bundle
 
-Quoted from the frozen contract (`ledger/A.md`, "H4 draft - twin gallery structure",
-consistent with `protocol/SPEC.md` 4.1/4.4):
+The bundle contract (`protocol/SPEC.md` 4.1/4.4; matches the shipped files):
 
 > twin/ bundle: tokens.css + tokens.tailwind.css (both GENERATED - never edit),
 > components.css (hand-authored, token-driven), components.html, gallery.html,
@@ -39,7 +35,7 @@ build step - if a twin needs viewing, open the file directly.
 
 ## `components.html` structure
 
-Quoted from the frozen contract:
+The contract (matches the shipped files):
 
 > components.html: one `<section data-utopia-id="<manifest id>">` per manifest
 > component, in manifest order; inside, specimen roots ALSO carry data-utopia-id (e.g.
@@ -74,7 +70,7 @@ before treating a twin section as a rendering reference.
 
 ## CSS naming
 
-Quoted from the frozen contract:
+The contract (matches the shipped files):
 
 > CSS class naming: `.utopia-<id>`, modifiers `.utopia-<id>--<variant>` (e.g.
 > --dense), state classes `.is-loading`, `.is-disabled`. All visual values via
@@ -91,7 +87,7 @@ not this skill's concern to run, just to know it exists when reading `components
 
 ## `gallery.html`
 
-Quoted from the frozen contract:
+The contract (matches the shipped files):
 
 > gallery.html mirrors example/lib/sections/* one-to-one, same order as the example
 > components page: table, fields, buttons, selection, chips-text, dialogs, sidebar,
@@ -104,35 +100,31 @@ isolation" (that's `components.html`'s job).
 
 ## Tier-1 specimens
 
-Quoted from the frozen contract, the components with styled specimens landing first
-(long tail and note entries follow in a second wave): `button`, `text-field`,
+The components with styled specimens today: `button`, `text-field`,
 `search-field`, `labeled-field`, `card`, `chip`, `chip-list`, table shell (`table`),
 `sidebar`, `dialog`, `confirm-dialog`, `switch`, `check-row`, `divider`, `loader`,
-`title` - 16 components.
+`title` - 16 components. Every other manifest id is covered by a note entry (the styled
+tier-2 long tail is a deliberate deferral, not an omission - coverage stays 100% both
+ways either way).
 
 ## The rule
 
 Reference the twin by `data-utopia-id`, and never assume a component has a styled
-specimen - always check for the note-entry case first, especially for anything outside
-the tier-1 list above (long-tail components may currently be note entries even once A5
-lands its first wave).
+specimen - always check for the note-entry case first. Today that check has a concrete
+answer: everything outside the tier-1 list above IS a note entry (the tier-2 styled
+long tail is deliberately deferred), so for those components the twin tells you the id
+exists and why it has no specimen - the manifest entry, not the twin, is your
+construction reference.
 
-## Pin when `H4: READY` flips (A5 tier-1 real files + screenshots)
+## Reading specimen specifics (shipped files are the truth)
 
-Everything above this section is the frozen **structural** contract, safe to author and
-build against today. The following depends on the real shipped files and is explicitly
-**not** covered until `ledger/A.md` shows `H4: READY` (A5 tier-1 real files +
-screenshots landed):
-
-- The actual markup and CSS of any specific specimen (exact class list beyond the naming
-  rule above, exact DOM structure inside a `<section>`).
-- Which components beyond the tier-1 sixteen have a styled specimen vs. a note entry, at
-  any given point before the long tail lands.
-- Screenshot-based visual comparisons between a twin specimen and the example app (A5's
-  own closing gate, not this skill's).
-
-Do not invent any of the above ahead of `H4: READY`. Once it flips, this is the single
-section to update with the real specifics.
+For anything about a specific specimen - its exact markup, class list, or CSS - read the
+shipped files directly from the resolved package root (`<utopia_ui root>/twin/`, same
+resolution as [component-mapping.md](component-mapping.md) uses for the manifest). This
+doc deliberately does not inline specimen markup: the files are versioned with the
+package and would drift out of any copy here. Screenshot-based visual comparison between
+the twin and the Flutter example app is the library's own release gate, not this
+skill's concern.
 
 ## See also
 

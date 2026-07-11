@@ -79,16 +79,27 @@ cannot keep in sync with a token edit:
   usage (the `radius.full` token is deliberately not base-derived and is
   the one legitimate "raw-looking" 9999 value - see
   [rebranding.md](../../utopia-design-tokens/references/rebranding.md) and
-  SPEC.md 2.5); bare `0`; `1px` where it encodes a CSS-only hairline concern
-  documented inline; percentage/fraction layout values; and any value
-  annotated `/* utopia-literal-ok: <reason> */` on the same line.
+  SPEC.md 2.5); bare `0`; percentage/fraction layout values; and any value
+  annotated `/* utopia-literal-ok: <reason> */` on the same line - that
+  annotation IS the documented-inline mechanism for CSS-only concerns such
+  as a `1px` hairline tweak (SPEC.md 4.5).
+- **Scope:** hand-authored `.css` files AND inline `<style>` blocks in the
+  twin HTML get the full rule set; `style="..."` attributes are specimen
+  scaffolding - raw dimensions are allowed there, raw colors and font
+  literals still hard-fail (SPEC.md 4.5).
 
-**`data-utopia-id` coverage** checks that every manifest component with a
-twin binding has a corresponding root element carrying
-`data-utopia-id="<manifest id>"` in `components.html` / `gallery.html`
-(SPEC.md 4.4). A component missing this marker breaks the twin's
+**`data-utopia-id` coverage** checks BOTH directions against the manifest:
+every manifest component has a `components.html` section carrying
+`data-utopia-id="<manifest id>"` (a "no visual twin" note entry counts as
+covered), and every id used in the twin resolves to a real manifest
+component (SPEC.md 4.4). A component missing this marker breaks the twin's
 cross-surface contract - agents and tools that reference components by id
 can no longer locate it in the rendered twin.
+
+**tokens.css freshness** regenerates the twin's `tokens.css` from the token
+document and byte-compares it against the shipped file (invocation-
+independent) - a stale generated stylesheet is the exact drift the
+regeneration workflow exists to prevent, caught at validation time.
 
 Both checks exist because the twin's whole value proposition is that its
 visual values resolve through `var(--utopia-*)` references generated from
