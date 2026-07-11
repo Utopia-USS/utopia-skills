@@ -4,7 +4,9 @@ description: >
   Build or update a Flutter screen/widget tree from an outside design input, in a
   project that resolves utopia_ui, using ONLY components from the component manifest -
   the merged manifest when the project registers custom components (SPEC 3.8), else the
-  shipped library manifest. Applies when: implementing an HTML mockup or web page, a screenshot/image
+  shipped library manifest. Also applies when the project does not resolve utopia_ui
+  yet, where it stops at its usage gate and surfaces install guidance instead of
+  acting. Applies when: implementing an HTML mockup or web page, a screenshot/image
   of a design, a design handoff bundle directory, a DESIGN.md, or the packaged HTML
   twin gallery, as utopia_ui screen code; deciding which utopia_ui component a given
   design element maps to; reporting a design element that has no manifest mapping as a

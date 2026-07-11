@@ -2,8 +2,11 @@
 name: utopia-design-sync
 description: >
   Regenerate every generated surface of the Utopia Design Protocol from a
-  consumer's design/tokens.json after it changes: the Flutter theme code
-  (via generate_theme) and the HTML twin (via generate_twin - tokens.css,
+  consumer's design/tokens.json after it changes, in a project that
+  resolves utopia_ui - also applies when the project does not resolve
+  utopia_ui yet, where it stops at its usage gate and surfaces install
+  guidance instead of acting: the Flutter theme code (via generate_theme)
+  and the HTML twin (via generate_twin - tokens.css,
   tokens.tailwind.css, DESIGN.md front matter). Runs validate_tokens first
   and refuses to regenerate when the token document fails validation; runs
   a packageVersion drift check (validate_manifest) before fanning out;

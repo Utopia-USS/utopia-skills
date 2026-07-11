@@ -140,7 +140,10 @@ deliberate v0 limits, and the correct response is to state them plainly:
   module is out of scope in v0). Do not attempt to encode a dark palette
   into this tree - not as a second file wired into the protocol, not as
   invented `dark*` names. Tell the user dark mode is outside protocol v0
-  and leave their dark values untouched wherever they live today.
+  and leave their dark values untouched wherever they live today. A
+  dark-ONLY brand is legal, though - it is simply a rebrand of the single
+  context (edit the existing tree to dark values); what v0 cannot do is
+  carry light AND dark palettes simultaneously.
 - **success / warning semantic colors.** `color.*` has no success or
   warning slot because `UtopiaThemeColors` has no such fields - the tree
   cannot land what the theme cannot hold (a known library gap, already

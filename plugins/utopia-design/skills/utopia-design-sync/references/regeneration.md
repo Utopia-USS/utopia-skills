@@ -167,12 +167,26 @@ present surface never stays stale); when it does not, skip it unless the
 user explicitly asks - materializing the twin for the first time is an
 explicit product choice, never a rebrand side effect.
 
+**Viewing a consumer twin.** `generate_twin` emits stylesheets + `DESIGN.md`
+only - the browsable HTML (`gallery.html`, `components.html`, plus
+`components.css`) is hand-authored and ships inside the resolved `utopia_ui`
+package's `twin/`. To LOOK at a rebrand: copy those three files from
+`<utopia_ui root>/twin/` (root resolved via `.dart_tool/package_config.json`,
+the same resolution
+[getting-started.md](../../utopia-design-tokens/references/getting-started.md)
+documents) next to the project's regenerated `twin/tokens.css`, then open
+`gallery.html` in a browser. Two caveats: the copied shell is
+version-matched to the package - re-copy after a `utopia_ui` upgrade; and
+once `components.html` is present in the project twin, `validate_twin`
+applies the full-bundle contract again (the auto-partial coverage skip
+described in step 5 below no longer applies).
+
 ### 5. `validate_twin` - optional post-check
 
 Fully contracted (verbatim, ships in `utopia_design_tools`):
 
 ```
-dart run utopia_design_tools:validate_twin [--twin-dir <dir>] [--manifest <path>] [--json]
+dart run utopia_design_tools:validate_twin [--twin-dir <dir>] [--manifest <path>] [--tokens <path>] [--json]
 ```
 
 - Defaults: the twin directory and the manifest are resolved from the
@@ -182,6 +196,8 @@ dart run utopia_design_tools:validate_twin [--twin-dir <dir>] [--manifest <path>
   your project-local `twin/` from step 4 - point it at yours explicitly
   (`--twin-dir twin --manifest <resolved manifest path>`) when that is what
   you mean to check.
+- `--tokens` overrides the token document backing the `tokens.css` freshness
+  gate (auto-discovered otherwise).
 - Gates: the literals linter over hand-authored twin CSS AND inline
   `<style>` blocks in the twin HTML (full SPEC.md 4.5 rule set, including
   the `/* utopia-literal-ok: <reason> */` same-line exception), plus

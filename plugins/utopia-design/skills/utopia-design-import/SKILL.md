@@ -4,9 +4,11 @@ description: >
   Bring an external design source into a utopia_ui project's
   design/tokens.json - a Figma DTCG export, a foreign tokens.css / Tailwind
   @theme file, a Claude Design / claude.design handoff bundle directory, or a
-  DESIGN.md file. Reads the source, maps its values onto the closed utopia
-  token tree, produces a mapping proposal and diff, then applies through the
-  tokens skill's edit-and-validate loop. Applies when: identifying an
+  DESIGN.md file. Also applies when the project does not resolve utopia_ui
+  yet, where it stops at its usage gate and surfaces install guidance
+  instead of acting. Reads the source, maps its values onto the closed
+  utopia token tree, produces a mapping proposal and diff, then applies
+  through the tokens skill's edit-and-validate loop. Applies when: identifying an
   external source's type and parsing its values; mapping external values
   onto design/tokens.json paths; reporting unmapped external tokens or
   uncovered utopia slots as gaps; running a re-import 3-way diff against

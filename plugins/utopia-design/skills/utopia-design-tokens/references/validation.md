@@ -69,9 +69,14 @@ dart run utopia_design_tools:validate_tokens [<file>] [--json] [--schema <path>]
   {"status": "ok" | "fail", "errors": [{"path": "...", "message": "..."}],
    "warnings": [{"path": "...", "message": "..."}]}
   ```
-- `--fix` is currently a STUB: it prints a not-implemented notice and behaves
-  as a plain validate. Do not rely on it to auto-repair a document; fix
-  findings by hand per the gates below.
+- `--fix` re-derives every `derivation`-carrying token from the current `x`
+  and re-syncs each color's `hex` from its `components`, printing one
+  `FIXED <path>: <old> -> <new>` line per rewrite, then re-validates. It
+  fixes ONLY that derivation/hex-coherence subset (gate 4) - every other
+  finding still needs a hand edit per the gates below. DIRECTION warning:
+  `hex` is re-derived FROM `components` - to change a color, edit
+  `components` (or both); running `--fix` after editing only `hex` reverts
+  that edit back to match `components`.
 - Install: see "Prerequisite" above.
 
 `export_tokens` (the reverse direction - `UtopiaThemeData` -> token document)

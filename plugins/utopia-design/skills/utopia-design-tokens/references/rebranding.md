@@ -104,9 +104,10 @@ unchanged because the multiple itself didn't change):
   "$extensions": { "io.utopiasoft.design": { "derivation": "x*3" } } } }
 ```
 
-Every other `derivation`-carrying token needs the same re-derive pass; run
-`validate_tokens` afterwards to confirm nothing was missed
-([validation.md](validation.md)).
+Every other `derivation`-carrying token needs the same re-derive pass.
+`validate_tokens --fix` performs exactly this re-derive pass automatically
+(see [validation.md](validation.md)); run `validate_tokens` afterwards to
+confirm nothing was missed.
 
 ## Anti-patterns
 

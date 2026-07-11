@@ -4,8 +4,10 @@ description: >
   Edit or rebrand a consumer app's design/tokens.json - the DTCG design-tokens
   document that is the single source of truth for the Utopia Design Protocol
   on top of utopia_ui. Applies when: bootstrapping design/tokens.json from the
-  packaged utopia_ui default theme in a project that resolves utopia_ui;
-  changing colors, the spacing/radius scale (rescaling the base unit x),
+  packaged utopia_ui default theme in a project that resolves utopia_ui, or
+  in a project that does not resolve utopia_ui yet, where it stops at its
+  usage gate and surfaces install guidance instead of acting; changing
+  colors, the spacing/radius scale (rescaling the base unit x),
   typography (textStyle roles and their textStyle-colors siblings), or
   semantic theme.* slots; running validate_tokens after an edit. Concrete
   triggers: "design tokens", "rebrand", "tokens.json", "DTCG", "theme colors",
@@ -136,12 +138,18 @@ After any edit to `design/tokens.json`, verify:
    preserved.
 7. `validate_tokens` passes (or every reported finding has been addressed).
 8. `profileVersion` is set at the document root.
+9. If the user's goal was a REBRAND (a visible change), the loop is NOT
+   complete at validate-clean: continue into **utopia-design-sync** in the
+   same session, or state explicitly that the app keeps rendering the old
+   brand until sync runs. Never report a rebrand "complete" while generated
+   surfaces are stale.
 
 ## See Also
 
 - **utopia-design-sync** - regenerate the Flutter theme and the HTML twin
-  after a token edit lands and validates; the natural next step once this
-  skill's loop finishes.
+  after a token edit lands and validates; REQUIRED before a rebrand is
+  user-visible, not merely the natural next step - do not stop between the
+  two skills when the ask was a rebrand.
 - **utopia-design-import** - bring in an external design source and map it
   onto this tree before editing.
 - **utopia-design-screen** - build screens from manifest components; not

@@ -8,6 +8,12 @@ manifest id. The structural contract documented here matches the shipped files; 
 specific component's actual rendered appearance, the shipped files themselves are the
 truth - see "Reading specimen specifics" at the end of this doc.
 
+Consumer note: the shipped package twin always renders the DEFAULT theme (its HTML
+links its own `tokens.css` via relative hrefs); to see a consumer rebrand, pair these
+shell files with the project's regenerated `tokens.css` per **utopia-design-sync**'s
+[regeneration.md](../../utopia-design-sync/references/regeneration.md) ("Viewing a
+consumer twin") rather than repeating the steps here.
+
 ## Status note: shipped
 
 The real twin files ship in the `utopia_ui` package: `components.html` covers all 32

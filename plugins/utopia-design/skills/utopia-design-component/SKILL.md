@@ -2,8 +2,10 @@
 name: utopia-design-component
 description: >
   Turn a reported component GAP (or any need for a project-specific component) into a
-  LIVE manifest id in a project that resolves utopia_ui: scaffold the component in
-  project code as a composition of library primitives, write its opt-in overlay YAML at
+  LIVE manifest id in a project that resolves utopia_ui - also applies when the project
+  does not resolve utopia_ui yet, where it stops at its usage gate and surfaces install
+  guidance instead of acting: scaffold the component in project code as a composition of
+  library primitives, write its opt-in overlay YAML at
   design/overlay/<local-part>.yaml, regenerate the project + merged manifests
   (generate_manifest --project, protocol SPEC.md 3.8), validate, and hand the namespaced
   id back to screen building. Applies when: scaffolding a custom/project-specific

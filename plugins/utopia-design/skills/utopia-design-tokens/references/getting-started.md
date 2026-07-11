@@ -66,7 +66,11 @@ cp "$utopia_ui_root/tokens/utopia.tokens.json" design/tokens.json
 
 From this point on `design/tokens.json` is consumer-owned: a package upgrade
 never overwrites it (SPEC.md section 1). If the file already exists, do not
-overwrite it - move straight to editing.
+overwrite it - move straight to editing. If the existing file is BROKEN
+(invalid JSON), diagnose first, keep a backup (e.g. move it to
+`design/tokens.json.bak`), and surface the replace-vs-repair choice to the
+user before restoring from the packaged copy - even when the broken file
+looks like a truncated stock copy.
 
 ### 3. The edit -> validate -> regenerate loop
 
@@ -76,7 +80,8 @@ overwrite it - move straight to editing.
    CLI contract) and fix every reported error before moving on.
 3. Regenerate the Flutter theme and the HTML twin. Regeneration itself is
    **utopia-design-sync's** job - invoke that skill rather than hand-writing
-   generated Dart or CSS.
+   generated Dart or CSS. Invoke it in the same pass when the user asked for
+   a rebrand: a validated token edit alone changes nothing visible.
 4. First time only: make sure the app actually USES the generated theme -
    `UtopiaTheme(data: buildUtopiaTheme(), child: ...)` at the top of the
    widget tree. Without that wiring a completed rebrand shows no visual
