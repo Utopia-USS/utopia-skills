@@ -110,10 +110,10 @@ and 5 lives in [drift-and-verify.md][drift-and-verify].
 5. **`validate_twin` (optional).** Literals linter + `data-utopia-id`
    coverage check against the manifest. Not required to consider the sync
    done, but recommended whenever the twin output is going to be viewed or
-   shipped. Meaningful for a FULL twin bundle only - see
-   [regeneration.md][regeneration] for the consumer-scope caveat (a
-   generated-files-only project twin fails the coverage gate by
-   construction; skip it there).
+   shipped. On a generated-only project twin the coverage gate auto-skips
+   (no `components.html` = the signal) while the literals + freshness gates
+   still run - see [regeneration.md][regeneration] for the consumer-scope
+   note.
 6. **Done.** Do not hand-edit any generated output (the theme Dart file,
    `tokens.css`, `tokens.tailwind.css`, or the `DESIGN.md` front matter
    block). If something looks wrong, fix `design/tokens.json` and re-run

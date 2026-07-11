@@ -191,17 +191,15 @@ dart run utopia_design_tools:validate_twin [--twin-dir <dir>] [--manifest <path>
   tokens.css freshness (regenerate-and-byte-compare, invocation-independent).
 - Exit codes and `--json`: the shared convention (`0`/`1`/`2`).
 
-Scope caveat for consumer projects: the `data-utopia-id` coverage gate
-presupposes a FULL twin bundle including `components.html` - which is
-hand-authored (maintainer-side), never produced by `generate_twin`. A
-project-local twin that holds only the three generated files will therefore
-hard-fail that gate for every manifest component, by construction, telling
-you nothing. Treat `validate_twin` as meaningful for a full or curated twin
-bundle (the package's shipped one, or a project twin that also carries the
-hand-authored HTML/CSS); for a generated-files-only project twin, skip it -
-the files were just written from a validated document and have nothing to
-lint. Whether the tool should gain a partial-twin mode is an open upstream
-question.
+Scope note for consumer projects: the `data-utopia-id` coverage gate
+presupposes `components.html` - which is hand-authored (maintainer-side),
+never produced by `generate_twin`. The tool handles this itself
+(AUTO-PARTIAL MODE): when `components.html` is absent from the target twin
+directory - a generated-only consumer twin - the coverage gate auto-skips
+with an info line on stderr, while the literals linter and the tokens.css
+freshness gate still run. No flag needed; the presence of the hand-authored
+surface is the signal. So running `validate_twin --twin-dir twin` against a
+generated-only project twin is safe and still buys the freshness check.
 
 See [drift-and-verify.md](drift-and-verify.md) for what each gate flags and
 why. Not required to consider a sync run complete, but recommended before
