@@ -97,10 +97,16 @@ and 5 lives in [drift-and-verify.md][drift-and-verify].
    confirm the app wires it - `UtopiaTheme(data: buildUtopiaTheme(),
    child: ...)` - or the rebrand silently changes nothing; see
    [regeneration.md][regeneration].
-4. **`generate_twin`.** Produces `twin/tokens.css`, `twin/tokens.tailwind.css`,
-   and the `DESIGN.md` front matter from the same `design/tokens.json`. Steps
-   3 and 4 are independent - both read only `design/tokens.json`, so either
-   order works - but always run both.
+4. **`generate_twin` - conditional by presence.** Produces `twin/tokens.css`,
+   `twin/tokens.tailwind.css`, and the `DESIGN.md` front matter from the same
+   `design/tokens.json`. Run it when the project already HAS a `twin/`
+   directory (it materialized the design surface) or when the user explicitly
+   asks; creating the twin for the FIRST time is an explicit choice, never a
+   rebrand side effect. "Regeneration fans out to every surface" (SPEC.md
+   6.1) means every surface the consumer has - an app-only project has no
+   twin surface, so writing one unasked is friction, not fan-out. Steps 3
+   and 4 are independent - both read only `design/tokens.json`, so either
+   order works.
 5. **`validate_twin` (optional).** Literals linter + `data-utopia-id`
    coverage check against the manifest. Not required to consider the sync
    done, but recommended whenever the twin output is going to be viewed or
@@ -171,8 +177,9 @@ After running this skill's workflow, verify:
 
 1. `validate_tokens` was run and passed (or every finding was fixed and it
    was re-run) before any generate step.
-2. The theme and the twin were regenerated together, not one without the
-   other - both are downstream of the same `design/tokens.json` edit.
+2. The theme was regenerated, and the twin was too IF the project has a
+   `twin/` directory (or the user asked for one) - a present surface never
+   stays stale, and an absent one is never created as a side effect.
 3. No generated file (theme Dart, `tokens.css`, `tokens.tailwind.css`,
    `DESIGN.md` front matter) was hand-edited.
 4. The `validate_manifest` drift check was run and passed (`packageVersion`

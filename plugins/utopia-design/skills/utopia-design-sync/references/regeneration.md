@@ -161,10 +161,11 @@ dart run utopia_design_tools:generate_twin [<tokens-file>] [-o <twin-dir>] [--js
 
 This command produces the twin for a *consumer's* rebranded tokens, distinct
 from the default-theme twin `utopia_ui` ships pre-generated in its own pub
-tarball (SPEC.md section 1). Note: whether a sync should generate the twin
-by default for app-only projects with no design surface in play is an open
-protocol question; until it is answered upstream, this skill's "regenerate
-both surfaces together" rule stands.
+tarball (SPEC.md section 1). Run this step CONDITIONALLY, by presence: when
+the project already has a `twin/` directory, regenerate it on every sync (a
+present surface never stays stale); when it does not, skip it unless the
+user explicitly asks - materializing the twin for the first time is an
+explicit product choice, never a rebrand side effect.
 
 ### 5. `validate_twin` - optional post-check
 
