@@ -46,7 +46,12 @@ Every GAP, regardless of the element, is reported with exactly these five parts:
 Proportionality: when the honest suggested action is "drop it" rather than "scaffold
 it" (a decorative flourish, a genuine one-off), parts 2, 3 and 5 may compress to a
 line each - all five parts stay present, but their depth scales with how likely the
-element is to become a real component.
+element is to become a real component. A functionally-required element or a
+design-system-shaped one (a button variant, a form control, a recurring visual) is the
+anti-case of this compression: full depth is mandatory, and the part-5 component-spec
+seed is non-optional, because these are exactly the gaps most likely to become real
+components. A report for such an element that lacks its seed is a report bug, not a
+style choice.
 
 Gaps are surfaced in **two** places, always together, never just one:
 
@@ -55,6 +60,12 @@ Gaps are surfaced in **two** places, always together, never just one:
 - As a `// TODO` comment at the exact insertion point in the generated screen code,
   summarizing the gap inline so it survives beyond the conversation (a future reader of
   the file sees it even without the original response).
+
+This is not only a formal-GAP rule: any deviation or simplification disclosed in the
+response while mapping a design - a size quirk, an inert control, a state
+simplification, things that are not formal GAPs - follows the same two-places rule. A
+matching code comment lands at the relevant point, because a chat-only disclosure does
+not survive the conversation.
 
 ## Composition-first check
 
@@ -151,7 +162,8 @@ const SizedBox.shrink(),
 - **Material/Cupertino stand-in.** Do not reach for Flutter's `Stepper` (or a Cupertino
   equivalent) "just to unblock the screen." It is not a manifest component, ships its
   own unrelated visual language, and defeats the entire "manifest components only"
-  contract this skill exists to enforce.
+  contract this skill exists to enforce. The narrow exception for functionally-required
+  elements is defined below - a declared, unstyled stand-in, never a styled one.
 - **Prop invention.** Do not invent a prop on an existing component to make it fit (e.g.
   a `UtopiaChipList(activeIndex: 2)` - `chip-list`'s real props are only `labels` and
   `maxLength`; there is no `activeIndex`). If a component is close but missing exactly
@@ -173,6 +185,22 @@ UtopiaChipList(labels: IList(const ['1', '2', '3', '4']), activeIndex: currentSt
 // progress indicator. See the chat response for the full report.
 const SizedBox.shrink(),
 ```
+
+## When the gap is functionally required
+
+The `SizedBox.shrink()` placeholder above works because a step indicator is decorative -
+the signup form still functions without it. That posture flips when the missing element
+is a required control: the only way to cancel, submit, or dismiss a screen, not a
+decorative or informational gap (those keep the `SizedBox.shrink()` placeholder). When
+the screen genuinely does not function without the element, a minimal DECLARED stand-in
+is permitted: the plainest widget that provides the function (a bare `TextButton` for a
+missing "Cancel" affordance, say), function only, NEVER styled to imitate the design
+system - no token dressing, no colors/radii/typography chosen to look native. An
+unstyled stand-in that looks obviously foreign is the point: it keeps the gap visible
+instead of hiding it. The `// TODO(utopia-design-screen)` marker at the insertion point
+names it a stand-in, and the five-part report is still produced in full, naming the
+stand-in explicitly (in the element description or the suggested action) - a stand-in
+never downgrades the report.
 
 ## See also
 

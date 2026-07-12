@@ -130,12 +130,14 @@ against does not exist without the library present.
   a component-spec seed (proposed namespaced id, needed props, states, token bindings)
   so a scaffold decision can start immediately.
   Never a hand-rolled widget styled to imitate one, never a raw Material/Cupertino
-  stand-in. Gaps appear **both** in the final response **and** as a `// TODO` comment at
-  the insertion point in the generated screen code. **Composition-first**: before
-  declaring a GAP, check whether the element decomposes into existing manifest
-  components - the manifest's `composes` hints point at exactly this. A GAP is for
-  genuinely missing capability, not for an element that just needs assembling from
-  parts that already exist. See [gap-reporting.md][gap-reporting].
+  stand-in - except that a functionally-required element (the only way to cancel,
+  submit, or dismiss) may get a minimal declared, unstyled stand-in, as defined in
+  [gap-reporting.md][gap-reporting]. Gaps appear **both** in the final response **and**
+  as a `// TODO` comment at the insertion point in the generated screen code.
+  **Composition-first**: before declaring a GAP, check whether the element decomposes
+  into existing manifest components - the manifest's `composes` hints point at exactly
+  this. A GAP is for genuinely missing capability, not for an element that just needs
+  assembling from parts that already exist. See [gap-reporting.md][gap-reporting].
 - **Token discipline, one line.** Visual values (colors, spacing, radii, text styles)
   come from `UtopiaTheme`/context per the component's `tokenBindings` - never a
   hardcoded literal for a value that has a token. The plugin's `PostToolUse` hook (Rule
@@ -159,8 +161,8 @@ After building or updating a screen, verify:
 4. Every color, spacing, radius, or text style traces to a token per the component's
    `tokenBindings` - no hardcoded literal where a token exists.
 5. Every unmapped design element has a GAP report (in the response) and a matching
-   `// TODO` comment (in the code) - never a hand-rolled lookalike or Material/Cupertino
-   stand-in.
+   `// TODO` comment (in the code) - never a hand-rolled lookalike or an UNDECLARED
+   Material/Cupertino stand-in.
 6. Composition was checked before any GAP was declared - `composes` hints reviewed for
    an existing-components answer first.
 7. Screen architecture (Screen/State/View, hooks, navigation) was left to
@@ -168,6 +170,8 @@ After building or updating a screen, verify:
 8. Every list-typed prop's literal matches its verbatim `dartType` - wrapped
    `IList([...])` where the manifest says `IList`, a bare `List` literal only where it
    says `List`.
+9. Every chat-disclosed gap OR deviation/simplification has a matching in-code
+   TODO/comment - nothing is disclosed only in the conversation.
 
 ## See Also
 

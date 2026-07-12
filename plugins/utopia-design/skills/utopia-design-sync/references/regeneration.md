@@ -175,11 +175,13 @@ package's `twin/`. To LOOK at a rebrand: copy those three files from
 the same resolution
 [getting-started.md](../../utopia-design-tokens/references/getting-started.md)
 documents) next to the project's regenerated `twin/tokens.css`, then open
-`gallery.html` in a browser. Two caveats: the copied shell is
-version-matched to the package - re-copy after a `utopia_ui` upgrade; and
-once `components.html` is present in the project twin, `validate_twin`
-applies the full-bundle contract again (the auto-partial coverage skip
-described in step 5 below no longer applies).
+`gallery.html` in a browser. Three caveats: the copied shell is
+version-matched to the package - re-copy after a `utopia_ui` upgrade; the
+copied shell ships no @font-face and no font files, so twin typography
+renders with OS-fallback fonts unless the referenced family (Sora) is
+installed locally; and once `components.html` is present in the project
+twin, `validate_twin` applies the full-bundle contract again (the
+auto-partial coverage skip described in step 5 below no longer applies).
 
 ### 5. `validate_twin` - optional post-check
 
