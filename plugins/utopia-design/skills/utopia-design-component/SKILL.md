@@ -130,7 +130,13 @@ fallback block; it is not re-derived here.
      **utopia-design-tokens**'s
      [token-profile.md](../utopia-design-tokens/references/token-profile.md) "When to
      add a new entry"). Widget style itself - Screen/State/View, hooks, DI - defers
-     entirely to **utopia-hooks**; this skill never restates any of it.
+     entirely to **utopia-hooks**; this skill never restates any of it. **utopia-hooks
+     is a separate plugin and may be absent from a session.** When it is not available
+     (no such skill listed, and the project does not already use `utopia_hooks`), do not
+     substitute silently: implement with the plainest idiomatic Flutter as a DECLARED
+     fallback, say so in the response, and leave a code comment naming the intended
+     architecture - an undisclosed architecture fallback is the state-management version
+     of an undeclared stand-in.
   3. Write the opt-in overlay YAML at `design/overlay/<local-part>.yaml`. A component
      exists in the project manifest **exactly when** its overlay file exists - there is
      no other registration mechanism.

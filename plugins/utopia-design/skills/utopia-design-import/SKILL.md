@@ -155,7 +155,10 @@ After running an import, verify:
 4. Sync metadata (`sourceRef`, `lastSyncedValue`, `lastSyncedAt`) was
    written on every token this import touched.
 5. `validate_tokens` passes (or every reported finding has been addressed).
-6. `$extensions` data - including foreign vendor namespaces - is preserved.
+6. `$extensions` data is preserved - foreign vendor namespaces untouched, unknown
+   `io.utopiasoft.design` keys intact; the only sanctioned changes are sync-metadata
+   writes and `derivation` updates/drops flagged in the proposal as coherence
+   side-effects.
 
 ## See Also
 

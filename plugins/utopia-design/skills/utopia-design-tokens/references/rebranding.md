@@ -50,7 +50,11 @@ Flutter theme code or twin CSS - those are generated, never hand-edited.
    together; keep `$extensions["io.utopiasoft.design"].colorToken` pointing
    at that sibling's path. If the font ships inside a Flutter package (like
    the default theme's Sora inside `utopia_ui`), keep `fontPackage` set so
-   generated Dart can rebuild `TextStyle(package: …)`. *Why:* DTCG
+   generated Dart can rebuild `TextStyle(package: …)`. Conversely, when the new family
+   does NOT ship in a package, remove `fontPackage` and tell the user the app must
+   bundle the font itself - generated Dart referencing a package that lacks the font
+   fails at render, and the twin will render OS fallbacks (see
+   **utopia-design-sync**'s regeneration.md, "Viewing a consumer twin"). *Why:* DTCG
    `typography` has no color property - the sibling-token binding is how
    this profile carries `TextStyle.color` at all (SPEC.md 2.4). Editing only
    one side of the pair produces a color/type mismatch on the generated

@@ -174,12 +174,14 @@ extractor already found (`overlay.dart`'s stale-escape-hatch check).
 **This is the one pin spot in this skill.** Conceptually: run
 `generate_manifest --project`, which emits BOTH `design/project.manifest.json` and
 `design/merged.manifest.json`, deterministically, never hand-edited (SPEC.md 3.8). The
-exact CLI - flags, defaults, exit messages beyond that - is not invented here; see "Pin
-when `H5: READY` flips" below, the single place this skill tracks that gap.
+exact CLI - flags, defaults, exit messages beyond that - is pinned below; see "Step 4's
+exact CLI" below, the single place this skill tracks that detail.
 
 ## Step 5 - validate
 
-Run zero-arg `validate_manifest` and confirm every SPEC.md 3.8 gate passes:
+Run `validate_manifest design/merged.manifest.json` (explicit argument - a zero-arg run
+validates the shipped library manifest instead, a pass that says nothing about your
+merge) and confirm every SPEC.md 3.8 gate passes:
 
 - **Namespace enforcement** - in the project manifest, `market-tile`'s id MUST carry the
   document's own `package` as its namespace (`stock_app:market-tile`); a bare id there is

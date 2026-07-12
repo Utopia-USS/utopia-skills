@@ -44,10 +44,16 @@ On every token an import actually writes, record under
 `$extensions["io.utopiasoft.design"]`:
 
 - `sourceRef` - an opaque id from the external source (a Figma variable id
-  when available; otherwise the source path or another stable identifier)
+  when available; otherwise the source path or another stable identifier).
+  Convention: for CSS-file sources use `<source-path>#<custom-property-name>`;
+  for Figma DTCG use the variable id verbatim - a re-import can only make the
+  first-priority `sourceRef` match if the convention is reproduced.
 - `lastSyncedValue` - a snapshot of `$value` at the moment of this sync
 - `lastSyncedAt` - an ISO 8601 timestamp, supplied by the agent doing the
-  import, never read from the source
+  import, never read from the source - obtain it from the environment clock
+  (e.g. `date -u +%Y-%m-%dT%H:%M:%SZ`); never invent a time of day. If only
+  the date is trustworthy, a date-precision timestamp (`T00:00:00Z`) is
+  acceptable, but prefer the real clock.
 
 These three keys are what turn a second import against the same source into
 a 3-way diff instead of a blind overwrite.

@@ -143,10 +143,20 @@ against does not exist without the library present.
   hardcoded literal for a value that has a token. The plugin's `PostToolUse` hook (Rule
   B) already nudges exactly this on newly-edited Dart; this skill is the fix it points
   at.
+- **Layout discipline, one line.** A design input is also a layout spec - preserve macro
+  layout (content anchoring, column max-width, element order); never introduce
+  `Center`/`Expanded` wrappers the design does not show. See
+  [design-inputs.md][design-inputs].
 - **Screen composition defers to utopia-hooks.** The Screen/State/View triad, hooks, DI,
   and navigation are **utopia-hooks**'s concern, not this skill's - invoke that skill
   for those. This skill only decides which manifest components a screen uses and how
-  they are constructed; it restates zero utopia-hooks content.
+  they are constructed; it restates zero utopia-hooks content. **utopia-hooks is a
+  separate plugin and may be absent from a session.** When it is not available (no such
+  skill listed, and the project does not already use `utopia_hooks`), do not substitute
+  silently: implement with the plainest idiomatic Flutter as a DECLARED fallback, say so
+  in the response, and leave a code comment naming the intended architecture - an
+  undisclosed architecture fallback is the state-management version of an undeclared
+  stand-in.
 
 ## Self-Audit Checklist
 
@@ -175,6 +185,8 @@ After building or updating a screen, verify:
 
 ## See Also
 
+- **utopia-design-component** - turns this skill's gap-report seeds into live namespaced
+  ids, registered in the project manifest (SPEC.md 3.8).
 - **utopia-design-tokens** - owns `design/tokens.json`; its
   [getting-started.md](../utopia-design-tokens/references/getting-started.md) is the
   resolution snippet this skill's manifest lookup reuses.

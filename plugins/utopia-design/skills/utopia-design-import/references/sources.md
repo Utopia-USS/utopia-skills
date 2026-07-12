@@ -66,7 +66,12 @@ closed utopia tree is [mapping.md](mapping.md)'s job, not this one.
   font-weight number maps straight to `fontWeight`. A CSS `box-shadow` can
   carry multiple comma-separated layers - each becomes one element of the
   shadow array - so split on TOP-LEVEL commas only; a naive comma split
-  breaks inside `rgb(0 0 0 / 0.05)` / `rgba(...)` color arguments.
+  breaks inside `rgb(0 0 0 / 0.05)` / `rgba(...)` color arguments. The file
+  may also carry ordinary CSS rule blocks (selectors styling components,
+  not custom-property declarations) - these are component styling, not
+  token values; never apply them to any generated surface or
+  `components.css`. Report them as out-of-scope for token import in the
+  proposal, routing component styling to a separate pass.
 
 ## Claude Design / claude.design handoff bundle
 

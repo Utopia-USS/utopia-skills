@@ -29,6 +29,17 @@ job. If a design shows a button in a shade of blue, this skill decides "that's a
 whether `color.primary` needs to change. This skill never edits `design/tokens.json`,
 and utopia-design-import never decides which manifest component to construct.
 
+## Layout is part of the structure
+
+A design input is also a layout spec, not just an element list: preserve macro layout -
+content anchoring (top-aligned scrolling content unless the design demonstrably centers
+it), column max-width, and element order. Do not introduce `Center`/`Expanded` wrappers
+the design does not show; a wrapper like that changes how the screen behaves on real
+content (a short list, a tall list, a resize) in ways the source design never specified.
+When alignment is genuinely ambiguous, default to top-anchored and note the assumption -
+the same disclosure discipline [gap-reporting.md](gap-reporting.md) requires for any
+other deviation or simplification.
+
 ## HTML mockup or web page
 
 Read the markup for structure, not for its inline styles or colors: semantic tags

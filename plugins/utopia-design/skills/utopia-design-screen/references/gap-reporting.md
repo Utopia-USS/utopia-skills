@@ -36,8 +36,9 @@ Every GAP, regardless of the element, is reported with exactly these five parts:
    capability (a prop, a state, a visual concept the manifest has no component for).
 4. **Suggested action** - ask the user how to proceed; the two standing options are
    scaffolding the element as a **project component** (registered in the project
-   manifest under a namespaced id - SPEC.md 3.8's production loop, the path most real
-   gaps should take) and requesting the component upstream in `utopia_ui`.
+   manifest under a namespaced id - SPEC.md 3.8's production loop, owned end-to-end by
+   the **utopia-design-component** skill, the path most real gaps should take) and
+   requesting the component upstream in `utopia_ui`.
 5. **Component-spec seed** - so a "scaffold it" decision can start immediately: the
    proposed id including its namespace (`<project_package>:<kebab-name>`, SPEC.md 3.3),
    the props it needs (name + portable type per SPEC.md 3.5), its interaction states,
@@ -133,9 +134,9 @@ Resulting gap report (as it would appear in the final response):
 > Missing capability: a step-sequence component with per-step state and a connecting
 > track - `utopia_ui` has no equivalent today.
 > Suggested action: confirm with the user whether to (a) scaffold it as a project
-> component registered in the project manifest (SPEC.md 3.8), (b) request a
-> step-indicator component upstream in `utopia_ui`, or (c) proceed without a progress
-> indicator for now.
+> component registered in the project manifest via the **utopia-design-component**
+> skill (SPEC.md 3.8), (b) request a step-indicator component upstream in `utopia_ui`,
+> or (c) proceed without a progress indicator for now.
 > Component-spec seed (for the scaffold path): proposed id
 > `<project_package>:step-indicator`; props: `steps` (list of string), `currentIndex`
 > (number), optional `onStepPressed` (callback); states: completed / current / upcoming
