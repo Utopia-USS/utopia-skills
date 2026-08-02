@@ -7,7 +7,12 @@
 #
 # Contract:
 #   - stdin: JSON with {.tool_input.file_path}
-#   - env UTOPIA_MIGRATE_MODE: "warn" (default, exit 1) or "block" (exit 2)
+#   - stdout: PostToolUse JSON (exit 0). Violations are ALWAYS delivered to the model:
+#       warn (default) -> {"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":...}}
+#       block          -> {"decision":"block","reason":...}
+#   - env UTOPIA_MIGRATE_MODE: "warn" (default) or "block"
+#   (Old exit-code contract - exit 1 warn / exit 2 block - dropped: exit 1 stderr never
+#   reached the model, making the gate a silent no-op in default mode.)
 #
 # Guards (exit 0 silently):
 #   - file is *.dart under lib/
@@ -214,17 +219,16 @@ if [[ ${#violations[@]} -eq 0 ]]; then
   exit 0
 fi
 
-{
-  echo "utopia-hooks migration gate: ${#violations[@]} violation(s) in $rel"
-  for v in "${violations[@]}"; do
-    echo "  - $v"
-  done
-  echo ""
-  echo "(mode: $mode - set UTOPIA_MIGRATE_MODE=block to make these blocking)"
-} >&2
+msg="utopia-hooks migration gate: ${#violations[@]} violation(s) in $rel"
+for v in "${violations[@]}"; do
+  msg+=$'\n'"  - $v"
+done
+msg+=$'\n'"Fix these before proceeding (references: screen-migration-flow.md Phase 3/4, SKILL.md anti-patterns)."
 
 if [[ "$mode" == "block" ]]; then
-  exit 2
+  jq -cn --arg reason "$msg" '{"decision": "block", "reason": $reason}'
 else
-  exit 1
+  jq -cn --arg ctx "$msg" \
+    '{"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": $ctx}}'
 fi
+exit 0

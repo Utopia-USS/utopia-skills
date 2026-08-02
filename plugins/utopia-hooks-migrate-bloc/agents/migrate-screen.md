@@ -1,7 +1,7 @@
 ---
 name: migrate-screen
-description: Migrate a single Flutter screen (plus any global states it needs that aren't yet migrated) from BLoC/Cubit to utopia_hooks. Produces the diff but does not commit. Follows the migrate-bloc-to-utopia-hooks skill strictly.
-model: sonnet
+description: Migrate a single Flutter screen (plus any global states it needs that aren't yet migrated) from BLoC/Cubit to utopia_hooks. Produces the diff but does not commit. For god-screens it proposes a staged plan executed across multiple invocations. Follows the migrate-bloc-to-utopia-hooks skill strictly.
+model: opus
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -19,8 +19,9 @@ Prompt from orchestrator:
 - `allowed_file_list` - the only files you may create/edit/delete. Going outside this list is a hard error.
 - `retry_feedback` - if this is a retry after review failure, contains the fix_list. Apply those fixes on top of a fresh start.
   - `retry_feedback.mode` - `review_failure` (default, fix exit-gate violations) OR `post_migration_refactor` (screen already passed review; apply one anti-pattern fix from the post-migration checklist per invocation, emit ONE diff for ONE commit). See "Post-migration refactor mode" section below.
+- `stage` - absent for a normal one-shot migration. `prep:<stage_name>` or `final` when the orchestrator is executing a staged plan you previously proposed (see "Staged mode" below), together with `staged_plan` (the accepted plan).
 
-**Assumption about GLOBAL state deps:** All GLOBAL Cubits/Blocs this screen reads have already been migrated by the `migrate-global-state` agent in Phase A. Their hook versions (`useXState()`) exist and are registered in `_providers.dart`. You consume them via `useProvided<XState>()`. If a global dep is NOT migrated, return `status: missing_dep` - orchestrator bug, not yours to fix.
+**Assumption about GLOBAL state deps:** All GLOBAL Cubits/Blocs this screen reads have already been migrated by the `migrate-global-state` agent in Phase A - their hook versions (`useXState()`) exist as state files. The `_providers.dart` entry may NOT exist yet: registration is deferred, and the orchestrator adds your screen's deps to `_providers.dart` in the same commit as your diff (command step 2a). Consume them via `useProvided<XState>()` and treat registration as guaranteed by commit time. If a global dep's state FILE does not exist, return `status: missing_dep` - orchestrator bug, not yours to fix.
 
 **Screen-local Cubits are YOURS to migrate.** They're passed explicitly in `screen_local_cubits_to_migrate`. Port them into this screen's state hook (if small) or into sub-hooks under `state/` sibling to the screen (if large). Do NOT register screen-local Cubits in `_providers.dart` - they're not global.
 
@@ -37,7 +38,7 @@ Per `SKILL.md` § *Agent Orientation*, the `migrate-screen` role loads:
 - foundation skill: `references/paginated.md` - **only if** the Cubit paginates
 - foundation skill: `references/multi-page-shell.md` - **MANDATORY if** Phase 1f flagged `[multi_page_shell]` (screen contains `TabController` / `TabBarView` / `PageView` / `IndexedStack` / `BottomNavigationBar` / `NavigationBar`)
 
-You're not memorizing these - you're using them as the authoritative recipe while writing code. Don't invent patterns.
+**Context discipline:** read `SKILL.md` and `screen-migration-flow.md` fully up-front - they drive your process. The remaining references are lookup material: open the specific section when the matching pattern appears in the code, instead of bulk-reading everything before you start. A large screen (600-line screen file, 1000+-line Cubit, 20-file widget subtree) needs your context window for CODE - don't spend it pre-reading references you may not need. Never invent a pattern from memory: if you didn't read the mapping, read it before writing that piece.
 
 ## Workflow
 
@@ -47,6 +48,8 @@ You're not memorizing these - you're using them as the authoritative recipe whil
 2. **Pre-flight cleanup sweep** (§1c): for each Cubit method and consumed service method, check callers. Mark dead methods and fake streams for deletion (don't port them).
 3. **Decomposition plan** (§1d, complex only): use `decomposition_plan` from input if provided; otherwise draw the ownership graph and list sub-hooks now. If the decomposition takes >5 minutes of planning, stop and return with `status: needs_human_planning` and your best-effort graph.
 4. **Widget subtree manifest** (§1e): walk the screen's widget tree, enumerate every file in the screen's subtree directory (widgets, dialogs, sheets), classify shared widgets as `rewire` or `defer`. This manifest IS your Phase 2 scope - not just the screen file + state. Verify every manifest file appears in `allowed_file_list`; if not, return `status: scope_exceeded` listing the missing entries.
+4b. **Staged-plan check (god-screen guard).** After building the manifest, size the job: screen-local Cubit(s) > ~600 LoC total, OR manifest > ~12 files, OR estimated rewrite > ~2000 LoC → do NOT attempt a one-shot migration. Return `status: staged_plan_proposed` with a `staged_plan`: an ordered list of prep stages (each = one sub-hook/state file group, independently compilable, unused-yet is fine) followed by one final stage (screen + view + widget rewiring). Rationale: a one-shot god-screen migration exhausts context mid-write and produces the historical "migrated, then descended into cleanup hell" pattern. The orchestrator will re-invoke you per stage with `stage:` set.
+
 5. **Target structure plan** (§1f, MANDATORY for every screen): produce the current-vs-target file map. Run the detection greps from §1f (mis-classified Views in `widgets/` via `HookWidget` + `useProvided`/`useInjected`; multi-page shell via `TabController`/`TabBarView`/`PageView`/`IndexedStack`/`BottomNavigationBar`/`NavigationBar`; Screen file > ~100 lines; missing `view/` folder). List every target file with path + kind + rough line estimate BEFORE writing any code. This is the primary gate against the #1 failure mode (state migrated, View never extracted, 400+ line `*_screen.dart` with inline Scaffold chrome). If `[multi_page_shell]` is flagged, load `utopia-hooks:references/multi-page-shell.md` and the target plan MUST list each inner page's `pages/<name>/` folder with its own `_page.dart` + `state/` + `view/` triple. If `[misplaced_view]` is flagged, the target plan MUST address each flagged file with an explicit transformation (rename+move+convert+hoist, or justification for keeping as composable). Phase 2 executes against this plan; Phase 4 (the `migrate-review` agent) verifies conformance.
 
 ### Phase 2 - Migration (writes files)
@@ -85,7 +88,7 @@ Run the **Output Hygiene Protocol** from `SKILL.md` on every file in `files_touc
 ## Scope discipline
 
 - **You may only touch files in `allowed_file_list`.** If migration requires touching a file outside the list (e.g. a shared barrel, a parent screen, `_providers.dart`), STOP and return `status: scope_exceeded` with the missing files listed. Do not expand scope silently.
-- **Do NOT touch `_providers.dart`.** All global states are already registered by Phase A. If you think you need to add an entry, it's a screen-local state (scope-local, not registered globally).
+- **Do NOT touch `_providers.dart`.** The orchestrator registers this screen's global deps itself, in the same commit as your diff (deferred registration, command step 2a). If you think you need an entry for anything else, it's a screen-local state (scope-local, never registered globally).
 - **Do NOT create or modify any file under `lib/state/` that matches a global state name.** Those are Phase A's output. Your screen-local state lives in `lib/screens/<stem>/state/` or a sibling location per project convention.
 - **If the screen reads a Cubit whose hook version doesn't exist** → return `status: missing_dep` with the Cubit name. Orchestrator bug; do not recreate the global state yourself.
 
@@ -94,7 +97,18 @@ Run the **Output Hygiene Protocol** from `SKILL.md` on every file in `files_touc
 Return to orchestrator:
 
 ```
-status: success | scope_exceeded | missing_dep | needs_human_planning | other_error
+status: success | staged_plan_proposed | scope_exceeded | missing_dep | needs_human_planning | other_error
+
+staged_plan:                 # only if status=staged_plan_proposed
+  - stage: prep:comments_fetch
+    creates: [lib/screens/item/state/comments_fetch_state.dart]
+    ports: "CommentsCubit fetch + cache paths (methods: loadComments, refresh)"
+  - stage: prep:comments_scroll
+    creates: [lib/screens/item/state/comments_scroll_state.dart]
+    ports: "scroll position + collapse bookkeeping"
+  - stage: final
+    rewrites: [screen, view, widgets/**, aggregator state]
+    deletes: [lib/cubits/comments/comments_cubit.dart]
 
 files_touched:
   - path: lib/screens/dashboard_screen.dart
@@ -133,6 +147,14 @@ extra_info_for_review:
 - `other_error`: describe it.
 
 The orchestrator decides what to do next - don't retry on your own.
+
+## Staged mode (`stage: prep:* | final`)
+
+The orchestrator accepted your `staged_plan` and is executing it stage-by-stage, one commit each. You receive the full plan + which stage to run.
+
+- **`stage: prep:<name>`** - create ONLY that stage's state file(s), porting the named Cubit paths. Do not touch the screen, view, widgets, or the Cubit file itself (it keeps running - prep files are parallel and inert, same philosophy as Phase A globals). Self-check + hygiene as usual. It is expected and fine that the new files have no consumers yet - note it in `self_report.warnings` so review doesn't flag dead code.
+- **`stage: final`** - execute the normal Phase 2 rewiring, but CONSUME the committed prep files instead of re-creating their logic. Delete the screen-local Cubit(s), wire Screen/State/View, rewire the widget subtree. Full exit-gate discipline applies.
+- Deviation rule: if during a prep stage you discover the plan is wrong (mis-drawn ownership, missing stage), STOP and return `status: needs_human_planning` with the correction - do not silently restructure a plan the orchestrator is committing against.
 
 ## Post-migration refactor mode
 

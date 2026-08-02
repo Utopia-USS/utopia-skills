@@ -1,7 +1,7 @@
 ---
 name: migrate-global-state
-description: Migrate a single BLoC-era Cubit/Bloc to a parallel hook-based global state in isolation - no screen changes. Creates the State class + useXState() hook + _providers entry, marks the original Cubit @Deprecated. Emits ONE diff for ONE commit. Runs before any screen migration that depends on this state.
-model: sonnet
+description: Migrate a single BLoC-era Cubit/Bloc to a parallel hook-based global state in isolation - no screen changes. Creates the State class + useXState() hook (registration in _providers is deferred to the first consumer screen), marks the original Cubit @Deprecated. Emits ONE diff for ONE commit. Can also run in extract_service mode to hoist domain logic out of a Cubit into a service first. Runs before any screen migration that depends on this state.
+model: opus
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -19,6 +19,8 @@ Prompt from orchestrator:
 - `target_hook_name` - e.g. `useAuthState`, `useFavState`
 - `providers_path` - location of `_providers.dart`
 - `provider_registration` - `self` (legacy, agent edits `_providers.dart`) or `orchestrator` (default when called from the wave-parallel orchestrator; agent does NOT edit `_providers.dart`, returns `provider_entry` string instead). See § *Provider registration mode* below.
+- `mode` - `migrate_state` (default) or `extract_service` (see § *Mode: extract_service* below; used after you returned `needs_service_extraction`)
+- `proposed_service` - only with `mode: extract_service`: the service sketch you previously proposed (possibly amended by the orchestrator)
 - `retry_feedback` - optional fix_list if this is a retry
 
 ## Pre-flight - load authoritative references
@@ -83,6 +85,10 @@ Per `global-state-migration.md`. State class:
 
 **Re-implementation, not wrapping.** Do NOT subscribe to the old Cubit. Do NOT call `cubit.state` inside the hook. The hook must be a fresh implementation calling the same underlying services/repositories the old Cubit used. Old Cubit and new hook are parallel, both call the same data layer, neither depends on the other.
 
+**Re-implementation ≠ duplicating business logic.** "Same underlying services" assumes the services exist. If the Cubit body contains domain logic that lives in NO service - offline sync, dedup/merge algorithms, retry orchestration, data-transformation pipelines, download queues - do NOT copy that logic into the hook. Two live copies of business logic diverge silently and both must be maintained for the whole migration window. Return `status: needs_service_extraction` with a `proposed_service` sketch (service name, method signatures, which Cubit methods' bodies move). The orchestrator will re-invoke you in `mode: extract_service` first, then again for the state migration.
+
+Litmus test: if deleting the Cubit tomorrow would delete logic no other class has, that logic needs a service first. Thin glue (call service → assign result → toggle a flag) does not count - port that freely.
+
 If the Cubit's logic is entangled with UI/navigation/BuildContext (it shouldn't be but BLoC codebases sometimes blur this) - return `status: needs_refactor` describing what needs to move where. Do not attempt heroics.
 
 ### Step 3 - Write files
@@ -117,6 +123,20 @@ Run the **Output Hygiene Protocol** from `SKILL.md` on the files in `files_touch
 
 Report back `self_report.formatted: true`.
 
+## Mode: extract_service
+
+Invoked with `mode: extract_service` after you returned `needs_service_extraction`. This is a **behavior-preserving refactor of the BLoC side** - no hook, no state file, no `@Deprecated` yet.
+
+1. Create the service file (follow the project's layout convention - `lib/services/` or wherever existing services live) with the methods from `proposed_service`.
+2. **Move the Cubit's domain-logic method bodies into the service verbatim** - same algorithms, same edge cases. Resist improving the logic; any change here is untestable noise. Dependencies the logic used (repositories, connectivity) become constructor params of the service, wired the same way the Cubit obtained them.
+3. Rewire the old Cubit to delegate to the service. Its public API and observable behavior must be unchanged - `emit` calls stay in the Cubit, only the domain work moves.
+4. Register the service in the project's existing DI (same mechanism the Cubit's other deps use) so both the Cubit and the future hook can obtain it.
+5. Self-check: the Cubit file should have shrunk; the service file must have zero `emit(`, zero Flutter imports, zero Cubit/Bloc references.
+6. Output hygiene (Step 5) as usual. `files_touched`: service file (created) + Cubit file (modified) + DI registration file if touched.
+7. `proposed_commit_message`: `refactor: extract <XService> from <XCubitClass>`.
+
+Do NOT proceed to the state migration in the same invocation - the orchestrator reviews and commits the extraction first, then re-invokes you in `mode: migrate_state`.
+
 ## Provider registration mode
 
 This agent runs in one of two modes controlled by the `provider_registration` input:
@@ -124,7 +144,8 @@ This agent runs in one of two modes controlled by the `provider_registration` in
 **`orchestrator` mode (default for wave-parallel Phase A):**
 - Agent touches exactly 2 files: new state file (create) + old Cubit file (annotate).
 - Agent does NOT read or edit `_providers.dart`.
-- Agent returns `self_report.provider_entry` - the literal string the orchestrator will insert under the `_providers` map. Match the existing file's indentation and trailing-comma convention (peek at one existing entry if you need to - read-only, no edit).
+- Agent returns `self_report.provider_entry` - the literal string the orchestrator will insert under the `_providers` map **later, in the commit of the first migrated screen that consumes this state (Phase B)**. Registration is deferred because `HookProviderContainer` builds every registered provider eagerly at app startup - registering now would run your hook AND the old Cubit simultaneously (double fetches, double stream subscriptions) with zero consumers. Your state file stays unregistered and inert until a consumer lands; that is correct and expected.
+- Match the existing file's indentation and trailing-comma convention (peek at one existing entry if you need to - read-only, no edit).
 - Example `provider_entry` value: `    AuthState: (context) => useAuthState(),` (exact format: follow existing entries in `_providers.dart`; do not invent a new format).
 
 **`self` mode (legacy / single-threaded callers):**
@@ -145,7 +166,20 @@ The hook rules, anti-patterns, and every other rule below apply identically in b
 ## Output
 
 ```
-status: success | scope_exceeded | dep_not_ready | needs_refactor | other_error
+status: success | scope_exceeded | dep_not_ready | needs_service_extraction | needs_refactor | other_error
+
+mode: migrate_state | extract_service   # echo the mode you ran in
+
+proposed_service:            # only if status=needs_service_extraction
+  name: StoriesOfflineService
+  path: lib/services/stories_offline_service.dart
+  methods:
+    - "Future<List<Story>> downloadAll({required bool includingWebPage})"
+    - "Future<void> cancelDownload()"
+  moves_from:
+    - "StoriesBloc.onDownload - download queue + retry logic"
+    - "StoriesBloc.onStoryDownloaded - progress bookkeeping"
+  rationale: "download orchestration exists nowhere outside the Bloc"
 
 files_touched:
   # orchestrator mode (default): 2 files
@@ -189,6 +223,7 @@ dep_not_ready:
 - **NEVER touch screens or widgets.** Scope is strictly: new state file + old Cubit annotation (+ `_providers.dart` in `self` mode only). Nothing else.
 - **NEVER edit `_providers.dart` in `orchestrator` mode.** Race hazard with parallel wave peers. Return the entry string via `provider_entry`; the orchestrator applies it.
 - **NEVER wrap the old Cubit** - the new hook is an independent implementation over the same underlying services. Wrapping is Case C (interop) territory, not this migration.
+- **NEVER duplicate domain logic into the hook.** Logic that exists only in the Cubit goes through `needs_service_extraction` → `extract_service` first. The hook may contain state wiring and thin glue, never algorithms.
 - **NEVER run `dart analyze`, `flutter pub get`, or tests.** The `migrate-review` agent owns verification. `dart_format` and `dart_fix` are exceptions - they are **required** output hygiene (Step 5), not verification.
 - **NEVER invent patterns.** If the Cubit uses a pattern not in `bloc-to-hooks-state.md`, return `status: other_error` with the unmapped pattern cited.
 - **NEVER use Equatable, copyWith, Status enum, Freezed, part files, or emit() wrapper.** Anti-patterns from SKILL.md apply.
