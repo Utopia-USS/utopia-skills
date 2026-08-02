@@ -1,7 +1,7 @@
 ---
 name: migrate-review
 description: Independent review of a migrated screen's code against the BLoC → utopia_hooks exit gate. Fresh context, does not see the migration agent's reasoning. Runs Phase 3 self-review and Phase 4 exit gate from the skill, returns pass/fail + fix list.
-model: sonnet
+model: opus
 tools: Read, Glob, Grep, Bash
 ---
 
@@ -203,6 +203,8 @@ Per file type:
 wc -l <files>
 ```
 
+**Red thresholds are HARD FAILS, not warnings - including for global state files reviewed in Phase A.** A global state file over 400 lines is a 1:1 Cubit port by definition (field lesson: a 550-line global re-implementing a 702-line Bloc passed review once - never again). Fail with `recommendation: retry_with_feedback` and a fix_list requiring either sub-hook decomposition or a multi-domain split (e.g. offline/download logic fused into a feed state → separate global), or - if the bulk is domain logic that belongs in no hook at all - `recommendation: defer` naming `needs_service_extraction` as the right path. Soft thresholds (300/100/300) remain advisory.
+
 State file also: count hook calls:
 ```bash
 grep -cE '\b(useState|useAutoComputedState|useSubmitState|useMemoizedStream|useStreamSubscription|useEffect|useMemoized|useInjected|useProvided)\b' <state_file>
@@ -281,16 +283,27 @@ done
 
 If a FAIL is emitted, fix_list entry: "Replace `final XGlobalState xState;` with selective primitive projections from the hook, or move the `useProvided<XGlobalState>` call into the consuming widget's own hook."
 
-### J. Global state parallel registration
+### J. Global state parallel registration (registration is DEFERRED to first consumer)
 
-If the migration created a new global state (e.g. `FeedState`), verify:
+`_providers.dart` registration is deliberately deferred: `HookProviderContainer` builds every registered provider eagerly at startup, so a state gets its entry only in the commit of the first migrated screen that consumes it. Expectations differ by phase (the orchestrator's scope hint tells you which):
+
+**Phase A review (global-state migration):**
 - Old Cubit (`FeedBloc`) is annotated `@Deprecated` (not deleted)
-- New state is registered in `_providers.dart`
-- Both coexist - BLoC root provider still has `FeedBloc`, hooks `_providers` has `FeedState`
+- New state file exists, compiles, is idiomatic
+- New state is **NOT** registered in `_providers.dart` - if `files_touched` includes `_providers.dart` or the state appears there, FAIL ("Phase A must not register; registration lands with the first consumer")
 
 ```bash
 grep -n '@Deprecated' <old_cubit_file>
-grep -n '<NewState>' <_providers_file>
+grep -n '<NewState>' <_providers_file>   # expected: 0 hits in Phase A
+```
+
+**Phase B review (screen migration):**
+- Every global state the screen (or its sub-hooks) reads via `useProvided<XState>()` IS registered in `_providers.dart`, including the transitive deps of those states (a registered state calling `useProvided<YState>()` needs `YState` registered above it)
+- Registration entries are well-formed: Type and hook share the name stem (`XState:` ↔ `useXState`) - a real run once wired `TipsState: useStoriesState`
+
+```bash
+grep -oE '\buseProvided<[A-Za-z0-9_]+>' <state_files> | sort -u   # each type must appear in _providers
+grep -nE '[A-Za-z0-9_]+State:\s*(\(context\)\s*=>\s*)?use[A-Za-z0-9_]+State' <_providers_file>  # stems must match pairwise
 ```
 
 ### K. Format drift (Phase 3b hygiene)

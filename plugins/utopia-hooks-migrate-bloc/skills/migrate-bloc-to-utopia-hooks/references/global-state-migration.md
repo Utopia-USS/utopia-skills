@@ -193,6 +193,12 @@ CheckoutScreenState useCheckoutScreenState() {
 }
 ```
 
+### Incremental migration: registration is deferred (dual-run hazard)
+
+Eager init has a migration-specific consequence: during an incremental migration the old Cubit is still alive. If you register `useXState` in `_providers` the moment the state file exists, **both implementations run from app startup** - the hook fetches, subscribes, and persists in parallel with the Cubit doing the same for the not-yet-migrated screens. Double network traffic, two `FirebaseAuth.authStateChanges` listeners, duplicate writes, divergent caches - all before a single screen consumes the hook.
+
+**Rule: the `_providers` entry lands in the commit of the FIRST migrated screen that consumes the state** (plus the transitive `useProvided` dependencies of that state, in dependency order). Until then the state file exists, compiles, and is reviewed - but is never built. The orchestrated flow (`commands/migrate.md`) enforces this; if you migrate by hand, hold the registration back the same way.
+
 ### HasInitialized
 
 Every global state with async loading should extend `HasInitialized`:
@@ -313,13 +319,30 @@ See [bloc-to-hooks-state.md](./bloc-to-hooks-state.md) section 6 for full side-b
 
 ---
 
+## Service Extraction - when the Cubit IS the logic layer
+
+The parallel-hook strategy assumes the Cubit sits on services/repositories: the hook re-implements *state wiring* over the *same data layer*. Some codebases break that assumption - the Cubit body contains the domain logic itself (offline sync, download queues, merge/dedup algorithms, retry orchestration). Re-implementing such a Cubit as a hook means **duplicating business logic into two live copies** that must stay in sync for the whole migration window. Don't.
+
+Extract first, migrate second - two separate commits:
+
+1. **`refactor: extract <XService> from <XCubit>`** - create the service, move the domain-logic method bodies verbatim (no improvements - any change here is untestable noise), give it the same dependencies via constructor, register it in the existing DI. Rewire the old Cubit to delegate: `emit` calls stay in the Cubit, the work happens in the service. Public API and observable behavior unchanged.
+2. **`migrate: <XState> (global, parallel to <XCubit>)`** - the usual parallel hook, now legitimately "calling the same underlying services", because the service exists.
+
+Litmus test for whether extraction is needed: if deleting the Cubit tomorrow would delete logic no other class has, extract. Thin glue (call repo → assign → toggle flag) ports freely.
+
+The service must have zero `emit(`, zero Flutter imports, zero Cubit/Bloc references - it outlives the migration as a permanent part of the data layer.
+
+---
+
 ## Migration Checklist
 
 ```
 □ Create useInjected bridge hook wrapping your existing DI (one-liner)
+□ Cubit contains domain logic not present in any service? → extract service FIRST (see above)
 □ Create global state classes (extending HasInitialized where needed)
 □ Create corresponding useXState() hooks
-□ Register in _providers map (correct order: init-dependent last)
+□ Register in _providers map ONLY together with the first migrated consumer screen
+  (deferred registration - see "Incremental migration" above; order: init-dependent last)
 □ Replace MultiBlocProvider with HookProviderContainerWidget
 □ Keep existing DI registrations (get_it, provider, etc.) as-is
 □ Update all screens: context.read<XCubit>() → useProvided<XState>()

@@ -59,11 +59,13 @@ For each screen, classify:
 
 Two paths:
 
-**Already migrated (hooks side):**
+**Already migrated (hooks side).** Migrated = the state class + `useXState()` hook exist. Registration in `_providers.dart` is a SEPARATE, later event (deferred until the first migrated consumer screen lands) - track it as its own flag, never as the migrated-ness signal:
 ```bash
-# _providers map entries
-grep -nE '=>.*\(\),' <repo>/lib/_providers*.dart
-# or function-based registration depending on convention
+# migrated: state class + hook function exist
+grep -rnE 'class [A-Z][A-Za-z0-9_]*State\b' <repo>/lib/state/
+grep -rnE 'State use[A-Z][A-Za-z0-9_]*State\(' <repo>/lib/state/
+# registered (subset of migrated): entry present in the providers map
+grep -nE '[A-Za-z0-9_]+State:' <repo>/lib/_providers*.dart
 ```
 
 **Not yet migrated (BLoC side):**
@@ -195,7 +197,7 @@ Estimate `files_expected` per screen (AFTER deps are migrated - `migrate-screen`
 
 ## Step 8 - Regenerate MIGRATION.md
 
-Read existing `MIGRATION.md` in repo root if present. Preserve **only the `## Skipped - user opt-out` section** verbatim (including reasons). Overwrite everything else.
+Read existing `MIGRATION.md` in repo root if present. Preserve **two sections verbatim**: `## Skipped - user opt-out` (including reasons) and `## Session journal` (append-only work log the orchestrator maintains across sessions). Overwrite everything else.
 
 Template:
 
@@ -210,8 +212,8 @@ Template:
 
 ## Global States
 
-- [x] AuthState (was AuthBloc) - <commit_sha>
-- [x] UserState (was UserCubit) - <commit_sha>
+- [x] AuthState (was AuthBloc) - <commit_sha> - registered
+- [x] UserState (was UserCubit) - <commit_sha> - pending registration (no migrated consumer yet)
 - [ ] FeedState (was FeedBloc)
 - [ ] CartState (was CartCubit)
 
@@ -238,8 +240,12 @@ Template:
 
 ## Notes
 
-- Dwa ekrany migrowane równolegle mogą zobaczyć różne dane dla tego samego global state (np. zmigrowany edytuje profil, niezmigrowany ma stare w cache). Pull-to-refresh ratuje. Finalizacja migracji usuwa problem.
+- During incremental migration a migrated and a non-migrated screen may briefly show different data for the same logical state (each side keeps its own cache until the old Cubit is removed). Deferred provider registration keeps the hook side inert until its first consumer lands; final cleanup removes the divergence entirely.
 - `<foundation_needed ? "Foundation files missing - setup will run first" : "">`
+
+## Session journal (append-only - PRESERVED across regenerations)
+
+<PRESERVED VERBATIM from old file; the orchestrator appends one entry per session - see commands/migrate.md Step 8>
 ```
 
 Get commit SHAs for done items by grepping `git log --oneline --grep='migrate: <stem>'` (short form).
@@ -273,7 +279,7 @@ remaining:
     decomposition: none
 skipped:
   - screen: payment_screen
-    reason: "dotyka flow płatności, defer do Q3"
+    reason: "touches the payment flow - deferred to Q3 by user"
 blocked:
   - screen: admin_dashboard
     reason: "AdminBloc.close() does _storage.clear() - confirm behavior"
@@ -331,6 +337,6 @@ notes:
 
 - **Read-only against code.** Only write target is `MIGRATION.md` in repo root.
 - **NEVER run** `dart analyze`, `flutter pub get`, or any build command. You're inventory, not verification.
-- **Preserve `## Skipped` exactly** - line-for-line from existing `MIGRATION.md`. It's user-owned.
+- **Preserve `## Skipped` AND `## Session journal` exactly** - line-for-line from existing `MIGRATION.md`. Skipped is user-owned; the journal is the orchestrator's cross-session work log.
 - **Be explicit about unknowns.** If you can't classify confidently, say so in `notes:` - orchestrator handles escalation.
 - **Do not exceed `next_wave` size of 3.** Parallel cost grows superlinearly beyond that.

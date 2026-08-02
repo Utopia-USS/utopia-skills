@@ -221,6 +221,8 @@ Entries marked *(foundation skill)* are NOT bundled with this plugin - they live
 - **Never add `flutter_hooks`** - utopia_hooks is a completely separate implementation, not an extension of flutter_hooks
 - **Migration is done when `dart analyze` returns zero errors** - not before. Loop: fix → re-run → fix → re-run
 - **StatefulWidget with lifecycle → HookWidget** - if a StatefulWidget exists only to manage subscriptions, controllers, or timers in `initState`/`dispose`, convert it to HookWidget with `useEffect`/`useStreamSubscription`
+- **Never duplicate business logic into a hook** - if a Cubit contains domain logic that lives in no service (sync algorithms, download queues, transformation pipelines), extract a service FIRST (behavior-preserving commit: old Cubit delegates to it), then implement the hook over the same service. Two live copies of business logic diverge silently. See the `migrate-global-state` agent's `needs_service_extraction` flow.
+- **Provider registration lands with the first consumer** - Phase A creates the state file but does NOT register it in `_providers`; `HookProviderContainer` builds every registered provider eagerly at startup, so early registration runs the new hook AND the old Cubit side by side (double fetches, double stream subscriptions). The `_providers` entry is added in the commit of the first migrated screen that consumes the state.
 - **The ~30% code reduction is a consequence** - focus on correctness, not size
 
 ## Migration Anti-Patterns - NEVER DO THESE
@@ -378,7 +380,11 @@ grep -rn 'BuildContext\|Overlay\.\|MediaQuery\.\|showSnackBar\|ScaffoldMessenger
 grep -rn '^final Map\|^final List\|^final Set\|^DateTime?\|^int \|^bool ' lib/state/
 ```
 
-### 7. Line count sanity check (soft gate)
+### 7. Behavioral gate - no new test failures
+
+Static gates cannot catch "compiles but nothing happens" (unwired trigger, `shouldCompute` never true, subscription on a silent stream). If the project has a test suite: `flutter test` must show **zero NEW failures vs the pre-migration baseline** (pre-existing failures don't count). If there is no suite, the manual smoke checklist in `screen-migration-flow.md` §4g IS the behavioral gate - walk it per migrated screen before calling the migration done.
+
+### 8. Line count sanity check (soft gate)
 
 Compare total lines in migrated hook+state files vs original cubit+state files. If migrated code exceeds **60%** of original line count for Complex screens (50% for Medium) - investigate. This usually means missed hook features (`useAutoComputedState`, `useSubmitState`, `useMemoizedStream`) or missing decomposition.
 

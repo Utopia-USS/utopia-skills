@@ -29,6 +29,43 @@ the repo as a whole. Entries below cover shipped changes since the previous bump
 
 - Skill renamed: `utopia-ai-arch` -> `layer`.
 
+## utopia-hooks-migrate-bloc 0.4.0
+
+Field-driven redesign after the Hacki stress test (5 attempts, Phase A-only outcomes, two branches
+ending in a commit named "hell"). Deal-breakers fixed:
+
+- **Service extraction (Phase A0).** When domain logic lives in the Cubit itself (no service has it),
+  the `migrate-global-state` agent returns `needs_service_extraction` + a service sketch instead of
+  duplicating business logic into the hook; new `extract_service` mode produces a behavior-preserving
+  `refactor: extract <XService>` commit first. New reference section in `global-state-migration.md`.
+- **Deferred provider registration.** Phase A no longer registers states in `_providers.dart` -
+  `HookProviderContainer` builds providers eagerly, so early registration ran hook + old Cubit side by
+  side (double fetches/subscriptions). The entry now lands with the first migrated consumer screen
+  (orchestrator step 2a, with post-apply stem verification; review §J split into Phase A/B expectations).
+- **Behavioral gate.** `flutter test` baseline at startup, "zero new failures" gate per batch, §4g
+  manual smoke checklist surfaced in the final report; new Exit Gate item in SKILL.md.
+- **Staged god-screen protocol.** Oversized screens (Cubit > ~600 LoC, manifest > ~12 files) get a
+  multi-commit staged plan (`migrate-prep:` commits + final rewiring) instead of a one-shot migration.
+- **Deterministic Phase B ordering** (simple before complex, enforced by the orchestrator) and
+  crash-recovery Step 0 (dirty-tree reconciliation before inventory).
+- **Enforcement hook actually reaches the model:** `screen_gate.sh` moved from the exit-code contract
+  (exit 1 stderr never reached Claude - the gate was a silent no-op in default mode) to PostToolUse
+  JSON output (`additionalContext` in warn mode, `decision: block` in block mode).
+- Harness drift: Dart MCP probe is ToolSearch-aware (deferred MCP tools no longer read as "missing"),
+  `TodoWrite` -> `TaskCreate`/`TaskUpdate`, stale `MultiEdit` matcher dropped, orchestrator no longer
+  pinned to sonnet (inherits session model), `migrate-global-state`/`migrate-screen`/`migrate-review`
+  moved to opus.
+- New `--finalize` mode: reviewed cleanup commits removing deprecated Cubits, BLoC packages,
+  BlocObserver, plus a repo-wide exit-gate sweep.
+- Review hardening: red size thresholds are hard fails (including Phase A globals - a 550-line 1:1
+  Bloc port must not pass again); per-commit full `migrate-inventory` re-runs replaced by deterministic
+  MIGRATION.md edits (full re-scans only at phase boundaries).
+- Inventory MIGRATION.md template fully in English; global states now tracked as
+  `registered` / `pending registration`.
+- Cross-session work log: `MIGRATION.md` gains an append-only `## Session journal` section
+  (preserved by inventory like Skipped); the orchestrator appends a resume brief per session
+  (Step 8b) - migrations spanning many sessions no longer re-derive context.
+
 ## utopia-hooks-migrate-bloc 0.3.0
 
 - The five sub-agents renamed with the `migrate-` prefix; orchestrator and docs updated.
