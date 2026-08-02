@@ -7,11 +7,11 @@ tags: pubspec, dependencies, version, utopia_hooks, flutter_hooks, cleanup, bloc
 # pubspec.yaml Migration
 
 Single source of truth for dependency changes during BLoC → utopia_hooks migration.
-Referenced by SKILL.md and migration-steps.md — all pubspec logic lives here.
+Referenced by SKILL.md and migration-steps.md - all pubspec logic lives here.
 
 ---
 
-## 1. Resolve the target package version — MANDATORY, DYNAMIC
+## 1. Resolve the target package version - MANDATORY, DYNAMIC
 
 **NEVER use a version from memory, training data, or previous conversations.**
 The version MUST come from pub.dev at the time of migration.
@@ -20,11 +20,11 @@ The version MUST come from pub.dev at the time of migration.
 
 The target package is **`utopia_hooks`**.
 
-**Do NOT add `flutter_hooks`.** `utopia_hooks` is a completely separate implementation — it does
+**Do NOT add `flutter_hooks`.** `utopia_hooks` is a completely separate implementation - it does
 NOT extend or depend on `flutter_hooks`. Adding `flutter_hooks` is wrong and will cause conflicts.
 
 **Leave your existing DI library (get_it, provider, etc.) untouched.** The migration does not
-replace your DI — it wraps it with a thin `useInjected<T>()` bridge hook.
+replace your DI - it wraps it with a thin `useInjected<T>()` bridge hook.
 
 ### Fetch the latest version
 
@@ -34,7 +34,7 @@ curl -s https://pub.dev/api/packages/utopia_hooks | grep -o '"version":"[^"]*"' 
 ```
 
 If `curl` is unavailable, use `WebFetch` on `https://pub.dev/packages/utopia_hooks` and read the
-version from the page. If that also fails, **ask the user** — do not guess.
+version from the page. If that also fails, **ask the user** - do not guess.
 
 ### Add to pubspec.yaml
 
@@ -54,7 +54,7 @@ This dependency gives you:
 
 ---
 
-## 2. Remove BLoC packages — AFTER all screens are migrated
+## 2. Remove BLoC packages - AFTER all screens are migrated
 
 During incremental migration, BLoC and hooks coexist. Keep BLoC packages in pubspec until
 every screen is migrated. Only remove them in the **final cleanup commit**.
@@ -62,14 +62,14 @@ every screen is migrated. Only remove them in the **final cleanup commit**.
 Packages to remove (when ALL screens are done):
 
 ```yaml
-# dependencies: — REMOVE all of these
+# dependencies: - REMOVE all of these
   bloc:                  # core BLoC library
   flutter_bloc:          # BLoC widgets (BlocProvider, BlocBuilder, etc.)
   hydrated_bloc:         # persistent BLoC state
   bloc_concurrency:      # event transformers (concurrent, sequential)
   replay_bloc:           # undo/redo BLoC
 
-# dev_dependencies: — REMOVE all of these
+# dev_dependencies: - REMOVE all of these
   bloc_test:             # BLoC testing utilities
   bloc_lint:             # BLoC lint rules
   mockingjay:            # BLoC-specific mocking
@@ -81,22 +81,22 @@ Packages to remove (when ALL screens are done):
   equatable:             # KEEP if model classes (Item, Story, etc.) use it
                          # (only remove if ZERO non-state classes extend Equatable)
   rxdart:                # KEEP if used for BehaviorSubject or stream operators outside BLoC
-  get_it:                # KEEP — existing DI stays as-is
-  mocktail:              # KEEP — general-purpose mocking, not BLoC-specific
+  get_it:                # KEEP - existing DI stays as-is
+  mocktail:              # KEEP - general-purpose mocking, not BLoC-specific
 ```
 
 ### Packages to NEVER ADD
 
 ```yaml
-  flutter_hooks:         # WRONG — utopia_hooks is a separate implementation, not an extension
+  flutter_hooks:         # WRONG - utopia_hooks is a separate implementation, not an extension
                          # Adding this causes duplicate HookWidget, conflicting useState, etc.
-  provider:              # WRONG — utopia_hooks has its own provider system (_providers map)
-  riverpod:              # WRONG — different architecture entirely
+  provider:              # WRONG - utopia_hooks has its own provider system (_providers map)
+  riverpod:              # WRONG - different architecture entirely
 ```
 
 ---
 
-## 3. Validate — BLOCKING
+## 3. Validate - BLOCKING
 
 After editing pubspec.yaml, run these in order. **Do NOT proceed until both pass.**
 

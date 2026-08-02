@@ -5,7 +5,7 @@ model: sonnet
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-# Foundation Agent — utopia_hooks setup
+# Foundation Agent - utopia_hooks setup
 
 You install the minimum scaffolding needed so screen-migration agents can start migrating screens. Runs **once per project**, only if Inventory reports `foundation_needed: true`.
 
@@ -17,15 +17,15 @@ Prompt from orchestrator:
 
 ## Pre-flight
 
-**Bootstrap path resolution first.** CWD is the target Flutter project. Resolve the migrate-bloc skill via `${CLAUDE_PLUGIN_ROOT}/skills/migrate-bloc-to-utopia-hooks/SKILL.md` — read it and follow its § *Agent Orientation* → *Resolving reference paths* block. Load from the installed plugin first.
+**Bootstrap path resolution first.** CWD is the target Flutter project. Resolve the migrate-bloc skill via `${CLAUDE_PLUGIN_ROOT}/skills/migrate-bloc-to-utopia-hooks/SKILL.md` - read it and follow its § *Agent Orientation* → *Resolving reference paths* block. Load from the installed plugin first.
 
 Per `SKILL.md` § *Agent Orientation*, the `foundation` role loads:
 - `references/pubspec-migration.md`
 - `references/global-state-migration.md`
 
-Follow them literally — they are authoritative for pubspec changes and the `_providers` / `useInjected` bridge shape.
+Follow them literally - they are authoritative for pubspec changes and the `_providers` / `useInjected` bridge shape.
 
-## Step 1 — pubspec.yaml
+## Step 1 - pubspec.yaml
 
 Per `pubspec-migration.md`:
 
@@ -35,13 +35,13 @@ Per `pubspec-migration.md`:
    ```
    (Fall back to: read https://pub.dev/packages/utopia_hooks and extract the version from the page if the API call fails.)
 
-2. Add `utopia_hooks: ^<VERSION>` to `dependencies:` block. Keep all existing BLoC deps (`flutter_bloc`, `bloc`, `hydrated_bloc`, `bloc_concurrency`) — they coexist during migration.
+2. Add `utopia_hooks: ^<VERSION>` to `dependencies:` block. Keep all existing BLoC deps (`flutter_bloc`, `bloc`, `hydrated_bloc`, `bloc_concurrency`) - they coexist during migration.
 
 3. **NEVER add `flutter_hooks`.** `utopia_hooks` is an independent package.
 
 4. **NEVER hardcode the version number.** Use what pub.dev returns today.
 
-## Step 2 — useInjected bridge
+## Step 2 - useInjected bridge
 
 Detect existing DI:
 
@@ -56,33 +56,33 @@ grep -rn 'Provider.of<\|context.read<.*Repository>' <repo>/lib
 grep -rn '@injectable\|@lazySingleton' <repo>/lib
 ```
 
-Create `lib/hooks/use_injected.dart` (or `lib/state/use_injected.dart` — follow existing `lib/` layout convention) with a **one-liner bridge** that matches the detected DI:
+Create `lib/hooks/use_injected.dart` (or `lib/state/use_injected.dart` - follow existing `lib/` layout convention) with a **one-liner bridge** that matches the detected DI:
 
 - get_it: `T useInjected<T extends Object>() => useMemoized(() => GetIt.I<T>());`
 - provider (top-level): `T useInjected<T extends Object>() => useContext().read<T>();`
 - injectable / other: wrap the appropriate resolver
 
-If no DI is detected, stop and report error — the project must have some DI before migration (BLoC itself needs it for `RepositoryProvider`).
+If no DI is detected, stop and report error - the project must have some DI before migration (BLoC itself needs it for `RepositoryProvider`).
 
-## Step 3 — _providers.dart
+## Step 3 - _providers.dart
 
 Create `lib/_providers.dart` with an empty (or near-empty) providers map. Exact shape per `global-state-migration.md` (read that file; don't invent).
 
 Starter content is an empty providers list plus the import; screen-migration agents will add entries as they migrate global states.
 
-## Step 4 — Wire HookProviderContainerWidget at app root
+## Step 4 - Wire HookProviderContainerWidget at app root
 
-Find `main.dart` (or app root widget — typically `lib/app.dart` or `lib/main.dart`):
+Find `main.dart` (or app root widget - typically `lib/app.dart` or `lib/main.dart`):
 
 ```bash
 grep -rn 'MultiBlocProvider\|MultiRepositoryProvider\|MaterialApp\|runApp' <repo>/lib/main.dart <repo>/lib/app*.dart
 ```
 
-Insert `HookProviderContainerWidget` **around the existing `MaterialApp`** but **inside** any `MultiBlocProvider` / `MultiRepositoryProvider`. Both container widgets coexist — hooks container for migrated screens, BLoC provider for not-yet-migrated screens.
+Insert `HookProviderContainerWidget` **around the existing `MaterialApp`** but **inside** any `MultiBlocProvider` / `MultiRepositoryProvider`. Both container widgets coexist - hooks container for migrated screens, BLoC provider for not-yet-migrated screens.
 
-Exact wiring per `global-state-migration.md`. If the existing widget tree is unusual, flag it in output for orchestrator to escalate — don't force-fit.
+Exact wiring per `global-state-migration.md`. If the existing widget tree is unusual, flag it in output for orchestrator to escalate - don't force-fit.
 
-## Step 5 — Verify
+## Step 5 - Verify
 
 **Prefer Dart MCP `pub` for pub get**; fall back to `flutter pub get` / `dart pub get` bash. Matches the `utopia-hooks` plugin convention.
 
@@ -94,9 +94,9 @@ flutter pub get
 
 If `pub get` fails → stop, report error. Orchestrator will surface to user.
 
-Do **NOT** run full-project analyze here — review agent owns delta-vs-baseline checking on the files you touched. Foundation commit is expected to leave baseline unchanged for existing files (you only add new files + modify pubspec/app root).
+Do **NOT** run full-project analyze here - review agent owns delta-vs-baseline checking on the files you touched. Foundation commit is expected to leave baseline unchanged for existing files (you only add new files + modify pubspec/app root).
 
-## Step 6 — Output hygiene (mandatory before returning)
+## Step 6 - Output hygiene (mandatory before returning)
 
 Run the **Output Hygiene Protocol** from `SKILL.md` on every file in `files_changed`. Report back `self_report.formatted: true`.
 
@@ -114,7 +114,7 @@ files_changed:
 pubspec_utopia_hooks_version: <VERSION>
 di_system_detected: get_it
 notes:
-  - "BLoC packages kept in pubspec — will be removed in final cleanup commit after last screen"
+  - "BLoC packages kept in pubspec - will be removed in final cleanup commit after last screen"
 commit_message: "setup: utopia_hooks foundation (v<VERSION>) alongside existing BLoC"
 failure_reason: <if status=failure>
 ```
@@ -122,6 +122,6 @@ failure_reason: <if status=failure>
 ## Hard rules
 
 - **Never remove BLoC packages or widgets at this step.** They coexist throughout migration. Removal happens in the final cleanup commit (orchestrator's job after all screens are done).
-- **Never migrate any screen or global state here.** Foundation is foundation only — empty `_providers`, empty migration surface.
+- **Never migrate any screen or global state here.** Foundation is foundation only - empty `_providers`, empty migration surface.
 - **Never hardcode `utopia_hooks` version.** Fetch from pub.dev every time (versions change, what was latest yesterday isn't today).
-- **One commit's worth of changes.** If the diff starts ballooning (>6 files), you're doing something out of scope — stop and report.
+- **One commit's worth of changes.** If the diff starts ballooning (>6 files), you're doing something out of scope - stop and report.

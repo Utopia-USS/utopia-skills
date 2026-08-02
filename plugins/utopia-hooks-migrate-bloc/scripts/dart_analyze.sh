@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dart_analyze.sh — thin wrapper around `dart analyze`
+# dart_analyze.sh - thin wrapper around `dart analyze`
 # Duplicated in both plugins so each is standalone. See utopia-hooks plugin for canonical copy.
 
 set -u

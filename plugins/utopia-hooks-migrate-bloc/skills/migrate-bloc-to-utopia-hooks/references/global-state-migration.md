@@ -1,5 +1,5 @@
 ---
-title: Global State Migration — BLoC Provider Tree → _providers
+title: Global State Migration - BLoC Provider Tree → _providers
 impact: HIGH
 tags: migration, global-state, MultiBlocProvider, RepositoryProvider, providers, useInjected
 ---
@@ -7,7 +7,7 @@ tags: migration, global-state, MultiBlocProvider, RepositoryProvider, providers,
 # Global State Migration: BLoC Provider Tree → _providers
 
 Migrating the app-level BLoC provider tree to utopia_hooks' flat `_providers` map.
-Existing DI (get_it, provider, etc.) stays as-is — only a thin `useInjected` bridge hook is added.
+Existing DI (get_it, provider, etc.) stays as-is - only a thin `useInjected` bridge hook is added.
 This is typically step 1 in a codebase-wide migration.
 
 ---
@@ -58,7 +58,7 @@ class App extends StatelessWidget {
 ### 1. Create useInjected bridge hook (wraps existing DI)
 
 Create a one-liner hook that bridges your project's existing DI into hook context.
-The project keeps its DI library — no need to migrate service registrations.
+The project keeps its DI library - no need to migrate service registrations.
 
 ```dart
 // hooks/use_injected.dart
@@ -73,7 +73,7 @@ T useInjected<T extends Object>() => GetIt.I<T>();
 // T useInjected<T>() => ServiceLocator.instance.get<T>();
 ```
 
-**Key point:** `useInjected` is not a framework class — it's a one-liner you write yourself.
+**Key point:** `useInjected` is not a framework class - it's a one-liner you write yourself.
 Pick the variant that matches your project's DI. Keep existing service registrations unchanged.
 
 ### 2. Create global state hooks (replace Cubits)
@@ -118,7 +118,7 @@ SettingsState useSettingsState() {
 ```dart
 // app.dart
 const _providers = {
-  // Global state hooks — order matters (earlier = available to later)
+  // Global state hooks - order matters (earlier = available to later)
   AuthState: useAuthState,
   SettingsState: useSettingsState,
   TaskListState: useTaskListState,
@@ -145,9 +145,9 @@ class App extends StatelessWidget {
 
 ### Initialization Order
 
-**BLoC:** Lazy by default — Cubit is created when first `context.read<XCubit>()` is called.
+**BLoC:** Lazy by default - Cubit is created when first `context.read<XCubit>()` is called.
 
-**Hooks:** Eager by definition — all hooks in `_providers` run immediately at app start.
+**Hooks:** Eager by definition - all hooks in `_providers` run immediately at app start.
 Order in the map matters: hooks registered earlier are available via `useProvided<T>()`
 to hooks registered later.
 
@@ -189,7 +189,7 @@ const _providers = {
 
 // ✅ Screen-specific state in screen state hook (created on navigation)
 CheckoutScreenState useCheckoutScreenState() {
-  // all checkout logic here — lives only while screen is mounted
+  // all checkout logic here - lives only while screen is mounted
 }
 ```
 
@@ -225,7 +225,7 @@ BlocProvider(
 ```
 
 ```dart
-// Hooks — useInjected resolves from your existing DI (e.g. get_it)
+// Hooks - useInjected resolves from your existing DI (e.g. get_it)
 TaskListState useTaskListState() {
   final repo = useInjected<TaskRepository>();
   // ...
@@ -235,7 +235,7 @@ TaskListState useTaskListState() {
 ### Pattern: Cubit depends on other Cubit
 
 ```dart
-// BLoC — Cubit reads another Cubit
+// BLoC - Cubit reads another Cubit
 class TaskListCubit extends Cubit<TaskListState> {
   TaskListCubit(this._repo, this._authCubit) : super(...);
   final AuthCubit _authCubit;
@@ -244,7 +244,7 @@ class TaskListCubit extends Cubit<TaskListState> {
 ```
 
 ```dart
-// Hooks — useProvided reads global state directly
+// Hooks - useProvided reads global state directly
 TaskListState useTaskListState() {
   final auth = useProvided<AuthState>();     // ← replaces _authCubit
   final repo = useInjected<TaskRepository>();
@@ -252,7 +252,7 @@ TaskListState useTaskListState() {
 }
 ```
 
-No constructor wiring needed — `useProvided` reads global state, `useInjected` reads services from your DI.
+No constructor wiring needed - `useProvided` reads global state, `useInjected` reads services from your DI.
 
 ---
 
@@ -284,9 +284,9 @@ void main() {
 ### utopia_hooks
 
 No direct equivalent. Instead:
-- **State change logging** — add logging inside individual hooks if needed
-- **Error handling** — use error callbacks in `runSimple` (`afterError`), or a global error handler (e.g. `FlutterError.onError`, Sentry, Crashlytics)
-- **Analytics** — track in `afterSubmit` / `afterError` callbacks
+- **State change logging** - add logging inside individual hooks if needed
+- **Error handling** - use error callbacks in `runSimple` (`afterError`), or a global error handler (e.g. `FlutterError.onError`, Sentry, Crashlytics)
+- **Analytics** - track in `afterSubmit` / `afterError` callbacks
 
 ---
 
@@ -295,7 +295,7 @@ No direct equivalent. Instead:
 If the global Cubit extends `HydratedCubit`, replace `fromJson`/`toJson` with `usePersistedState`:
 
 ```dart
-// Hooks — global state with persistence
+// Hooks - global state with persistence
 SettingsState useSettingsState() {
   final prefs = useInjected<PreferencesService>();
   final themeMode = usePersistedState<ThemeMode>(
@@ -325,14 +325,14 @@ See [bloc-to-hooks-state.md](./bloc-to-hooks-state.md) section 6 for full side-b
 □ Update all screens: context.read<XCubit>() → useProvided<XState>()
 □ Update all screens: context.read<XRepository>() → useInjected<XService>()
 □ Remove flutter_bloc and bloc from pubspec.yaml (after all screens migrated)
-□ Verify initialization order — states that depend on others are later in _providers
+□ Verify initialization order - states that depend on others are later in _providers
 □ Verify screen-local state is NOT in _providers
 ```
 
 ## Related
 
-- [bloc-to-hooks-state.md](./bloc-to-hooks-state.md) — state-layer pattern mapping
-- [bloc-to-hooks-widget.md](./bloc-to-hooks-widget.md) — widget-layer pattern mapping
-- [migration-steps.md](./migration-steps.md) — per-screen migration process
-- `utopia-hooks:references/global-state.md` — full global state documentation
-- `utopia-hooks:references/di-services.md` — useInjected bridge hook and service patterns
+- [bloc-to-hooks-state.md](./bloc-to-hooks-state.md) - state-layer pattern mapping
+- [bloc-to-hooks-widget.md](./bloc-to-hooks-widget.md) - widget-layer pattern mapping
+- [migration-steps.md](./migration-steps.md) - per-screen migration process
+- `utopia-hooks:references/global-state.md` - full global state documentation
+- `utopia-hooks:references/di-services.md` - useInjected bridge hook and service patterns
