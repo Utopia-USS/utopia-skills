@@ -237,8 +237,13 @@ SegmentedControl(
 | Use case | Pattern |
 |----------|---------|
 | UI-only selection (filter, tab, checkbox) | `MutableValue<T>` |
+| UI-only selection WITH an invariant (e.g. index must be >= 0, value must be in a set) | guarded callback (`void Function(T)`) that validates before assigning |
 | Action that triggers async work (save, delete) | `void Function()` callback |
 | Field that requires validation | `useFieldState` |
+
+A raw `MutableValue<T>` lets any consumer assign any value; if the old code guarded the
+assignment (bounds check, whitelist), keep the guard by exposing a setter callback instead -
+the read side stays a plain final field.
 
 ```dart
 // MutableValue - View drives the value, no business logic involved

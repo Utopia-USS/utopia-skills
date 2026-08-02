@@ -54,6 +54,16 @@ case "$rel" in
   *) exit 0 ;;
 esac
 
+# Phase A allowance: a retained Bloc/Cubit annotated @Deprecated is the sanctioned
+# parallel-migration marker (annotate, keep alive until --finalize). Its bloc-isms
+# (filename, bloc imports, emit calls) are by design during the migration window -
+# skip the gate for such files instead of spamming violations on every annotation edit.
+case "$(basename "$file")" in
+  *_cubit.dart|*_bloc.dart)
+    grep -qE '^@Deprecated\(' "$file" && exit 0
+    ;;
+esac
+
 in_state=0
 in_screen=0
 in_view=0
