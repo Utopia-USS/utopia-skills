@@ -21,8 +21,8 @@ and whenever deciding whether an element maps cleanly or needs a
 `utopia_ui` ships `manifest/utopia.manifest.json` inside its pub tarball, so the version
 a project resolves is exactly the version whose manifest matches. Resolve the package
 root through `.dart_tool/package_config.json` - the identical technique
-**utopia-design-tokens**'s
-[getting-started.md](../../utopia-design-tokens/references/getting-started.md) documents
+**utopia-design:tokens**'s
+[getting-started.md](../../tokens/references/getting-started.md) documents
 for `tokens/utopia.tokens.json`; do not re-derive that resolution snippet here, just
 point it at `manifest/utopia.manifest.json` under the same resolved `$utopia_ui_root`
 instead of the token document.
@@ -39,15 +39,15 @@ never treat it as a source of truth; `validate_manifest` gates its freshness (re
 the shipped manifest). Bare ids (`button`) are always library components; namespaced
 ids are the project's registered components - both are equally legal mapping targets.
 The project/merged files are produced by
-`dart run utopia_design_tools:generate_manifest --project` - the utopia-design-component
+`dart run utopia_design_tools:generate_manifest --project` - the utopia-design:component
 skill owns that loop. A project that has not registered custom components has only the
 shipped library manifest.
 
 Optional freshness check: `dart run utopia_design_tools:validate_manifest` with zero
 arguments validates the shipped manifest against the resolved `utopia_ui` version
 (the `packageVersion` drift gate, SPEC.md 3.7). Its full CLI contract - default file
-resolution, sources root, exact gates - is **utopia-design-sync**'s
-[regeneration.md](../../utopia-design-sync/references/regeneration.md); this doc does
+resolution, sources root, exact gates - is **utopia-design:sync**'s
+[regeneration.md](../../sync/references/regeneration.md); this doc does
 not re-spec it.
 
 ## The component entry shape

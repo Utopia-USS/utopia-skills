@@ -54,7 +54,7 @@ Flutter theme code or twin CSS - those are generated, never hand-edited.
    does NOT ship in a package, remove `fontPackage` and tell the user the app must
    bundle the font itself - generated Dart referencing a package that lacks the font
    fails at render, and the twin will render OS fallbacks (see
-   **utopia-design-sync**'s regeneration.md, "Viewing a consumer twin"). *Why:* DTCG
+   **utopia-design:sync**'s regeneration.md, "Viewing a consumer twin"). *Why:* DTCG
    `typography` has no color property - the sibling-token binding is how
    this profile carries `TextStyle.color` at all (SPEC.md 2.4). Editing only
    one side of the pair produces a color/type mismatch on the generated
@@ -126,7 +126,7 @@ confirm nothing was missed.
 - **Editing `textStyle.<role>` and forgetting `textStyle-colors.<role>`** (or
   vice versa). The pair is one logical unit.
 - **Hand-editing generated theme Dart or twin CSS** to "fix" a rebrand
-  faster. Both are regenerated wholesale by `utopia-design-sync` - a hand
+  faster. Both are regenerated wholesale by `utopia-design:sync` - a hand
   edit there is silently overwritten (or worse, papers over a
   `design/tokens.json` that's still wrong).
 

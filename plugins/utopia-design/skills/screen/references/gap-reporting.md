@@ -37,7 +37,7 @@ Every GAP, regardless of the element, is reported with exactly these five parts:
 4. **Suggested action** - ask the user how to proceed; the two standing options are
    scaffolding the element as a **project component** (registered in the project
    manifest under a namespaced id - SPEC.md 3.8's production loop, owned end-to-end by
-   the **utopia-design-component** skill, the path most real gaps should take) and
+   the **utopia-design:component** skill, the path most real gaps should take) and
    requesting the component upstream in `utopia_ui`.
 5. **Component-spec seed** - so a "scaffold it" decision can start immediately: the
    proposed id including its namespace (`<project_package>:<kebab-name>`, SPEC.md 3.3),
@@ -134,7 +134,7 @@ Resulting gap report (as it would appear in the final response):
 > Missing capability: a step-sequence component with per-step state and a connecting
 > track - `utopia_ui` has no equivalent today.
 > Suggested action: confirm with the user whether to (a) scaffold it as a project
-> component registered in the project manifest via the **utopia-design-component**
+> component registered in the project manifest via the **utopia-design:component**
 > skill (SPEC.md 3.8), (b) request a step-indicator component upstream in `utopia_ui`,
 > or (c) proceed without a progress indicator for now.
 > Component-spec seed (for the scaffold path): proposed id
@@ -147,7 +147,7 @@ Resulting gap report (as it would appear in the final response):
 And the matching code-side marker:
 
 ```dart
-// TODO(utopia-design-screen): GAP - no manifest component for a step/wizard
+// TODO(utopia-design:screen): GAP - no manifest component for a step/wizard
 // progress indicator (considered: chip-list, collapsible, form-layout - none
 // carry per-step completed/current/upcoming state or a connecting track).
 // Placeholder below; see the chat response for the full gap report.
@@ -182,7 +182,7 @@ UtopiaChipList(labels: IList(const ['1', '2', '3', '4']), activeIndex: currentSt
 **Right:**
 
 ```dart
-// TODO(utopia-design-screen): GAP - no manifest component for a step/wizard
+// TODO(utopia-design:screen): GAP - no manifest component for a step/wizard
 // progress indicator. See the chat response for the full report.
 const SizedBox.shrink(),
 ```
@@ -198,7 +198,7 @@ is permitted: the plainest widget that provides the function (a bare `TextButton
 missing "Cancel" affordance, say), function only, NEVER styled to imitate the design
 system - no token dressing, no colors/radii/typography chosen to look native. An
 unstyled stand-in that looks obviously foreign is the point: it keeps the gap visible
-instead of hiding it. The `// TODO(utopia-design-screen)` marker at the insertion point
+instead of hiding it. The `// TODO(utopia-design:screen)` marker at the insertion point
 names it a stand-in, and the five-part report is still produced in full, naming the
 stand-in explicitly (in the element description or the suggested action) - a stand-in
 never downgrades the report.

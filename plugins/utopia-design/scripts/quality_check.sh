@@ -89,11 +89,11 @@ add() { violations+=("$1"); }
 case "$rel" in
   design/tokens.json|*/design/tokens.json|design/*.tokens.json|*/design/*.tokens.json)
     if ! jq empty "$file" >/dev/null 2>&1; then
-      add "invalid JSON in $rel (jq parse failed) - fix before continuing (utopia-design-tokens skill)"
+      add "invalid JSON in $rel (jq parse failed) - fix before continuing (utopia-design:tokens skill)"
     else
       top_type="$(jq -r 'type' "$file" 2>/dev/null)"
       if [[ "$top_type" != "object" ]]; then
-        add "top level of $rel is not a JSON object - DTCG tokens files must be an object with \$schema and/or token groups (utopia-design-tokens)"
+        add "top level of $rel is not a JSON object - DTCG tokens files must be an object with \$schema and/or token groups (utopia-design:tokens)"
       fi
     fi
     # --- VALIDATOR HOOK (wired in B4 via handoff H1) --------------------
@@ -176,13 +176,13 @@ if [[ "$file" == *.dart ]]; then
         num='([1-9][0-9]*(\.[0-9]+)?|0?\.[0-9]*[1-9])'
         dim_re="EdgeInsets\.(all|fromLTRB)\($num|EdgeInsets\.(symmetric|only)\([a-zA-Z]+:[[:space:]]*$num|BorderRadius\.circular\($num|SizedBox\((width|height):[[:space:]]*$num"
         if printf '%s' "$edited" | grep -qE '(\bconst[[:space:]]+)?Color\(0x[0-9A-Fa-f]{6,8}\)'; then
-          add "hardcoded Color(0x..) literal - read the design value from UtopiaTheme/context instead of hardcoding (utopia-design-screen)"
+          add "hardcoded Color(0x..) literal - read the design value from UtopiaTheme/context instead of hardcoding (utopia-design:screen)"
         fi
         if printf '%s' "$edited" | grep -qE '\bColors\.(red|pink|purple|blue|indigo|cyan|teal|green|lime|yellow|amber|orange|brown|grey|gray|blueGrey)\b'; then
-          add "Material Colors.<swatch> in a utopia_ui project - read a color.* token from UtopiaTheme/context instead (utopia-design-screen)"
+          add "Material Colors.<swatch> in a utopia_ui project - read a color.* token from UtopiaTheme/context instead (utopia-design:screen)"
         fi
         if printf '%s' "$edited" | grep -qE "$dim_re"; then
-          add "hardcoded dimension literal - read spacing.* / radius.* from UtopiaTheme/context for a rebrandable scale (utopia-design-screen)"
+          add "hardcoded dimension literal - read spacing.* / radius.* from UtopiaTheme/context for a rebrandable scale (utopia-design:screen)"
         fi
       fi
     ;;

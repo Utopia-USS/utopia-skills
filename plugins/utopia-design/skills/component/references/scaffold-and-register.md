@@ -13,15 +13,15 @@ manifest -> the id is live in every later development cycle."
 
 ## When this applies
 
-Whenever `SKILL.md`'s "When to Apply" fires: a `utopia-design-screen` gap report's
+Whenever `SKILL.md`'s "When to Apply" fires: a `utopia-design:screen` gap report's
 component-spec seed needs turning into a live id, or an explicit ask to scaffold/register
 a project-specific component.
 
 ## Step 1 - the input: a component-spec seed
 
-The loop starts from a **component-spec seed**, part 5 of `utopia-design-screen`'s fixed
+The loop starts from a **component-spec seed**, part 5 of `utopia-design:screen`'s fixed
 GAP report format (its
-[gap-reporting.md](../../utopia-design-screen/references/gap-reporting.md)): a proposed
+[gap-reporting.md](../../screen/references/gap-reporting.md)): a proposed
 namespaced id, the props it needs, its interaction states, and the token bindings it
 would read. Nothing here is invented by this skill - it is handed the seed (or an
 equivalent explicit user ask) and starts scaffolding from it.
@@ -48,8 +48,8 @@ pattern (SPEC.md 3.8: "Project-specific visual values (e.g. gain/loss
 colors on a stock tile) live in project code as constants - a legal, documented pattern,
 not a smell"), not a reason to invent a token - the tree stays CLOSED (SPEC.md 3.8; see
 [overlay-and-manifests.md](overlay-and-manifests.md) and
-**utopia-design-tokens**'s
-[token-profile.md](../../utopia-design-tokens/references/token-profile.md) "When to add
+**utopia-design:tokens**'s
+[token-profile.md](../../tokens/references/token-profile.md) "When to add
 a new entry").
 
 Illustrative sketch (structure matters here - the exact widget tree is yours to build,
@@ -203,8 +203,8 @@ Full detail on each gate: [overlay-and-manifests.md](overlay-and-manifests.md).
 ## Step 6 - the id is live
 
 `stock_app:market-tile` now resolves through `design/merged.manifest.json`. Hand it back
-to screen building - **utopia-design-screen**'s
-[component-mapping.md](../../utopia-design-screen/references/component-mapping.md)
+to screen building - **utopia-design:screen**'s
+[component-mapping.md](../../screen/references/component-mapping.md)
 documents the merged manifest as the preferred mapping target once it exists. This
 skill's job ends here; it does not itself wire the component into a screen.
 
@@ -247,9 +247,9 @@ Run the CLI against a COPY of that fixture to see live output end-to-end.
 
 - [overlay-and-manifests.md](overlay-and-manifests.md) - the overlay key reference in
   full, the three-document model, and what `validate_manifest` enforces
-- **utopia-design-screen**'s
-  [gap-reporting.md](../../utopia-design-screen/references/gap-reporting.md) - where the
+- **utopia-design:screen**'s
+  [gap-reporting.md](../../screen/references/gap-reporting.md) - where the
   component-spec seed this loop starts from comes from
-- **utopia-design-screen**'s
-  [component-mapping.md](../../utopia-design-screen/references/component-mapping.md) -
+- **utopia-design:screen**'s
+  [component-mapping.md](../../screen/references/component-mapping.md) -
   how the resulting namespaced id gets used in a screen

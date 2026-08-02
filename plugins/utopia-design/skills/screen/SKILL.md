@@ -1,5 +1,5 @@
 ---
-name: utopia-design-screen
+name: screen
 description: >
   Build or update a Flutter screen from an outside design input using ONLY
   components from the utopia_ui component manifest (the merged manifest when the
@@ -8,10 +8,10 @@ description: >
   HTML twin gallery; deciding which utopia_ui component a design element maps to;
   reporting an unmappable element as a gap instead of hand-rolling it. Without
   utopia_ui resolved it stops at its usage gate and surfaces install guidance.
-  Does NOT cover editing design/tokens.json (-> utopia-design-tokens); importing
-  external design VALUES such as colors or spacing (-> utopia-design-import:
+  Does NOT cover editing design/tokens.json (-> utopia-design:tokens); importing
+  external design VALUES such as colors or spacing (-> utopia-design:import -
   VALUES onto tokens there, STRUCTURE onto components here); regenerating the
-  theme or the HTML twin (-> utopia-design-sync); or state management, screen
+  theme or the HTML twin (-> utopia-design:sync); or state management, screen
   scaffolding, navigation (-> utopia-hooks). Layered on the upstream
   utopia-hooks plugin - silent on Screen/State/View, hooks, and Dart
   conventions.
@@ -37,18 +37,18 @@ frontmatter `description` above for the exact positive/negative boundary.
 alongside the `protocol/schemas/` the validators check against. Resolve the installed
 copy the same way this skill resolves the manifest: read
 `.dart_tool/package_config.json` for `utopia_ui`'s `rootUri` (snippet in
-**utopia-design-tokens**'s
-[getting-started.md](../utopia-design-tokens/references/getting-started.md)), then open
+**utopia-design:tokens**'s
+[getting-started.md](../tokens/references/getting-started.md)), then open
 `<root>/protocol/`. If it does not resolve, treat every `SPEC.md` / `VERSIONING.md`
 citation in this skill as background rationale and continue - never block on the
 missing file.
 
 The one boundary worth stating twice: this skill maps **STRUCTURE** (an element in a
-mockup/screenshot -> a manifest component id -> a constructor call). **utopia-design-import**
+mockup/screenshot -> a manifest component id -> a constructor call). **utopia-design:import**
 maps **VALUES** (a color/spacing/typography value in an external source -> a
 `design/tokens.json` path). A design handoff bundle usually needs both: run
-**utopia-design-import** for its token values, this skill for its structure. Never use
-this skill to "fix" a color or spacing value, and never use utopia-design-import to
+**utopia-design:import** for its token values, this skill for its structure. Never use
+this skill to "fix" a color or spacing value, and never use utopia-design:import to
 decide which widget to build.
 
 ## Usage Gate (do this first, non-negotiable)
@@ -85,10 +85,10 @@ against does not exist without the library present.
 
 ## Out of Scope
 
-- Editing or rebranding `design/tokens.json` -> use **utopia-design-tokens**
+- Editing or rebranding `design/tokens.json` -> use **utopia-design:tokens**
 - Mapping external design VALUES (colors, spacing, typography) onto the token tree ->
-  use **utopia-design-import**; this skill only maps structure onto components
-- Regenerating the Flutter theme or the HTML twin -> use **utopia-design-sync**
+  use **utopia-design:import**; this skill only maps structure onto components
+- Regenerating the Flutter theme or the HTML twin -> use **utopia-design:sync**
 - Screen/State/View composition, hooks, dependency injection, navigation conventions,
   or `utopia_cli` scaffolding -> use **utopia-hooks**, deferred to entirely; this skill
   never restates any of it
@@ -119,8 +119,8 @@ against does not exist without the library present.
 - **Resolve the manifest from the resolved package root**, via
   `.dart_tool/package_config.json` (`utopia_ui` `rootUri` ->
   `manifest/utopia.manifest.json`) - the identical resolution technique
-  **utopia-design-tokens**'s
-  [getting-started.md](../utopia-design-tokens/references/getting-started.md) documents
+  **utopia-design:tokens**'s
+  [getting-started.md](../tokens/references/getting-started.md) documents
   for the token document; do not re-derive or duplicate that snippet here, just point
   it at the manifest file instead of the token document. When the project has a merged
   manifest (`design/merged.manifest.json`, SPEC.md 3.8), prefer IT as the mapping
@@ -128,8 +128,8 @@ against does not exist without the library present.
   regenerate it, never edit it. See [component-mapping.md][component-mapping]. Optionally run
   `dart run utopia_design_tools:validate_manifest` with zero arguments as a freshness
   check (the `packageVersion` drift gate); its exact CLI contract and gates are
-  **utopia-design-sync**'s
-  [regeneration.md](../utopia-design-sync/references/regeneration.md), not re-specified
+  **utopia-design:sync**'s
+  [regeneration.md](../sync/references/regeneration.md), not re-specified
   here.
 - **Gap reporting, never a hand-rolled lookalike.** Any design element with no manifest
   mapping is a reported GAP: element name/description; closest manifest candidate ids
@@ -194,15 +194,15 @@ After building or updating a screen, verify:
 
 ## See Also
 
-- **utopia-design-component** - turns this skill's gap-report seeds into live namespaced
+- **utopia-design:component** - turns this skill's gap-report seeds into live namespaced
   ids, registered in the project manifest (SPEC.md 3.8).
-- **utopia-design-tokens** - owns `design/tokens.json`; its
-  [getting-started.md](../utopia-design-tokens/references/getting-started.md) is the
+- **utopia-design:tokens** - owns `design/tokens.json`; its
+  [getting-started.md](../tokens/references/getting-started.md) is the
   resolution snippet this skill's manifest lookup reuses.
-- **utopia-design-import** - maps external design VALUES onto the token tree; run it
+- **utopia-design:import** - maps external design VALUES onto the token tree; run it
   first when a handoff bundle carries both values and structure.
-- **utopia-design-sync** - regenerates the Flutter theme and the HTML twin; its
-  [regeneration.md](../utopia-design-sync/references/regeneration.md) is the
+- **utopia-design:sync** - regenerates the Flutter theme and the HTML twin; its
+  [regeneration.md](../sync/references/regeneration.md) is the
   `validate_manifest` contract this skill's freshness check reuses.
 - **utopia-hooks** - owns app/state concerns (Screen/State/View, hooks, DI,
   navigation); this skill stays silent on all of it.

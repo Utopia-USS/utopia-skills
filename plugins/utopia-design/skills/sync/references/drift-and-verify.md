@@ -52,8 +52,8 @@ from the `packageVersion` drift gate this section is about.)
 By the time step 2 runs, step 1 has already confirmed the token document
 itself declares a compatible `profileVersion` (same major as the validator,
 warn on newer minor, fail on a different major, warn if missing - see
-**utopia-design-tokens**'s
-[validation.md](../../utopia-design-tokens/references/validation.md) for
+**utopia-design:tokens**'s
+[validation.md](../../tokens/references/validation.md) for
 the full table; not repeated here). Step 2 asks the separate question:
 does the manifest describing the *library* agree with the library actually
 resolved? VERSIONING.md is explicit that these are independent streams - a
@@ -78,7 +78,7 @@ cannot keep in sync with a token edit:
 - **Allowed exceptions (never flagged):** `9999px` / `--utopia-radius-full`
   usage (the `radius.full` token is deliberately not base-derived and is
   the one legitimate "raw-looking" 9999 value - see
-  [rebranding.md](../../utopia-design-tokens/references/rebranding.md) and
+  [rebranding.md](../../tokens/references/rebranding.md) and
   SPEC.md 2.5); bare `0`; percentage/fraction layout values; and any value
   annotated `/* utopia-literal-ok: <reason> */` on the same line - that
   annotation IS the documented-inline mechanism for CSS-only concerns such
@@ -120,7 +120,7 @@ or the twin's own hand-authored CSS - never downstream in generated files.
 
 - [regeneration.md](regeneration.md) - the exact workflow and command
   invocations these gates sit inside.
-- **utopia-design-tokens**'s
-  [validation.md](../../utopia-design-tokens/references/validation.md) -
+- **utopia-design:tokens**'s
+  [validation.md](../../tokens/references/validation.md) -
   the full `validate_tokens` contract and `profileVersion` compatibility
   table.

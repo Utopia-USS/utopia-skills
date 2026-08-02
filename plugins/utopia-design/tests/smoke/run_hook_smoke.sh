@@ -73,7 +73,7 @@ is_silent() {
 out1="$work_dir/case1.out"
 CLAUDE_PROJECT_DIR="$with_fixture" bash "$session_start" >"$out1" 2>/dev/null
 rc1=$?
-if [[ $rc1 -eq 0 ]] && grep -q "utopia-design-tokens" "$out1"; then
+if [[ $rc1 -eq 0 ]] && grep -q "utopia-design:tokens" "$out1"; then
   pass "session_start fires in with_utopia_ui (exit 0, note printed)"
 else
   fail "session_start fires in with_utopia_ui (rc=$rc1, expected 0 with note)"

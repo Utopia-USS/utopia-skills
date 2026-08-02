@@ -148,7 +148,7 @@ deliberate v0 limits, and the correct response is to state them plainly:
   warning slot because `UtopiaThemeColors` has no such fields - the tree
   cannot land what the theme cannot hold (a known library gap, already
   raised upstream). Map `error` (the slot that exists); report success /
-  warning values as unmapped gaps (via **utopia-design-import**'s gap
+  warning values as unmapped gaps (via **utopia-design:import**'s gap
   reporting when importing), never shoehorn them into unrelated slots.
 
 ## See also

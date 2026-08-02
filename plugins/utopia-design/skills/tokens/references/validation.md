@@ -82,7 +82,7 @@ dart run utopia_design_tools:validate_tokens [<file>] [--json] [--schema <path>]
 `export_tokens` (the reverse direction - `UtopiaThemeData` -> token document)
 is **maintainer-only**: it needs a checkout of the `utopia_ui` repo itself.
 Never tell a consumer project to run it; consumers only ever run
-`validate_tokens` (and, via `utopia-design-sync`, `generate_theme` /
+`validate_tokens` (and, via `utopia-design:sync`, `generate_theme` /
 `generate_twin`).
 
 ## The five validation gates (SPEC.md section 2.7, in order)

@@ -10,8 +10,8 @@ truth - see "Reading specimen specifics" at the end of this doc.
 
 Consumer note: the shipped package twin always renders the DEFAULT theme (its HTML
 links its own `tokens.css` via relative hrefs); to see a consumer rebrand, pair these
-shell files with the project's regenerated `tokens.css` per **utopia-design-sync**'s
-[regeneration.md](../../utopia-design-sync/references/regeneration.md) ("Viewing a
+shell files with the project's regenerated `tokens.css` per **utopia-design:sync**'s
+[regeneration.md](../../sync/references/regeneration.md) ("Viewing a
 consumer twin") rather than repeating the steps here.
 
 ## Status note: shipped
@@ -34,7 +34,7 @@ The bundle contract (`protocol/SPEC.md` 4.1/4.4; matches the shipped files):
 > in a browser.
 
 For this skill's purposes: `tokens.css` / `tokens.tailwind.css` and `DESIGN.md`'s front
-matter are **utopia-design-sync**'s regenerated output, never a structure source (there
+matter are **utopia-design:sync**'s regenerated output, never a structure source (there
 are no components in a token document); `components.css` and `components.html` /
 `gallery.html` are the parts this skill actually reads. Nothing in the bundle requires a
 build step - if a twin needs viewing, open the file directly.
@@ -138,5 +138,5 @@ skill's concern.
   input types
 - [component-mapping.md](component-mapping.md) - what a twin-derived element resolves
   to once its `data-utopia-id` is known
-- **utopia-design-sync** - regenerates `tokens.css` / `tokens.tailwind.css` / the
+- **utopia-design:sync** - regenerates `tokens.css` / `tokens.tailwind.css` / the
   `DESIGN.md` front matter inside the same bundle; not this skill's concern

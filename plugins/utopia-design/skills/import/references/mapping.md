@@ -18,8 +18,8 @@ Never write `design/tokens.json` directly from this step.
 ## The mapping target
 
 The target is the closed utopia tree, documented in full in
-**utopia-design-tokens**'s
-[token-profile.md](../../utopia-design-tokens/references/token-profile.md).
+**utopia-design:tokens**'s
+[token-profile.md](../../tokens/references/token-profile.md).
 This doc does not repeat that tree - it only covers how an *external* value
 gets matched onto a path in it.
 
@@ -91,14 +91,14 @@ coincidental.
 - **Any utopia slot the source doesn't cover is listed separately** as
   "uncovered - left at current value." This isn't an error, just
   information the proposal must surface (-> [three-way-diff.md](three-way-diff.md)).
-- This gap discipline mirrors **utopia-design-screen**'s component-gap
+- This gap discipline mirrors **utopia-design:screen**'s component-gap
   reporting: the same "report it, don't paper over it" posture applied to
   tokens instead of components.
 - Two gaps are predictable enough to have a scripted answer - a dark palette
   (single-context protocol, out of v0 by design) and success/warning
   semantic colors (no `UtopiaThemeColors` slot to land in). See
-  **utopia-design-tokens**'s
-  [token-profile.md](../../utopia-design-tokens/references/token-profile.md)
+  **utopia-design:tokens**'s
+  [token-profile.md](../../tokens/references/token-profile.md)
   "Known v0 limits" for the exact response; do not improvise one.
 
 ## Anti-patterns
@@ -108,22 +108,22 @@ coincidental.
   without a trace.
 - **Inventing a tree name** (e.g. a new `color.brand2`) to give an unmatched
   external value somewhere to live. The tree doesn't grow by importing; see
-  [token-profile.md](../../utopia-design-tokens/references/token-profile.md)
+  [token-profile.md](../../tokens/references/token-profile.md)
   "When to add a new entry."
 - **Converting a color's `components` without updating its `hex`** (or vice
   versa) - produces a `validate_tokens` gate-4 failure immediately.
 - **Importing a raw value into a `derivation`-carrying token** (one under
   `$extensions["io.utopiasoft.design"].derivation`) without fixing or
-  dropping that extension to match - defer to **utopia-design-tokens**'s
-  [rebranding.md](../../utopia-design-tokens/references/rebranding.md) rule 2
+  dropping that extension to match - defer to **utopia-design:tokens**'s
+  [rebranding.md](../../tokens/references/rebranding.md) rule 2
   for the exact re-derive mechanics; an import that skips this leaves the
   document scale-incoherent.
 
 ## See also
 
-- [token-profile.md](../../utopia-design-tokens/references/token-profile.md) -
+- [token-profile.md](../../tokens/references/token-profile.md) -
   the mapping target, the closed tree itself
-- [rebranding.md](../../utopia-design-tokens/references/rebranding.md) - the
+- [rebranding.md](../../tokens/references/rebranding.md) - the
   value-conversion and derivation rules a mapped-in value must still respect
 - [sources.md](sources.md) - where the values being mapped came from
 - [three-way-diff.md](three-way-diff.md) - what happens after mapping: the

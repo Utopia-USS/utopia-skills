@@ -21,13 +21,13 @@ Stated once, prominently, because it is the single most important scoping decisi
 skill makes: this skill reads a design input for **structure** - what elements exist,
 how they're arranged, which manifest component each one becomes. It never reads a
 design input for **values** - a color, a spacing number, a font choice. Those are
-**utopia-design-import**'s job: it maps external values onto `design/tokens.json`
+**utopia-design:import**'s job: it maps external values onto `design/tokens.json`
 paths. A design input that carries both (most handoff bundles do) needs both skills,
 run separately, in either order - but never one skill trying to also do the other's
 job. If a design shows a button in a shade of blue, this skill decides "that's a
-`button`"; utopia-design-import (if the blue is actually new to the app) decides
+`button`"; utopia-design:import (if the blue is actually new to the app) decides
 whether `color.primary` needs to change. This skill never edits `design/tokens.json`,
-and utopia-design-import never decides which manifest component to construct.
+and utopia-design:import never decides which manifest component to construct.
 
 ## Layout is part of the structure
 
@@ -83,8 +83,8 @@ a single new one.
 A handoff bundle is a directory, not a single file, and does not follow one fixed
 internal schema - inventory what is actually present before assuming anything. What it
 typically holds (tokens file, `DESIGN.md`, asset files) and how to read the *tokens*
-side of it is **utopia-design-import**'s
-[sources.md](../../utopia-design-import/references/sources.md) - not repeated here. This
+side of it is **utopia-design:import**'s
+[sources.md](../../import/references/sources.md) - not repeated here. This
 skill's job starts once the tokens side has been handed off: any HTML mockup, screenshot,
 or `DESIGN.md` prose the bundle *also* contains is read for structure exactly as
 described in the other sections of this doc. A bundle asset file (an image, an icon) is
@@ -98,7 +98,7 @@ followed by eight canonical prose sections in order - Overview, Colors, Typograp
 Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts.
 
 - The **front matter** is a value source, not a structure source - it goes to
-  **utopia-design-import**, never read here for component decisions.
+  **utopia-design:import**, never read here for component decisions.
 - The **Components** prose section is the one part of a `DESIGN.md` this skill reads:
   treat it as a **hint list**, not ground truth. It is human-authored prose describing
   what the design system's components are and how they're meant to be used - useful for
@@ -109,8 +109,8 @@ Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts.
   starting point for a search, never a substitute for the manifest.
 - The other seven prose sections (Overview, Colors, Typography, Layout, Elevation &
   Depth, Shapes, Do's and Don'ts) are not structural inputs for this skill at all - they
-  describe the visual system, which is **utopia-design-import**'s and
-  **utopia-design-tokens**'s territory.
+  describe the visual system, which is **utopia-design:import**'s and
+  **utopia-design:tokens**'s territory.
 
 ## The twin gallery as an input
 
@@ -130,6 +130,6 @@ this doc only establishes that it counts as an input type alongside the four abo
 - [gap-reporting.md](gap-reporting.md) - what happens when an extracted element has no
   manifest answer
 - [twin-gallery.md](twin-gallery.md) - the twin gallery's own structure, in full
-- **utopia-design-import**'s
-  [sources.md](../../utopia-design-import/references/sources.md) - the values side of a
+- **utopia-design:import**'s
+  [sources.md](../../import/references/sources.md) - the values side of a
   handoff bundle or a `DESIGN.md`'s front matter

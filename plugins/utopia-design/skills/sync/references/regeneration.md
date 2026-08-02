@@ -11,9 +11,9 @@ sync, explicit step" principle (SPEC.md 6.1) runs through all of it.
 ## When this applies
 
 After `design/tokens.json` changes - through
-[getting-started.md](../../utopia-design-tokens/references/getting-started.md)'s
-edit loop, [rebranding.md](../../utopia-design-tokens/references/rebranding.md)'s
-rules, or an **utopia-design-import** run - and before treating the app's
+[getting-started.md](../../tokens/references/getting-started.md)'s
+edit loop, [rebranding.md](../../tokens/references/rebranding.md)'s
+rules, or a **utopia-design:import** run - and before treating the app's
 theme or the HTML twin as reflecting that change.
 
 ## Prerequisite
@@ -44,13 +44,13 @@ already passed.
 
 ### 1. `validate_tokens` - the pre-regen gate
 
-Fully contracted in **utopia-design-tokens**'s
-[validation.md](../../utopia-design-tokens/references/validation.md). Do not
+Fully contracted in **utopia-design:tokens**'s
+[validation.md](../../tokens/references/validation.md). Do not
 re-derive that contract here - link it. What matters for sync: exit `0`
 means continue to step 2; exit `1` (validation failure) or `2` (usage/IO
 error) means **STOP** - do not run `generate_theme` or `generate_twin`
 against this document. Fix the reported findings (per
-[rebranding.md](../../utopia-design-tokens/references/rebranding.md)) and
+[rebranding.md](../../tokens/references/rebranding.md)) and
 re-run `validate_tokens` until it passes before touching anything below.
 
 ### 2. `validate_manifest` - the drift check
@@ -173,7 +173,7 @@ only - the browsable HTML (`gallery.html`, `components.html`, plus
 package's `twin/`. To LOOK at a rebrand: copy those three files from
 `<utopia_ui root>/twin/` (root resolved via `.dart_tool/package_config.json`,
 the same resolution
-[getting-started.md](../../utopia-design-tokens/references/getting-started.md)
+[getting-started.md](../../tokens/references/getting-started.md)
 documents) next to the project's regenerated `twin/tokens.css`, then open
 `gallery.html` in a browser. Three caveats: the copied shell is
 version-matched to the package - re-copy after a `utopia_ui` upgrade; the
@@ -238,12 +238,12 @@ The Dart theme file, `twin/tokens.css`, `twin/tokens.tailwind.css`, and the
 is silently overwritten the next time this workflow runs, and in the
 meantime misrepresents what `design/tokens.json` says. If the output looks
 wrong, the fix is always upstream: correct `design/tokens.json` (via
-**utopia-design-tokens**) and re-run this workflow, never patch the
+**utopia-design:tokens**) and re-run this workflow, never patch the
 generated file directly.
 
 ## See also
 
-- [validation.md](../../utopia-design-tokens/references/validation.md) -
+- [validation.md](../../tokens/references/validation.md) -
   the full `validate_tokens` contract (step 1); not duplicated here.
 - [drift-and-verify.md](drift-and-verify.md) - the why-first reasoning
   behind the drift check (step 2) and `validate_twin` (step 5).

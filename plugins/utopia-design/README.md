@@ -10,11 +10,11 @@ A Claude Code plugin that implements the Utopia Design Protocol for projects usi
 
 Five skills:
 
-- `utopia-design-tokens` - edit or rebrand a consumer app's `design/tokens.json`, the DTCG document everything else is generated from.
-- `utopia-design-sync` - regenerate every generated surface after the tokens change. Validates first and refuses to regenerate when the token document fails validation.
-- `utopia-design-import` - bring in an external design source: a Figma DTCG export, a foreign `tokens.css` or Tailwind `@theme` file, a Claude Design handoff bundle, or a `DESIGN.md`.
-- `utopia-design-screen` - build or update a screen from a design input using only components from the component manifest (the merged manifest when the project registers custom ones).
-- `utopia-design-component` - turn a reported component gap into a live manifest id: opt-in overlay YAML under `design/overlay/`, project and merged manifest regeneration, validation, then the namespaced id handed back to screen building.
+- `utopia-design:tokens` - edit or rebrand a consumer app's `design/tokens.json`, the DTCG document everything else is generated from.
+- `utopia-design:sync` - regenerate every generated surface after the tokens change. Validates first and refuses to regenerate when the token document fails validation.
+- `utopia-design:import` - bring in an external design source: a Figma DTCG export, a foreign `tokens.css` or Tailwind `@theme` file, a Claude Design handoff bundle, or a `DESIGN.md`.
+- `utopia-design:screen` - build or update a screen from a design input using only components from the component manifest (the merged manifest when the project registers custom ones).
+- `utopia-design:component` - turn a reported component gap into a live manifest id: opt-in overlay YAML under `design/overlay/`, project and merged manifest regeneration, validation, then the namespaced id handed back to screen building.
 
 Plus 15 reference files across the five skills, and two hooks: SessionStart project detection and a PostToolUse design gate. No commands and no agents.
 
@@ -35,7 +35,7 @@ Plus 15 reference files across the five skills, and two hooks: SessionStart proj
   flutter pub add --dev utopia_design_tools
   ```
 
-  Until it reaches pub.dev, `pub add` cannot find it: install it as a git dependency on `https://github.com/Utopia-USS/utopia-ui.git` (path `tool/utopia_design_tools`), with the required `dependency_overrides` entry for `utopia_ui`. The exact snippet lives in the `utopia-design-tokens` skill, `references/validation.md`.
+  Until it reaches pub.dev, `pub add` cannot find it: install it as a git dependency on `https://github.com/Utopia-USS/utopia-ui.git` (path `tool/utopia_design_tools`), with the required `dependency_overrides` entry for `utopia_ui`. The exact snippet lives in the `utopia-design:tokens` skill, `references/validation.md`.
 - `jq`, for the PostToolUse hook. The hook no-ops without it.
 
 ## How it works

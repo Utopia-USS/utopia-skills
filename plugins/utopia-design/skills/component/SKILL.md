@@ -1,17 +1,17 @@
 ---
-name: utopia-design-component
+name: component
 description: >
   Turn a reported component GAP (or any need for a custom component) into a LIVE
   manifest id: scaffold it from utopia_ui primitives, write its overlay YAML
   (design/overlay/<local-part>.yaml), regenerate the project + merged manifests
   (generate_manifest), validate, and hand back the namespaced id. Applies when:
   scaffolding a custom component, registering one in the project manifest, making
-  something reusable, turning a utopia-design-screen gap report's component-spec
+  something reusable, turning a utopia-design:screen gap report's component-spec
   seed into a live id. Without utopia_ui resolved it stops at its usage gate and
   surfaces install guidance. Does NOT cover deciding whether something is a gap,
-  or building screens (-> utopia-design-screen); editing design/tokens.json
-  (-> utopia-design-tokens); regenerating the theme or the HTML twin
-  (-> utopia-design-sync); widget-authoring and state conventions
+  or building screens (-> utopia-design:screen); editing design/tokens.json
+  (-> utopia-design:tokens); regenerating the theme or the HTML twin
+  (-> utopia-design:sync); widget-authoring and state conventions
   (-> utopia-hooks); or contributing it UPSTREAM into utopia_ui. Layered on the
   upstream utopia-hooks plugin - silent on Screen/State/View, hooks, and Dart
   conventions.
@@ -32,7 +32,7 @@ project-specific values (gain/loss colors) the closed token tree has no slot for
 need into a live, namespaced component manifest id: scaffold in project code, write the
 overlay YAML that opts the component into the project manifest, regenerate the project +
 merged manifests, validate, and stop. It does not decide whether an element is a gap
-(that's **utopia-design-screen**), does not touch tokens or the theme/twin, and does not
+(that's **utopia-design:screen**), does not touch tokens or the theme/twin, and does not
 own widget-authoring or state conventions (**utopia-hooks**, deferred to entirely). See
 the frontmatter `description` above for the exact positive/negative boundary.
 
@@ -47,7 +47,7 @@ development cycle." This skill is that loop, start to finish.
 alongside the `protocol/schemas/` the validators check against. Resolve the installed
 copy the same way this plugin resolves every packaged artifact: read
 `.dart_tool/package_config.json` for `utopia_ui`'s `rootUri` (the snippet lives in
-**utopia-design-tokens**'s `getting-started.md`), then open `<root>/protocol/`. If it
+**utopia-design:tokens**'s `getting-started.md`), then open `<root>/protocol/`. If it
 does not resolve, treat every `SPEC.md` / `VERSIONING.md` citation in this skill as
 background rationale and continue - never block on the missing file.
 
@@ -78,8 +78,8 @@ Confirm it resolves the same inspect-first way - `pubspec.yaml` (under
 flutter pub add --dev utopia_design_tools
 ```
 
-This is the identical prerequisite **utopia-design-tokens**'s
-[validation.md](../utopia-design-tokens/references/validation.md) documents for
+This is the identical prerequisite **utopia-design:tokens**'s
+[validation.md](../tokens/references/validation.md) documents for
 `validate_tokens`, including the pre-publish git-dependency + `dependency_overrides`
 fallback for when `pub add` cannot yet find the package on pub.dev - do not assume the
 tools are available, install then run. That doc is the single cross-link for the
@@ -87,7 +87,7 @@ fallback block; it is not re-derived here.
 
 ## When to Apply
 
-- A `utopia-design-screen` gap report's component-spec seed needs turning into a real,
+- A `utopia-design:screen` gap report's component-spec seed needs turning into a real,
   namespaced component (the most common entry point)
 - An explicit user ask to scaffold, register, or make reusable a project-specific
   component
@@ -98,12 +98,12 @@ fallback block; it is not re-derived here.
 
 ## Out of Scope
 
-- Deciding **whether** a design element is a gap, and reporting it -> **utopia-design-screen**
+- Deciding **whether** a design element is a gap, and reporting it -> **utopia-design:screen**
   (this skill's INPUT is that skill's gap-report component-spec seed, not a decision of
   its own)
-- Building or updating screens from a design -> **utopia-design-screen**
-- Editing or rebranding `design/tokens.json` -> **utopia-design-tokens**
-- Regenerating the Flutter theme or the HTML twin -> **utopia-design-sync**
+- Building or updating screens from a design -> **utopia-design:screen**
+- Editing or rebranding `design/tokens.json` -> **utopia-design:tokens**
+- Regenerating the Flutter theme or the HTML twin -> **utopia-design:sync**
 - Widget-authoring conventions, Screen/State/View, hooks, DI, navigation -> **utopia-hooks**,
   deferred to entirely; this skill never restates any of it
 - Contributing the component **upstream** into `utopia_ui` itself - that path is a
@@ -123,7 +123,7 @@ fallback block; it is not re-derived here.
   anything** (the two gates above).
 - **The loop is six steps, in order** (SPEC.md 3.8's production loop, see
   [scaffold-and-register.md][scaffold-and-register] for the worked walkthrough):
-  1. Input is a component-spec seed (from **utopia-design-screen**'s gap report part 5)
+  1. Input is a component-spec seed (from **utopia-design:screen**'s gap report part 5)
      or an explicit user ask.
   2. Scaffold the component in **project** code: composition of library primitives, with
      every theme-derived visual value read from `UtopiaTheme`/context (the plugin's
@@ -132,8 +132,8 @@ fallback block; it is not re-derived here.
      gain/loss colors) live as project constants "on the side" - a legal, documented
      pattern, **not** a smell, and **not** a reason to invent a token (the tree stays
      closed; see [overlay-and-manifests.md][overlay-and-manifests] and
-     **utopia-design-tokens**'s
-     [token-profile.md](../utopia-design-tokens/references/token-profile.md) "When to
+     **utopia-design:tokens**'s
+     [token-profile.md](../tokens/references/token-profile.md) "When to
      add a new entry"). Widget style itself - Screen/State/View, hooks, DI - defers
      entirely to **utopia-hooks**; this skill never restates any of it. **utopia-hooks
      is a separate plugin and may be absent from a session.** When it is not available
@@ -159,15 +159,15 @@ fallback block; it is not re-derived here.
      referential integrity across the merge, flat model-name uniqueness. See
      [overlay-and-manifests.md][overlay-and-manifests].
   6. The namespaced id is now live - screen building maps to it via the merged manifest
-     (**utopia-design-screen**'s
-     [component-mapping.md](../utopia-design-screen/references/component-mapping.md)).
+     (**utopia-design:screen**'s
+     [component-mapping.md](../screen/references/component-mapping.md)).
 - **Namespace rule (SPEC.md 3.3), no exceptions.** A project component id MUST be
   `<projectPackageName>:<kebab-name>`. Bare ids (`button`) are reserved for `utopia_ui`
   library components forever - **never** fake a bare id for a project component, and
   never omit the namespace "just this once."
 - **Generated artifacts are derived, never hand-edited.** `design/project.manifest.json`
   and `design/merged.manifest.json` are regenerated by `generate_manifest --project`, the
-  same discipline **utopia-design-sync** enforces for the theme Dart file and the twin's
+  same discipline **utopia-design:sync** enforces for the theme Dart file and the twin's
   CSS. A hand-edit is silently overwritten the next regeneration and, in the meantime,
   misrepresents what the overlay + source actually say.
 - **The merged manifest is DERIVED, never a source of truth.** If it disagrees with what
@@ -175,8 +175,8 @@ fallback block; it is not re-derived here.
   never a patch to the merged file itself.
 - **The theme stays closed.** This skill scaffolds components, not tokens - a
   project-specific visual value is a project constant, not a new token tree entry. See
-  **utopia-design-tokens**'s
-  [token-profile.md](../utopia-design-tokens/references/token-profile.md).
+  **utopia-design:tokens**'s
+  [token-profile.md](../tokens/references/token-profile.md).
 
 ## Self-Audit Checklist
 
@@ -202,15 +202,15 @@ After running this skill's loop, verify:
 
 ## See Also
 
-- **utopia-design-screen** - reports the GAP whose component-spec seed feeds this
+- **utopia-design:screen** - reports the GAP whose component-spec seed feeds this
   skill's loop (its
-  [gap-reporting.md](../utopia-design-screen/references/gap-reporting.md)), and maps
+  [gap-reporting.md](../screen/references/gap-reporting.md)), and maps
   screens to the resulting namespaced id via the merged manifest (its
-  [component-mapping.md](../utopia-design-screen/references/component-mapping.md)).
-- **utopia-design-tokens** - owns the closed token tree; a project-specific visual value
+  [component-mapping.md](../screen/references/component-mapping.md)).
+- **utopia-design:tokens** - owns the closed token tree; a project-specific visual value
   this skill's scaffold needs stays a project constant, never a new token (its
-  [token-profile.md](../utopia-design-tokens/references/token-profile.md)).
-- **utopia-design-sync** - regenerates the Flutter theme and the HTML twin from
+  [token-profile.md](../tokens/references/token-profile.md)).
+- **utopia-design:sync** - regenerates the Flutter theme and the HTML twin from
   `design/tokens.json`; unrelated artifacts to this skill's project/merged manifests, but
   the same "generated, never hand-edited" discipline applies to both.
 - **utopia-hooks** - owns app/state concerns (Screen/State/View, hooks, DI, navigation);

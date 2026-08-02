@@ -1,5 +1,5 @@
 ---
-name: utopia-design-sync
+name: sync
 description: >
   Regenerate every generated surface of the Utopia Design Protocol from
   design/tokens.json after it changes: the Flutter theme code (generate_theme)
@@ -10,8 +10,8 @@ description: >
   edited or imported and the surfaces need to catch up. Without utopia_ui
   resolved it stops at its usage gate and surfaces install guidance. Does NOT
   cover editing or rebranding design/tokens.json itself
-  (-> utopia-design-tokens), importing an external design source
-  (-> utopia-design-import), building screens (-> utopia-design-screen), or
+  (-> utopia-design:tokens), importing an external design source
+  (-> utopia-design:import), building screens (-> utopia-design:screen), or
   hand-editing the generated theme Dart or twin CSS (regenerated, never
   hand-patched). Layered on the upstream utopia-hooks plugin - silent on
   Screen/State/View, hooks, and Dart conventions.
@@ -31,7 +31,7 @@ generated from a token document that fails validation - a broken source
 must never reach a rendered surface. See the frontmatter `description`
 above for the exact positive/negative boundary. This skill owns the
 regenerate workflow and the drift/verify checks around it; it does not own
-editing the token document (that's **utopia-design-tokens**) and it does
+editing the token document (that's **utopia-design:tokens**) and it does
 not own the generated output's content (that's whatever `generate_theme` /
 `generate_twin` write - never hand-edited).
 
@@ -40,8 +40,8 @@ not own the generated output's content (that's whatever `generate_theme` /
 Before touching anything, confirm the project actually resolves `utopia_ui`:
 `pubspec.yaml` declares `utopia_ui:` directly, or `pubspec.lock` resolves it
 transitively. This mirrors the plugin's own `SessionStart` / `PostToolUse`
-hook gate and the same check **utopia-design-tokens** and
-**utopia-design-import** run - the protocol is meaningless without the
+hook gate and the same check **utopia-design:tokens** and
+**utopia-design:import** run - the protocol is meaningless without the
 library present.
 
 - **If it resolves:** continue below.
@@ -66,8 +66,8 @@ error anyway - install it first:
 flutter pub add --dev utopia_design_tools
 ```
 
-This is the identical prerequisite **utopia-design-tokens**'s
-[validation.md](../utopia-design-tokens/references/validation.md) documents
+This is the identical prerequisite **utopia-design:tokens**'s
+[validation.md](../tokens/references/validation.md) documents
 for `validate_tokens`, including the pre-publish git-dependency fallback
 when `pub add` cannot find the package - do not assume the tools are
 available, install then run.
@@ -85,7 +85,7 @@ protocol documents ship inside the `utopia_ui` package under `protocol/`
 the validators check against. Resolve the installed copy the same way this
 plugin resolves every packaged artifact: read
 `.dart_tool/package_config.json` for `utopia_ui`'s `rootUri` (the snippet
-lives in **utopia-design-tokens**'s `getting-started.md`), then open
+lives in **utopia-design:tokens**'s `getting-started.md`), then open
 `<root>/protocol/`. If it does not resolve, treat every `SPEC.md` /
 `VERSIONING.md` citation in this skill as background rationale and continue -
 never block on the missing file.
@@ -93,7 +93,7 @@ never block on the missing file.
 1. **`validate_tokens` FIRST.** If it fails (exit 1 or 2), **STOP** - refuse
    to regenerate from a broken source. Never propagate an invalid token
    document into the theme or the twin. This is the same gate
-   **utopia-design-tokens** uses; do not re-run its full contract here, see
+   **utopia-design:tokens** uses; do not re-run its full contract here, see
    [regeneration.md][regeneration] for the cross-link.
 2. **Drift check: `validate_manifest`.** Confirms the manifest's
    `packageVersion` matches the resolved `utopia_ui` (SPEC.md 3.7). A
@@ -129,8 +129,8 @@ never block on the missing file.
 
 ## When to Apply
 
-- `design/tokens.json` was just edited (via **utopia-design-tokens**) or
-  imported (via **utopia-design-import**) and the Flutter theme and/or the
+- `design/tokens.json` was just edited (via **utopia-design:tokens**) or
+  imported (via **utopia-design:import**) and the Flutter theme and/or the
   HTML twin need to catch up
 - Confirming there is no drift between the resolved `utopia_ui` and the
   manifest before trusting a regenerated surface
@@ -142,11 +142,11 @@ never block on the missing file.
 ## Out of Scope
 
 - Editing or rebranding `design/tokens.json` itself -> use
-  **utopia-design-tokens**
+  **utopia-design:tokens**
 - Importing an external design source (Figma, foreign `tokens.css` /
   Tailwind `@theme`, a handoff bundle, a `DESIGN.md`) -> use
-  **utopia-design-import**
-- Building or updating a screen from a design -> use **utopia-design-screen**
+  **utopia-design:import**
+- Building or updating a screen from a design -> use **utopia-design:screen**
 - Hand-editing the generated theme Dart file, `twin/tokens.css`,
   `twin/tokens.tailwind.css`, or the `DESIGN.md` front matter block - all
   four are regenerated outputs; re-run this skill's workflow instead
@@ -205,12 +205,12 @@ After running this skill's workflow, verify:
 
 ## See Also
 
-- **utopia-design-tokens** - the edit-and-validate loop that precedes sync;
-  its [validation.md](../utopia-design-tokens/references/validation.md) is
+- **utopia-design:tokens** - the edit-and-validate loop that precedes sync;
+  its [validation.md](../tokens/references/validation.md) is
   the `validate_tokens` contract this skill refuses to skip.
-- **utopia-design-import** - produces the token edits this skill's workflow
+- **utopia-design:import** - produces the token edits this skill's workflow
   propagates, when the change originates outside `design/tokens.json`.
-- **utopia-design-screen** - builds screens from manifest components; not
+- **utopia-design:screen** - builds screens from manifest components; not
   this skill's concern.
 - **utopia-hooks** - owns app/state concerns (Screen/State/View, hooks, DI);
   this skill stays silent on all of it.

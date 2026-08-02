@@ -114,12 +114,12 @@ conflicted token is reported under `ask` and nothing is written for it.
 ## Close
 
 Once the proposal is approved (and any conflicts resolved), apply by
-editing `design/tokens.json` per **utopia-design-tokens**'s
-[token-profile.md](../../utopia-design-tokens/references/token-profile.md)
+editing `design/tokens.json` per **utopia-design:tokens**'s
+[token-profile.md](../../tokens/references/token-profile.md)
 shapes, writing the sync metadata above, then run `validate_tokens` per
 that skill's
-[validation.md](../../utopia-design-tokens/references/validation.md). Once the
-import lands and validates, hand off to **utopia-design-sync** to
+[validation.md](../../tokens/references/validation.md). Once the
+import lands and validates, hand off to **utopia-design:sync** to
 regenerate the Flutter theme and the HTML twin - this skill's job ends at
 the validated write.
 
@@ -128,7 +128,7 @@ the validated write.
 - [mapping.md](mapping.md) - how the matches shown in the proposal were
   produced
 - [sources.md](sources.md) - where the values being diffed came from
-- [token-profile.md](../../utopia-design-tokens/references/token-profile.md) -
+- [token-profile.md](../../tokens/references/token-profile.md) -
   the shapes the applied write must conform to
-- [validation.md](../../utopia-design-tokens/references/validation.md) - the
+- [validation.md](../../tokens/references/validation.md) - the
   `validate_tokens` gate every applied import must pass

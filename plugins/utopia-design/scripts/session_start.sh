@@ -46,17 +46,17 @@ generated from it, and screens are built from manifest components.
 
 These skills cover the protocol - invoke the matching one (Skill tool) before
 doing design work:
-  - utopia-design-tokens - create design/tokens.json (from the packaged
+  - utopia-design:tokens - create design/tokens.json (from the packaged
     default theme) if absent, then edit or rebrand it.
-  - utopia-design-sync - regenerate the Flutter theme and twin surfaces from
+  - utopia-design:sync - regenerate the Flutter theme and twin surfaces from
     tokens.
-  - utopia-design-import - bring in an external design source (a Figma DTCG
+  - utopia-design:import - bring in an external design source (a Figma DTCG
     export, foreign tokens.css / Tailwind @theme, a Claude Design handoff
     bundle, or a DESIGN.md).
-  - utopia-design-screen - build a Flutter screen from an outside design
+  - utopia-design:screen - build a Flutter screen from an outside design
     using ONLY manifest components; unmapped elements are reported as gaps,
     never hand-rolled.
-  - utopia-design-component - turn a component gap into a live project
+  - utopia-design:component - turn a component gap into a live project
     component: scaffold, overlay YAML, regenerate the project + merged
     manifests.
 

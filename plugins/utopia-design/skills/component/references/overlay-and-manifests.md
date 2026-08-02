@@ -133,8 +133,8 @@ such reference actually resolves on the merged view.
   shipped HTML twin/gallery covers library components only - a project component's
   manifest entry carries no twin section.
 - No custom-token codegen, and no opening of the closed token tree (see
-  **utopia-design-tokens**'s
-  [token-profile.md](../../utopia-design-tokens/references/token-profile.md) "When to
+  **utopia-design:tokens**'s
+  [token-profile.md](../../tokens/references/token-profile.md) "When to
   add a new entry").
 - No multi-layer namespace implementation - the grammar reserves it (SPEC.md 3.3), but
   MVP tooling implements a single project layer only.
@@ -143,6 +143,6 @@ such reference actually resolves on the merged view.
 
 - [scaffold-and-register.md](scaffold-and-register.md) - the loop this schema is written
   into, worked end-to-end, including the exact `generate_manifest --project` CLI
-- **utopia-design-tokens**'s
-  [token-profile.md](../../utopia-design-tokens/references/token-profile.md) - why a
+- **utopia-design:tokens**'s
+  [token-profile.md](../../tokens/references/token-profile.md) - why a
   project-specific visual value is a constant, never a new token
