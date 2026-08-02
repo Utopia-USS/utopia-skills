@@ -139,6 +139,18 @@ class App extends StatelessWidget {
 }
 ```
 
+**Standalone-file layout (what the orchestrated flow uses):** the example above keeps the map
+inline in the widget's own file, so the private name `_providers` works. The orchestrated
+migration instead puts the map in its own `lib/_providers.dart` so later migration commits can
+append entries without touching the app-root file. In that layout a leading underscore would
+make the map library-private and unimportable from the root widget's file - keep the FILE named
+`_providers.dart` but declare the map itself public:
+
+```dart
+// lib/_providers.dart
+const Map<Type, Object? Function()> providers = {};
+```
+
 ---
 
 ## Key Differences
