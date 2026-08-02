@@ -411,6 +411,11 @@ final visibleProduct = usePreviousIfNull(productState.valueOrNull);  // stays on
 
 (`productState.useValueOrPrevious()` is the equivalent extension method on `ComputedState`.)
 
+Both are backed by `usePreviousValue`, which is change-gated: it updates its stored previous
+only when the incoming value CHANGES, so the last real value stays on screen across any number
+of in-progress rebuilds, not just the first one. The deprecated `usePrevious` (unconditional)
+would blink after one rebuild - do not substitute it.
+
 **2. Refresh inside the submit run** - when the refresh is caused by a mutation, await it inside `run`/`runSimple` so the button spinner only ends when the data is fresh and the screen never renders a half-updated state:
 
 ```dart

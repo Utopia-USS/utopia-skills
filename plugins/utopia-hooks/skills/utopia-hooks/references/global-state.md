@@ -340,6 +340,24 @@ useEffect(() {
 }, []);
 ```
 
+**Manual-trigger variant (`useComputedState`)** - prefer it over the `shouldCompute` flag when
+either applies: (a) the read touches a service that is only usable after some bootstrap step
+(e.g. a `late` field assigned in an async `init()` - an eager or flag-latched compute at
+provider build would throw), or (b) callers need a `force` refresh / retry-after-failure.
+The flag variant latches `shouldCompute: true` and never re-runs a failed first load;
+`refresh()` re-runs it and joins an in-flight compute instead of stacking.
+
+```dart
+final itemsState = useComputedState(() async => catalogService.loadItems());
+final items = itemsState.useValueOrPrevious();
+
+void initialize({bool force = false}) {
+  if (force || !itemsState.isInitialized) {
+    unawaited(itemsState.refresh());
+  }
+}
+```
+
 ### Event streams out of global state
 
 When a global state needs to broadcast one-shot events (sync finished, item deleted elsewhere),
