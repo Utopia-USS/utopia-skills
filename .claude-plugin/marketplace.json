@@ -5,7 +5,7 @@
     "email": "hello@utopiasoft.io",
     "url": "https://utopiasoft.io"
   },
-  "description": "👾 Flutter skills for Claude Code by UtopiaSoftware - hooks-based state management, project architecture scaffolding, BLoC migration, admin/CMS panels, the Dart/Flutter language server, pub.dev README/branding, and the Utopia Design Protocol (design tokens, HTML twin, screens from designs).",
+  "description": "👾 Flutter skills for Claude Code by UtopiaSoftware - hooks-based state management, project architecture scaffolding, BLoC migration, admin/CMS panels, code reviews and review resolution, the Dart/Flutter language server, pub.dev README/branding, and the Utopia Design Protocol (design tokens, HTML twin, screens from designs).",
   "version": "0.8.0",
   "plugins": [
     {
@@ -63,6 +63,18 @@
       "source": "./plugins/utopia-dart-lsp",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-dart-lsp",
+      "author": {
+        "name": "UtopiaSoftware",
+        "email": "hello@utopiasoft.io"
+      }
+    },
+    {
+      "name": "utopia-reviews",
+      "description": "👾 Code reviews as a two-way agent conversation on GitHub / GitLab / Bitbucket. Two skills: utopia-code-review performs a Utopia-aware, severity-ranked review of a PR/MR or a local branch pair (and, after one approval gate, posts it as inline comments); utopia-resolve-code-review addresses review comments on the user's own PR end to end — triage against code + spec + Utopia conventions, one gate, then fix, verify, push, reply, resolve. Includes /utopia-reviews:review and /utopia-reviews:resolve.",
+      "version": "0.1.0",
+      "source": "./plugins/utopia-reviews",
+      "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
+      "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-reviews",
       "author": {
         "name": "UtopiaSoftware",
         "email": "hello@utopiasoft.io"

@@ -1,0 +1,39 @@
+{
+  "name": "utopia-reviews",
+  "version": "0.1.0",
+  "description": "Code reviews as a two-way agent conversation on GitHub, GitLab, and Bitbucket. Perform a Utopia-aware, severity-ranked review of a PR/MR or a local branch pair, or resolve the review comments on your own PR end to end - triage, fix, verify, reply, and resolve.",
+  "author": {
+    "name": "UtopiaSoftware",
+    "email": "hello@utopiasoft.io",
+    "url": "https://utopiasoft.io"
+  },
+  "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-reviews",
+  "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "flutter",
+    "dart",
+    "code-review",
+    "pull-request",
+    "github",
+    "gitlab"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Utopia Reviews",
+    "shortDescription": "Two-way code-review skills across GitHub, GitLab, and Bitbucket.",
+    "longDescription": "Guides Codex through both sides of a code review. utopia-code-review produces a Utopia-aware, severity-ranked review (blockers / should-fix / nits / questions) of a PR/MR or a purely local branch pair, and can post it as inline comments. utopia-resolve-code-review reads every review thread on your own PR, triages each against the code, the optional task spec, and Utopia conventions, then fixes, verifies, replies, and resolves - so one agent can review and another can resolve, using the review thread as the channel between them.",
+    "developerName": "UtopiaSoftware",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://utopiasoft.io",
+    "defaultPrompt": [
+      "Review this pull request.",
+      "Resolve the review comments on my PR.",
+      "Review this branch against main before I open a PR."
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "utopia-reviews",
+  "description": "👾 Code reviews as a two-way agent conversation on GitHub / GitLab / Bitbucket. Two skills: utopia-code-review performs a Utopia-aware, severity-ranked review of a PR/MR or a local branch pair (and, after one approval gate, posts it as inline comments); utopia-resolve-code-review addresses review comments on the user's own PR end to end — triage against code + spec + Utopia conventions, one gate, then fix, verify, push, reply, resolve. Includes /utopia-reviews:review and /utopia-reviews:resolve.",
+  "version": "0.1.0",
+  "author": {
+    "name": "UtopiaSoftware"
+  },
+  "license": "BSD-2-Clause"
+}

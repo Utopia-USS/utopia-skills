@@ -49,6 +49,7 @@ This is the AI tooling we use ourselves. We open-sourced it so the rest of the F
 | <a href="plugins/utopia-cms/"><img src="docs/tiles/utopia-cms.png" width="206" alt="Utopia CMS"/></a> | Flutter CMS / admin panels with `utopia_cms`. `CmsWidget` shell, `CmsTablePage`, delegates for Firebase/Supabase/Hasura/GraphQL, entry catalog, filters, custom actions, management sections, and review guidance for avoiding hand-rolled DataTable + service anti-patterns. |
 | <a href="plugins/utopia-ai-arch/"><img src="docs/tiles/utopia-ai-arch.png" width="242" alt="Utopia AI Arch"/></a> | Scaffold and maintain an agent-aware project layer (skills, commands, hooks, refs, architecture log) for Flutter projects. |
 | <a href="plugins/utopia-hooks-migrate-bloc/"><img src="docs/tiles/utopia-hooks-migrate-bloc.png" width="302" alt="Utopia Migrate BLoC"/></a> | Migrate BLoC/Cubit codebases to `utopia_hooks` - two-phase (global states first, then screens), per-commit granularity, and orchestrated inventory / foundation / global-state / screen / review sub-agents. |
+| <a href="plugins/utopia-reviews/"><img src="docs/tiles/utopia-reviews.png" width="254" alt="Utopia Reviews"/></a> | Code reviews as a two-way agent conversation on GitHub / GitLab / Bitbucket. `utopia-code-review` gives a severity-ranked, Utopia-aware review of a PR/MR or a local branch pair; `utopia-resolve-code-review` triages the comments on your own PR and - after one approval gate - fixes, pushes, replies, and resolves. |
 | <a href="plugins/utopia-pubdev/"><img src="docs/tiles/utopia-pubdev.png" width="249" alt="Utopia Pub.dev"/></a> | Standardize pub.dev package READMEs - brand-chip header, house voice, section structure, restrained four-colour badge row, sibling footer, and a tool-agnostic AI-assistants section. Bundles the brand-chip header generator. |
 | <a href="plugins/utopia-design/"><img src="docs/tiles/utopia-design.png" width="236" alt="Utopia Design"/></a> | The Utopia Design Protocol for `utopia_ui` apps - DTCG design tokens with validation gates, imports from Figma / Tailwind / handoff bundles, a generated Flutter theme plus HTML twin, screens built from the component manifest, and project component scaffolding. |
 | <a href="plugins/utopia-dart-lsp/"><img src="docs/tiles/utopia-dart-lsp.png" width="249" alt="Utopia Dart LSP"/></a> | Dart/Flutter language server for Claude Code - live analyzer diagnostics on every `.dart` edit, plus hover, go-to-definition, find-references, symbols, and call hierarchy. fvm-aware SDK selection, zero configuration. |
@@ -85,6 +86,7 @@ dart pub global activate utopia_cli
 /plugin install utopia-cms@utopia-flutter-skills
 /plugin install utopia-ai-arch@utopia-flutter-skills
 /plugin install utopia-hooks-migrate-bloc@utopia-flutter-skills
+/plugin install utopia-reviews@utopia-flutter-skills
 /plugin install utopia-pubdev@utopia-flutter-skills
 /plugin install utopia-design@utopia-flutter-skills
 /plugin install utopia-dart-lsp@utopia-flutter-skills
