@@ -97,7 +97,8 @@ Create:
 - `<target_state_path>` - State class + `useXState()` hook
 
 Modify:
-- `<cubit_path>` - add `@Deprecated('Use <target_hook_name> - see <target_state_path>')` annotation on the Cubit class. Do NOT delete the Cubit - screens that haven't been migrated still use it.
+- `<cubit_path>` - add `@Deprecated('Use <target_hook_name> - see <target_state_path>')` annotation on the Cubit class AND (same annotation string) on its constructor(s). Annotating only the class trips the `deprecated_consistency` lint on projects with strict rulesets (e.g. package:lint/strict.yaml), adding one new info per migrated Cubit and eroding the zero-new-issues review signal. Do NOT delete the Cubit - screens that haven't been migrated still use it.
+- Note on what the annotation does NOT do: depending on SDK/lint configuration, same-package `deprecated_member_use` diagnostics may never fire at the Cubit's call sites, so the marker is documentation/IDE-strikethrough only. Remaining consumers are tracked by grep (`grep -rn '<cubit_class>' lib`), never by deprecation diagnostics.
 
 **`_providers.dart` handling depends on `provider_registration`:**
 
