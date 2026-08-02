@@ -1,6 +1,6 @@
 {
   "name": "utopia-hooks",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Flutter state management with utopia_hooks. Screen/State/View pattern, hook catalog, global state, async/pagination patterns, app bootstrap, global error handling, navigation conventions, hook-state testing, and convention analysis via utopia_cli.",
   "author": {
     "name": "UtopiaSoftware",

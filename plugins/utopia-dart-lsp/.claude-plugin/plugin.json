@@ -1,7 +1,8 @@
 {
   "name": "utopia-dart-lsp",
+  "displayName": "Utopia Dart LSP",
   "description": "👾 Dart/Flutter language server (LSP) for Claude Code. Live analyzer diagnostics injected on every .dart edit plus hover, goto-definition, find-references, workspace symbols and call hierarchy. fvm-aware: prefers a project-pinned .fvm SDK, falls back to fvm, then the dart on PATH.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": {
     "name": "UtopiaSoftware"
   },
@@ -9,7 +10,10 @@
   "lspServers": {
     "dart": {
       "command": "sh",
-      "args": ["-c", "exec \"${CLAUDE_PLUGIN_ROOT}/scripts/dart_lsp.sh\""],
+      "args": [
+        "-c",
+        "exec \"${CLAUDE_PLUGIN_ROOT}/scripts/dart_lsp.sh\""
+      ],
       "extensionToLanguage": {
         ".dart": "dart"
       },

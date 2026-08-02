@@ -137,7 +137,7 @@ below maps to a *specific* concrete file/decision an unbriefed agent makes:
 
 ## Why does an unbriefed agent fall into this?
 
-1. **`utopia_cms` is less common than bloc / riverpod.** Without explicit context the agent defaults to "Flutter Material widgets + a service class."
+1. **`utopia_cms` is less common than the mainstream state-management stacks.** Without explicit context the agent defaults to "Flutter Material widgets + a service class."
 2. **The framework looks "internal."** When `utopia_cms` appears as a path override in `dependency_overrides`, an agent often reads it as project-internal code and avoids it.
 3. **The hand-rolled version compiles and runs.** It only fails the *quality* bar - feature parity is achievable both ways. Without a skill telling the agent there is a *correct* way, both paths look equally valid.
 4. **Each anti-pattern alone looks reasonable.** A `DataTable`, a service class, a loading state - none is obviously wrong. The wrongness is in the *whole shape*.
