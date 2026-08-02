@@ -141,7 +141,7 @@ Build the manifest by walking the tree:
 1. **Start node:** the screen file (`lib/screens/<stem>_screen.dart` or equivalent).
 2. **Walk imports:** for each `import` in the current file that resolves inside the screen's subtree directory (`lib/screens/<stem>/**`, `lib/<stem>/widgets/**`, or project-equivalent sibling folders), open the imported file and recurse.
 3. **Walk `showDialog` / `showModalBottomSheet` / `Navigator.push(..., MaterialPageRoute(builder: …))` targets** whose builder widget class lives in the screen's subtree - include those widgets too.
-4. **Stop at shared folders** (`lib/screens/widgets/**`, `lib/common/**`, `lib/shared/**`). These are NOT in the manifest for this screen. Flag each consumed shared widget in `self_report.shared_widgets_touched` - if its dependencies (Cubits) are already migrated globally, the screen agent may still need to rewire the shared widget, but only if all other consumers of the shared widget either (a) are already migrated or (b) don't use that Cubit. Otherwise defer to a dedicated commit.
+4. **Stop at shared folders** (`lib/screens/widgets/**`, `lib/common/**`, `lib/shared/**`). These are NOT in the manifest for this screen. Flag each consumed shared widget in `self_report.shared_widgets_touched` - if its dependencies (Cubits) are already migrated globally, the `migrate-screen` agent may still need to rewire the shared widget, but only if all other consumers of the shared widget either (a) are already migrated or (b) don't use that Cubit. Otherwise defer to a dedicated commit.
 
 **Manifest output shape:**
 
@@ -352,7 +352,7 @@ If found → see [bloc-to-hooks-widget.md](./bloc-to-hooks-widget.md) section 7.
 - Is any hook function > ~300 lines? → Decompose (see `utopia-hooks:references/composable-hooks.md` Pattern 3)
 - Does any hook have > ~10 `useState` calls? → Same
 - Does the State class have > ~15 fields from unrelated domains? → Decompose into sub-states (see composable-hooks.md Pattern 3)
-- **Dumb 1:1 port heuristics** - a state file that's significantly larger than the Cubit it replaced, OR has high `useEffect` count in one hook (each effect is a candidate for `useMemoized` / a plain `final` / a getter / a pure helper - not every effect is a "dummy", but in state hooks they're usually derivations in disguise), OR carries derived-state as fields rather than getters/`useMemoized`, OR has `copyWith`/`Equatable` remnants, is a candidate for bloat from mechanical porting. Run `post-migration-refactor-checklist.md` §A/C/D before handoff - the review agent's §M trigger will make it mandatory anyway if you don't.
+- **Dumb 1:1 port heuristics** - a state file that's significantly larger than the Cubit it replaced, OR has high `useEffect` count in one hook (each effect is a candidate for `useMemoized` / a plain `final` / a getter / a pure helper - not every effect is a "dummy", but in state hooks they're usually derivations in disguise), OR carries derived-state as fields rather than getters/`useMemoized`, OR has `copyWith`/`Equatable` remnants, is a candidate for bloat from mechanical porting. Run `post-migration-refactor-checklist.md` §A/C/D before handoff - the `migrate-review` agent's §M trigger will make it mandatory anyway if you don't.
 - Global state hooks (`lib/state/*.dart`) follow the same ≤300 lines rule - if over, split into multiple globals (one per domain in `_providers`), don't decompose into sub-hooks (sub-hooks are a screen-scope pattern). See `utopia-hooks:SKILL.md` Non-Negotiable Rules.
 
 ### 3d. Async patterns

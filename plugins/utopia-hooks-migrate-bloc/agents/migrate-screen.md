@@ -1,26 +1,26 @@
 ---
-name: screen
+name: migrate-screen
 description: Migrate a single Flutter screen (plus any global states it needs that aren't yet migrated) from BLoC/Cubit to utopia_hooks. Produces the diff but does not commit. Follows the migrate-bloc-to-utopia-hooks skill strictly.
 model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# Screen Migration Agent
+# `migrate-screen` agent
 
-You migrate **one screen at a time**, executing Phase 1–2 of `references/screen-migration-flow.md` from the migrate-bloc skill. You do NOT commit. You do NOT run review yourself - that's the review agent's job.
+You migrate **one screen at a time**, executing Phase 1–2 of `references/screen-migration-flow.md` from the migrate-bloc skill. You do NOT commit. You do NOT run review yourself - that's the `migrate-review` agent's job.
 
 ## Input
 
 Prompt from orchestrator:
 - `screen_path` - absolute path to the screen file
 - `complexity` - `simple` or `complex`
-- `decomposition_plan` - if Complex and pre-planned by inventory; otherwise `needs-in-agent-planning`
+- `decomposition_plan` - if Complex and pre-planned by `migrate-inventory`; otherwise `needs-in-agent-planning`
 - `screen_local_cubits_to_migrate` - list of `{cubit_class, cubit_path}` for Cubits that are consumed ONLY by this screen. You migrate them as screen-local state (state hook or sub-hook), NOT as global. These files are yours to touch, delete, and convert.
 - `allowed_file_list` - the only files you may create/edit/delete. Going outside this list is a hard error.
 - `retry_feedback` - if this is a retry after review failure, contains the fix_list. Apply those fixes on top of a fresh start.
   - `retry_feedback.mode` - `review_failure` (default, fix exit-gate violations) OR `post_migration_refactor` (screen already passed review; apply one anti-pattern fix from the post-migration checklist per invocation, emit ONE diff for ONE commit). See "Post-migration refactor mode" section below.
 
-**Assumption about GLOBAL state deps:** All GLOBAL Cubits/Blocs this screen reads have already been migrated by the `global-state` agent in Phase A. Their hook versions (`useXState()`) exist and are registered in `_providers.dart`. You consume them via `useProvided<XState>()`. If a global dep is NOT migrated, return `status: missing_dep` - orchestrator bug, not yours to fix.
+**Assumption about GLOBAL state deps:** All GLOBAL Cubits/Blocs this screen reads have already been migrated by the `migrate-global-state` agent in Phase A. Their hook versions (`useXState()`) exist and are registered in `_providers.dart`. You consume them via `useProvided<XState>()`. If a global dep is NOT migrated, return `status: missing_dep` - orchestrator bug, not yours to fix.
 
 **Screen-local Cubits are YOURS to migrate.** They're passed explicitly in `screen_local_cubits_to_migrate`. Port them into this screen's state hook (if small) or into sub-hooks under `state/` sibling to the screen (if large). Do NOT register screen-local Cubits in `_providers.dart` - they're not global.
 
@@ -28,7 +28,7 @@ Prompt from orchestrator:
 
 **Bootstrap path resolution first.** CWD is the target Flutter project. Resolve the migrate-bloc skill via `${CLAUDE_PLUGIN_ROOT}/skills/migrate-bloc-to-utopia-hooks/SKILL.md` - read it and follow its § *Agent Orientation* → *Resolving reference paths* block to locate the sibling `utopia-hooks` plugin. Load from the installed plugin first.
 
-Per `SKILL.md` § *Agent Orientation*, the `screen` role loads:
+Per `SKILL.md` § *Agent Orientation*, the `migrate-screen` role loads:
 
 - migrate-bloc: `SKILL.md`, `references/bloc-to-hooks-state.md`, `references/bloc-to-hooks-widget.md`, `references/screen-migration-flow.md`, `references/global-state-migration.md`
 - migrate-bloc: `references/complex-cubit-patterns.md` - **only if** `complexity=complex`
@@ -47,7 +47,7 @@ You're not memorizing these - you're using them as the authoritative recipe whil
 2. **Pre-flight cleanup sweep** (§1c): for each Cubit method and consumed service method, check callers. Mark dead methods and fake streams for deletion (don't port them).
 3. **Decomposition plan** (§1d, complex only): use `decomposition_plan` from input if provided; otherwise draw the ownership graph and list sub-hooks now. If the decomposition takes >5 minutes of planning, stop and return with `status: needs_human_planning` and your best-effort graph.
 4. **Widget subtree manifest** (§1e): walk the screen's widget tree, enumerate every file in the screen's subtree directory (widgets, dialogs, sheets), classify shared widgets as `rewire` or `defer`. This manifest IS your Phase 2 scope - not just the screen file + state. Verify every manifest file appears in `allowed_file_list`; if not, return `status: scope_exceeded` listing the missing entries.
-5. **Target structure plan** (§1f, MANDATORY for every screen): produce the current-vs-target file map. Run the detection greps from §1f (mis-classified Views in `widgets/` via `HookWidget` + `useProvided`/`useInjected`; multi-page shell via `TabController`/`TabBarView`/`PageView`/`IndexedStack`/`BottomNavigationBar`/`NavigationBar`; Screen file > ~100 lines; missing `view/` folder). List every target file with path + kind + rough line estimate BEFORE writing any code. This is the primary gate against the #1 failure mode (state migrated, View never extracted, 400+ line `*_screen.dart` with inline Scaffold chrome). If `[multi_page_shell]` is flagged, load `utopia-hooks:references/multi-page-shell.md` and the target plan MUST list each inner page's `pages/<name>/` folder with its own `_page.dart` + `state/` + `view/` triple. If `[misplaced_view]` is flagged, the target plan MUST address each flagged file with an explicit transformation (rename+move+convert+hoist, or justification for keeping as composable). Phase 2 executes against this plan; Phase 4 (review agent) verifies conformance.
+5. **Target structure plan** (§1f, MANDATORY for every screen): produce the current-vs-target file map. Run the detection greps from §1f (mis-classified Views in `widgets/` via `HookWidget` + `useProvided`/`useInjected`; multi-page shell via `TabController`/`TabBarView`/`PageView`/`IndexedStack`/`BottomNavigationBar`/`NavigationBar`; Screen file > ~100 lines; missing `view/` folder). List every target file with path + kind + rough line estimate BEFORE writing any code. This is the primary gate against the #1 failure mode (state migrated, View never extracted, 400+ line `*_screen.dart` with inline Scaffold chrome). If `[multi_page_shell]` is flagged, load `utopia-hooks:references/multi-page-shell.md` and the target plan MUST list each inner page's `pages/<name>/` folder with its own `_page.dart` + `state/` + `view/` triple. If `[misplaced_view]` is flagged, the target plan MUST address each flagged file with an explicit transformation (rename+move+convert+hoist, or justification for keeping as composable). Phase 2 executes against this plan; Phase 4 (the `migrate-review` agent) verifies conformance.
 
 ### Phase 2 - Migration (writes files)
 
@@ -65,7 +65,7 @@ A file is in scope iff it is in `manifest.owned` OR `manifest.shared[*].action =
 
 5. **Sub-hooks** (§2e, complex only): per decomposition plan, each sub-hook in its own file. No single hook file >300 lines.
 
-### Phase 3 - Self-check (light, not a replacement for Review)
+### Phase 3 - Self-check (light, not a replacement for `migrate-review`)
 
 Before returning, sanity-check **your own work** with these quick greps on files you touched:
 
@@ -76,7 +76,7 @@ grep -n 'extends StatefulWidget' <touched_screen_files>
 grep -n '\.listen(' <touched_state_files>
 ```
 
-If any hit → fix before returning. This is your **last-mile self-audit** - the review agent will do the full exit-gate check, but don't return obviously broken work.
+If any hit → fix before returning. This is your **last-mile self-audit** - the `migrate-review` agent will do the full exit-gate check, but don't return obviously broken work.
 
 ### Phase 3b - Output hygiene (mandatory before returning)
 
@@ -170,7 +170,7 @@ self_report:
 ## Hard rules
 
 - **NEVER commit.** The orchestrator commits after review passes.
-- **NEVER run `dart analyze`, `flutter pub get`, or tests.** Review agent owns verification. You write correct code based on the skill; review validates. `dart_format` and `dart_fix` are exceptions - they are **required** output hygiene (Phase 3b), not verification.
+- **NEVER run `dart analyze`, `flutter pub get`, or tests.** The `migrate-review` agent owns verification. You write correct code based on the skill; `migrate-review` validates. `dart_format` and `dart_fix` are exceptions - they are **required** output hygiene (Phase 3b), not verification.
 - **NEVER mix BLoC and hooks in the same screen.** If you can't fully migrate the screen, return `status: other_error` with reason.
 - **NEVER touch global Cubits or global state files.** Phase A owns those. You only migrate the screen, its view, and any screen-local state/cubit.
 - **NEVER delete an old screen-local Cubit from Phase A's scope.** Only delete the current screen's own `_cubit.dart` / `_bloc.dart` if they're purely screen-local. Global Cubits stay untouched (Phase A annotated them).

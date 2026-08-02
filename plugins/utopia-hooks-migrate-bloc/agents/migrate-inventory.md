@@ -1,11 +1,11 @@
 ---
-name: inventory
+name: migrate-inventory
 description: Read-only scanner for BLoC → utopia_hooks migration state. Builds screen inventory, global-state dependency graph, next-wave plan, and regenerates MIGRATION.md while preserving user-edited Skipped section.
 model: sonnet
 tools: Read, Write, Glob, Grep, Bash
 ---
 
-# Inventory Agent - BLoC → utopia_hooks migration
+# `migrate-inventory` agent - BLoC → utopia_hooks migration
 
 You are a **read-only diagnostic agent**. You scan the Flutter repo, classify screens and global states, build a dependency graph, and write `MIGRATION.md`. You do NOT modify code. You do NOT run `flutter pub get` or `dart analyze`.
 
@@ -99,15 +99,15 @@ grep -rnE 'context\.(read|watch|select)<XCubit>|BlocProvider<XCubit>|BlocBuilder
 ```
 
 Classify:
-- **`global`** - consumed by widgets in 2+ different screen directories, OR registered in root-level `MultiBlocProvider` in `main.dart` / app-root widget, OR consumed from `lib/common/`, `lib/widgets/`, `lib/shared/`. These migrate via Phase A (`global-state` agent).
-- **`screen_local`** - consumed ONLY by files within one screen's directory tree (e.g. `lib/screens/<stem>/**/*` or `lib/<stem>/**/*`), AND registered via `BlocProvider(create: ...)` inside that screen's widget tree (not root). These are NOT in `dependencies_to_migrate_first`. They become part of that screen's own migration scope (Phase B) - the screen agent migrates them as screen-local or sub-hook state, depending on decomposition needs.
+- **`global`** - consumed by widgets in 2+ different screen directories, OR registered in root-level `MultiBlocProvider` in `main.dart` / app-root widget, OR consumed from `lib/common/`, `lib/widgets/`, `lib/shared/`. These migrate via Phase A (`migrate-global-state` agent).
+- **`screen_local`** - consumed ONLY by files within one screen's directory tree (e.g. `lib/screens/<stem>/**/*` or `lib/<stem>/**/*`), AND registered via `BlocProvider(create: ...)` inside that screen's widget tree (not root). These are NOT in `dependencies_to_migrate_first`. They become part of that screen's own migration scope (Phase B) - the `migrate-screen` agent migrates them as screen-local or sub-hook state, depending on decomposition needs.
 
 This distinction matters: large per-screen Cubits (e.g. 1000+ LOC aggregator that owns only its screen) should NOT be registered as globals in `_providers` - they'd pollute global state and force lifecycle on app startup. They belong in the screen's own state hook (possibly decomposed into sub-hooks).
 
 Cross-reference with step 3 - for each dep:
 - If `migrated` → screen reuses existing `useXState()` via `useProvided<XState>()`. No new state to create.
 - If `not_migrated` + `global` → include in `dependencies_to_migrate_first` for Phase A.
-- If `not_migrated` + `screen_local` → include in the screen's own `screen_local_cubits_to_migrate` list (orchestrator hands this to the screen agent, not the global-state agent).
+- If `not_migrated` + `screen_local` → include in the screen's own `screen_local_cubits_to_migrate` list (orchestrator hands this to the `migrate-screen` agent, not the `migrate-global-state` agent).
 - If `dual` → reuse the existing hook.
 
 Record per screen:
@@ -134,7 +134,7 @@ Per SKILL.md `references/screen-migration-flow.md` Phase 1b. Count for the Cubit
 
 Any "Complex" hit → `complexity: complex`, else `simple`.
 
-For complex screens, attempt a **preliminary decomposition sketch** (to pass to screen-migration agent as hint): group Cubit methods by domain (fetch / search / scroll / selection / …). If you can't classify confidently, write `decomposition: needs-in-agent-planning` and let the screen agent figure it out in its Phase 1d.
+For complex screens, attempt a **preliminary decomposition sketch** (to pass to the `migrate-screen` agent as hint): group Cubit methods by domain (fetch / search / scroll / selection / …). If you can't classify confidently, write `decomposition: needs-in-agent-planning` and let `migrate-screen` figure it out in its Phase 1d.
 
 ## Step 6 - Blocked detection (screens AND global states)
 
@@ -163,7 +163,7 @@ Emit each blocked global with: `state_name`, `cubit_path`, `reason`, `blocked_by
 
 ## Step 7 - Compute next_wave, dependencies_to_migrate_first, phase_a_waves, AND cascade-block
 
-Migration model: **global states first, screens after.** Each un-migrated Cubit that a target screen reads is migrated in its own commit by the `global-state` agent BEFORE the screen agent runs. Only the screen itself (plus screen-local state) belongs to the screen agent's commit.
+Migration model: **global states first, screens after.** Each un-migrated Cubit that a target screen reads is migrated in its own commit by the `migrate-global-state` agent BEFORE the `migrate-screen` agent runs. Only the screen itself (plus screen-local state) belongs to the `migrate-screen` agent's commit.
 
 1. Filter `remaining` screens → exclude `blocked` (6a) and `skipped`.
 2. **Candidate globals**: un-migrated Cubits read by any in-scope screen (respecting `--screens` filter). Union across scope.
@@ -184,13 +184,13 @@ Migration model: **global states first, screens after.** Each un-migrated Cubit 
 7. **Screen `next_wave`**: screens (post-cascade-filter) where ALL Cubit deps are either already migrated OR present in `dependencies_to_migrate_first` (i.e. will be migrated in Phase A of this run). Sort: simple before complex, alphabetical tiebreak. Take up to 3 for first wave.
 8. **File-disjoint check for the screen wave only** - Phase A wave members are auto-disjoint per step 5's construction. For screens that share `_providers.dart` writes, serialize them in the wave.
 
-Estimate `files_expected` per screen (AFTER deps are migrated - screen agent won't create states):
+Estimate `files_expected` per screen (AFTER deps are migrated - `migrate-screen` won't create states):
 - `lib/screens/<stem>_screen.dart` (rewrite)
 - `lib/screens/<stem>_view.dart` OR `lib/view/<stem>_view.dart` (new)
 - `lib/screens/<stem>/state/<stem>_screen_state.dart` OR `lib/state/<stem>_screen_state.dart` (new)
 - Sub-hook state files (new) if complex decomposition
 - Screen-local State files for any `BlocProvider(create: ...)` inside the screen (screen-scope, not global)
-- **All files in the screen's subtree that use BLoC:** recursively enumerate `lib/screens/<stem>/widgets/**`, `lib/screens/<stem>/dialogs/**`, `lib/screens/<stem>/sheets/**` (and project-equivalent sibling folders). For each file that contains `BlocBuilder|BlocListener|BlocConsumer|BlocProvider|context\.(read|watch|select)<`, include it in `files_expected` - the screen agent will rewire it. The screen agent's Phase 1e builds the final manifest; your estimate is the starting set.
+- **All files in the screen's subtree that use BLoC:** recursively enumerate `lib/screens/<stem>/widgets/**`, `lib/screens/<stem>/dialogs/**`, `lib/screens/<stem>/sheets/**` (and project-equivalent sibling folders). For each file that contains `BlocBuilder|BlocListener|BlocConsumer|BlocProvider|context\.(read|watch|select)<`, include it in `files_expected` - the `migrate-screen` agent will rewire it. That agent's Phase 1e builds the final manifest; your estimate is the starting set.
 - **NOT** global state files - those are Phase A's responsibility
 
 ## Step 8 - Regenerate MIGRATION.md

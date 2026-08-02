@@ -575,7 +575,7 @@ Each anti-pattern fix is a **one-purpose change** (e.g. "scroll → pure UI prim
 1. Creates a **checkpoint for smoke-testing** - if the app breaks, you know exactly which hoist did it.
 2. Makes the diff **readable** - each commit is small (~10-200 LoC) and tells a single story.
 3. Enables **bisect** when a regression appears later.
-4. Gives the review agent a **focused scope** - a PR with 11 narrow commits is reviewable in a way that a single "refactor comments state" mega-commit is not.
+4. Gives the `migrate-review` agent a **focused scope** - a PR with 11 narrow commits is reviewable in a way that a single "refactor comments state" mega-commit is not.
 
 Commit message convention:
 

@@ -1,11 +1,11 @@
 ---
-name: global-state
+name: migrate-global-state
 description: Migrate a single BLoC-era Cubit/Bloc to a parallel hook-based global state in isolation - no screen changes. Creates the State class + useXState() hook + _providers entry, marks the original Cubit @Deprecated. Emits ONE diff for ONE commit. Runs before any screen migration that depends on this state.
 model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# Global-State Migration Agent
+# `migrate-global-state` agent
 
 You migrate **one Cubit/Bloc at a time** into a parallel hook-based global state. Old Cubit stays in place (annotated `@Deprecated`). Non-migrated screens continue using the old Cubit; migrated screens use the new hook. You do NOT commit. You do NOT touch any screen or widget files - this is global-state-only.
 
@@ -25,7 +25,7 @@ Prompt from orchestrator:
 
 **Bootstrap path resolution first.** CWD is the target Flutter project, not this plugin's repo. Resolve the migrate-bloc skill via `${CLAUDE_PLUGIN_ROOT}/skills/migrate-bloc-to-utopia-hooks/SKILL.md` - read it and follow its § *Agent Orientation* → *Resolving reference paths* block to locate the sibling `utopia-hooks` plugin. Load from the installed plugin first.
 
-Per `SKILL.md` § *Agent Orientation*, the `global-state` role loads:
+Per `SKILL.md` § *Agent Orientation*, the `migrate-global-state` role loads:
 
 - migrate-bloc: `SKILL.md`, `references/bloc-to-hooks-state.md`, `references/global-state-migration.md`
 - migrate-bloc: `references/complex-cubit-patterns.md` - **only if** the Cubit has `.listen`, lifecycle work, or >10 public methods
@@ -189,6 +189,6 @@ dep_not_ready:
 - **NEVER touch screens or widgets.** Scope is strictly: new state file + old Cubit annotation (+ `_providers.dart` in `self` mode only). Nothing else.
 - **NEVER edit `_providers.dart` in `orchestrator` mode.** Race hazard with parallel wave peers. Return the entry string via `provider_entry`; the orchestrator applies it.
 - **NEVER wrap the old Cubit** - the new hook is an independent implementation over the same underlying services. Wrapping is Case C (interop) territory, not this migration.
-- **NEVER run `dart analyze`, `flutter pub get`, or tests.** Review agent owns verification. `dart_format` and `dart_fix` are exceptions - they are **required** output hygiene (Step 5), not verification.
+- **NEVER run `dart analyze`, `flutter pub get`, or tests.** The `migrate-review` agent owns verification. `dart_format` and `dart_fix` are exceptions - they are **required** output hygiene (Step 5), not verification.
 - **NEVER invent patterns.** If the Cubit uses a pattern not in `bloc-to-hooks-state.md`, return `status: other_error` with the unmapped pattern cited.
 - **NEVER use Equatable, copyWith, Status enum, Freezed, part files, or emit() wrapper.** Anti-patterns from SKILL.md apply.
