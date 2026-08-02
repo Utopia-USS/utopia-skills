@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# BLUEPRINT — adapt per-repo. Strip this banner after substitution.
-# <repo>_quality_check.sh — PostToolUse quality check for the <project> repo.
+# BLUEPRINT - adapt per-repo. Strip this banner after substitution.
+# <repo>_quality_check.sh - PostToolUse quality check for the <project> repo.
 #
 # Contract:
 #   - stdin:  JSON with {.tool_input.file_path}
 #   - env <REPO>_QUALITY_MODE: "warn" (default, exit 1) or "block" (exit 2)
 #     Note: edits to generated files ALWAYS exit 2 regardless of mode.
 #   - exit 0: silent (out of scope or clean)
-#   - exit 1: warn — user sees stderr, Claude continues
-#   - exit 2: block — Claude must address
+#   - exit 1: warn - user sees stderr, Claude continues
+#   - exit 2: block - Claude must address
 #
 # Scope:
 #   - Fires only for edits inside this repo, on file types this layer cares about.
 #   - Hard-blocks edits to generated files (extensions configured per repo).
 #   - Surfaces path → skill nudges that mirror each skill's `applicability`.
 #   - Foundation conventions (hook / Screen-State-View / IList) are enforced
-#     by the upstream utopia-hooks plugin — not here.
+#     by the upstream utopia-hooks plugin - not here.
 
 set -u
 
@@ -36,7 +36,7 @@ case "$(basename "$file")" in
   *.g.dart|*.freezed.dart|*.gr.dart|*.config.dart|\
   *.pb.dart|*.pbenum.dart|*.pbjson.dart|*.pbserver.dart)
     {
-      echo "<repo>_quality_check: BLOCK — attempted edit to generated file"
+      echo "<repo>_quality_check: BLOCK - attempted edit to generated file"
       echo "  $file"
       echo ""
       echo "Generated files must not be edited manually. Regenerate with:"
@@ -47,7 +47,7 @@ case "$(basename "$file")" in
 esac
 
 # ---------------------------------------------------------------------------
-# Guards — proceed only for in-scope files
+# Guards - proceed only for in-scope files
 # ---------------------------------------------------------------------------
 [[ -f "$file" ]] || exit 0
 [[ "$file" == *.dart ]] || exit 0  # adjust per repo
@@ -89,7 +89,7 @@ add() { violations+=("$1"); }
 # ---------------------------------------------------------------------------
 if [[ "$repo_rel" == lib/* || "$repo_rel" == */lib/* ]]; then
   if grep -qE "^import[[:space:]]+['\"](\.\./|\./)" "$file"; then
-    add "uses relative Dart import — repo convention requires 'package:...' imports (always_use_package_imports)"
+    add "uses relative Dart import - repo convention requires 'package:...' imports (always_use_package_imports)"
   fi
 fi
 
@@ -98,19 +98,19 @@ fi
 # .claude/docs/claude-architecture.md.
 #
 # Each case body adds a single advisory line pointing at the skill whose
-# conventions cover this path. Keep the message short — Claude already
+# conventions cover this path. Keep the message short - Claude already
 # loads the skill's own SKILL.md when description matches.
 # ---------------------------------------------------------------------------
 
 case "$repo_rel" in
   <area-1-paths>)
-    add "<area-1> edit — consult <repo>-<area-1> skill"
+    add "<area-1> edit - consult <repo>-<area-1> skill"
     ;;
 esac
 
 case "$repo_rel" in
   <area-2-paths>)
-    add "<area-2> edit — consult <repo>-<area-2> skill"
+    add "<area-2> edit - consult <repo>-<area-2> skill"
     ;;
 esac
 
@@ -129,7 +129,7 @@ fi
     echo "  - $v"
   done
   echo ""
-  echo "(mode: $mode — set <REPO>_QUALITY_MODE=block to make non-generated-file nudges blocking)"
+  echo "(mode: $mode - set <REPO>_QUALITY_MODE=block to make non-generated-file nudges blocking)"
   echo "(foundation conventions are enforced by the upstream utopia-hooks plugin)"
 } >&2
 

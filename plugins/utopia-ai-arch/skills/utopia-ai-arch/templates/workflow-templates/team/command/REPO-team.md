@@ -5,7 +5,7 @@ allowed-tools: Task, Read, Bash, Glob, Grep
 model: inherit
 ---
 
-<!-- BLUEPRINT — adapt per-repo. Open only if Phase 0.4 confirmed routine parallel-implementation need. Substitute <prefix>. If your repo has a domain auditor, adjust the gate steps and the roster row; otherwise delete both. Strip this banner after substitution. -->
+<!-- BLUEPRINT - adapt per-repo. Open only if Phase 0.4 confirmed routine parallel-implementation need. Substitute <prefix>. If your repo has a domain auditor, adjust the gate steps and the roster row; otherwise delete both. Strip this banner after substitution. -->
 
 Work on this cross-cutting task: $ARGUMENTS
 
@@ -18,10 +18,10 @@ Work on this cross-cutting task: $ARGUMENTS
 
 ## Decision Rule
 
-- **Single-area, small, sequential** — use
+- **Single-area, small, sequential** - use
   [/<prefix>-implement](<prefix>-implement.md). Lighter orchestration.
 - **Cross-cutting** (multiple ownership areas, or ≥2 disjoint chunks
-  where parallelism helps) — use this coordination protocol.
+  where parallelism helps) - use this coordination protocol.
 
 ## Roster
 
@@ -34,7 +34,7 @@ Work on this cross-cutting task: $ARGUMENTS
 | [`<prefix>-precommit-auditor`](../agents/<prefix>-precommit-auditor.md) | Final commit-readiness gate via [/<prefix>-audit](<prefix>-audit.md) | no |
 
 If the repo defines per-area maintainers, the production precedent (repo-A)
-dropped them in favour of a single cross-area `<prefix>-maintainer` —
+dropped them in favour of a single cross-area `<prefix>-maintainer` -
 parallelism comes from batching multiple calls to that one maintainer,
 not from splitting the agent definition. See the repo's
 `.claude/docs/claude-architecture.md` for rationale.
@@ -48,7 +48,7 @@ not from splitting the agent definition. See the repo's
 
 2. **Domain gate (pre-implementation).** *(Skip this step if the repo
    has no domain auditor.)* If the plan touches the auditor's surface
-   (e.g. auth / crypto / key management / RLS / migrations — adjust to
+   (e.g. auth / crypto / key management / RLS / migrations - adjust to
    the team's domain), run `<prefix>-domain-auditor` on the plan.
    **Stop and wait** if it returns findings of severity ≥ medium.
 
@@ -68,7 +68,7 @@ not from splitting the agent definition. See the repo's
 
 4. **Review.** Invoke `<prefix>-reviewer` on the resulting diff for
    correctness, regressions, test coverage, and contract drift.
-   Reviewer runs on **fresh context** — pass only `files_touched`, the
+   Reviewer runs on **fresh context** - pass only `files_touched`, the
    proposed commit message, and the baseline analyze. Output:
    BLOCKER / WARN / NIT.
    - `BLOCKER` or `WARN` → loop back to step 3, maintainer fixes
@@ -82,7 +82,7 @@ not from splitting the agent definition. See the repo's
 
 6. **Pre-commit audit.** Invoke [/<prefix>-audit](<prefix>-audit.md)
    (= `<prefix>-precommit-auditor`) on the staged diff for commit
-   readiness — debug artefacts, scaffolding, codegen consistency,
+   readiness - debug artefacts, scaffolding, codegen consistency,
    drift in `.claude/`. **Do not commit on the user's behalf.**
 
 7. **Summarise.** Per-area changes, what was actually run vs only
@@ -93,5 +93,5 @@ not from splitting the agent definition. See the repo's
 - The repo's architecture / system-topology docs (link in the master
   skill).
 - Domain-specific specs the architect needs (data-exchange contract,
-  formal spec, RLS matrix, etc.) — keep this section if the repo has
+  formal spec, RLS matrix, etc.) - keep this section if the repo has
   load-bearing docs; drop if not.

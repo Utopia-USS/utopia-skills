@@ -1,4 +1,4 @@
-# `*-module.md` — business module style
+# `*-module.md` - business module style
 
 A **business module** reference describes a product feature: what it
 does for the user, how the user moves through it, and the technical
@@ -10,8 +10,8 @@ purpose is to load business intent and key flow into context so the
 agent can make judgment calls. Code is referenced (file paths,
 class names) but rarely quoted, and never reproduced in full.
 
-If the content has no product story — it's a repo-wide convention,
-naming rule, or framework idiom — use `*-pattern.md` instead. If
+If the content has no product story - it's a repo-wide convention,
+naming rule, or framework idiom - use `*-pattern.md` instead. If
 it's a flat lookup table (component catalogue, color tokens, asset
 inventory), use `*-cheatsheet.md` instead.
 
@@ -39,11 +39,11 @@ this is the part of the app that does X for Y"*.
 
 ### `## User flow`
 
-Step-by-step from the user's POV — not the system's. If there are
+Step-by-step from the user's POV - not the system's. If there are
 multiple roles (e.g. admin + end-user), give a
 sub-flow for each, with the synchronisation points called out.
 
-Include the moments where the **system has to react** — persist,
+Include the moments where the **system has to react** - persist,
 sync between devices, handle offline, recover from a crash, expire
 a session. These are usually the bug-prone parts; flagging them in
 the user flow makes them visible to the agent before they look at
@@ -55,13 +55,13 @@ inline so the agent can search from there, but don't quote code.
 ### `## Location`
 
 Bullet list of the directories that hold this module's
-implementation. Just paths — one line each, no description (the
+implementation. Just paths - one line each, no description (the
 applicability of the parent skill already covers "what kind of
 content lives in those paths").
 
 ### `## Data hierarchy`
 
-The domain model — what entities exist, how they nest, where each
+The domain model - what entities exist, how they nest, where each
 lives (Firestore collection, gRPC method, local store, generated
 proto). Use a tree if the nesting is meaningful:
 
@@ -73,7 +73,7 @@ Order                    # a customer's confirmed purchase
 ```
 
 For each non-trivial entity, one line describing what it represents
-in business terms (not "a freezed class with five fields" — that's
+in business terms (not "a freezed class with five fields" - that's
 visible in the code).
 
 ### `## Technical surface`
@@ -81,17 +81,17 @@ visible in the code).
 What an agent needs to know to ship a change here. Sub-sections as
 needed:
 
-- **Services** — table of `Service | Type | Role` (e.g. Firebase /
+- **Services** - table of `Service | Type | Role` (e.g. Firebase /
   Api / Data / Asset).
-- **Screens / pages** — table of `Screen | State hook | Notes`.
-- **Contracts** — proto messages, gRPC methods, public API surfaces.
-- **Refs / typedefs** — the `Id` and `Ref` shapes used in this module
-  (one block of `typedef` declarations is fine — that's signature,
+- **Screens / pages** - table of `Screen | State hook | Notes`.
+- **Contracts** - proto messages, gRPC methods, public API surfaces.
+- **Refs / typedefs** - the `Id` and `Ref` shapes used in this module
+  (one block of `typedef` declarations is fine - that's signature,
   not implementation).
 
 The bar for inclusion: *"would an agent need this to plan a sensible
 change without re-reading every file?"* If yes, include the
-signature. If no, skip it — the codebase is the source of truth for
+signature. If no, skip it - the codebase is the source of truth for
 implementation.
 
 ---
@@ -106,14 +106,14 @@ truth, who reads vs writes), and what happens on disconnect.
 
 ### `## Conventions specific to this module`
 
-Naming, scoping, validation rules — anything an agent needs to
+Naming, scoping, validation rules - anything an agent needs to
 follow that **isn't** covered by the parent skill's general
 patterns. If a rule applies repo-wide, it belongs in a
 `*-pattern.md` instead.
 
 ### `## Open questions / WIP`
 
-Use while the module is still crystallising — known gaps, decisions
+Use while the module is still crystallising - known gaps, decisions
 not yet made, places where the implementation is exploratory. As
 the module stabilises this section empties out, and once it's
 empty consider whether the module is ready to graduate to its own
@@ -122,7 +122,7 @@ skill.
 ### `## Anti-patterns`
 
 Concrete examples of what NOT to do here, with the WHY. The "WHY"
-is the load-bearing part — it lets the agent generalise to similar
+is the load-bearing part - it lets the agent generalise to similar
 situations not explicitly listed.
 
 ---
@@ -131,7 +131,7 @@ situations not explicitly listed.
 
 - **No code blocks longer than ~10 lines.** If you're tempted, the
   agent should be reading the source file instead. Quote signatures,
-  type definitions, and small examples — never full implementations.
+  type definitions, and small examples - never full implementations.
 - **No copy-paste from `freezed` / generated files.** The fact that
   a model has 12 fields is in the source. The fact that the model
   exists and what it represents is what the module reference adds.
