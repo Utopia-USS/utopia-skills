@@ -1,5 +1,5 @@
 ---
-name: utopia-ai-arch
+name: layer
 description: >
   Create and maintain the Claude Code `.claude/` layer in Utopia Flutter projects -
   agents, skills, slash commands, enforcement hook scripts (PostToolUse /
@@ -19,7 +19,7 @@ metadata:
   tags: claude-code, ai-architecture, agents, skills, blueprint, project-layer, hooks, flutter
 ---
 
-# utopia-ai-arch - Project `.claude/` Layer
+# utopia-ai-arch:layer - Project `.claude/` Layer
 
 ## Overview
 

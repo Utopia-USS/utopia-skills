@@ -10,7 +10,7 @@ The plugin itself ships no hooks, commands, or agents. Everything beyond the ski
 
 ## What's inside
 
-The `utopia-ai-arch` skill, plus 10 reference files: the two-layer model, the 4-agent roster, skill design, enforcement hooks, evolution and drift (a 21-symptom catalogue distilled from production layers), slash commands, the architecture doc, CLAUDE.md conventions, the bootstrap procedure, and the `settings.json` shape.
+The `layer` skill (invoked as `utopia-ai-arch:layer`), plus 10 reference files: the two-layer model, the 4-agent roster, skill design, enforcement hooks, evolution and drift (a 21-symptom catalogue distilled from production layers), slash commands, the architecture doc, CLAUDE.md conventions, the bootstrap procedure, and the `settings.json` shape.
 
 And a `templates/` tree - the claude-layer blueprint:
 
