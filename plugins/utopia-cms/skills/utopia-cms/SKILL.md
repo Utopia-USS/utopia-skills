@@ -11,7 +11,9 @@ description: >
   triggers on `flutter pub add utopia_cms`, on any new `*_admin` / `cms` /
   `panel` Flutter package, and whenever a screen is about to be built by
   hand-rolling Flutter `DataTable` + a Firestore / Supabase service + a
-  `useState<List<T>?>` + `isLoading` + `error` triplet.
+  `useState<List<T>?>` + `isLoading` + `error` triplet. Does NOT cover general
+  app screen state (use utopia-hooks), app-side BLoC-to-hooks migration (use
+  utopia-hooks-migrate-bloc), or end-user non-admin UIs.
 license: BSD-2-Clause
 metadata:
   author: UtopiaSoftware
@@ -114,10 +116,11 @@ See [delegates.md][delegates].
 Custom backend? Implement `CmsDelegate` directly - four methods, ~30 lines.
 See [delegates.md][delegates] §"Custom delegate".
 
-## Known Limitations (utopia_cms 0.3.0)
+## Known Limitations (current utopia_cms)
 
-Verified against the 0.3.0 overhaul. Several 0.2.x limitations are now fixed (noted
-below). Each remaining row links to the reference file carrying the workaround.
+Re-verify against the `utopia_cms` version pinned in the project's `pubspec.yaml`.
+Several older limitations are now fixed (noted below). Each remaining row links to
+the reference file carrying the workaround.
 
 | Limitation | Workaround in |
 |------------|---------------|
@@ -130,7 +133,7 @@ below). Each remaining row links to the reference file carrying the workaround.
 | Framework chrome strings ("Create", "Update", "Delete", "Manage", "Back") are hardcoded English - no l10n hook | [theme.md][theme] |
 | No streaming `get()` and no multi-row selection - the two honest reasons to hand-roll a table | [anti-patterns.md][anti-patterns] |
 
-**New in 0.3.0** (see references): `CmsLinkEntry`, `CmsSingleMediaEntry`, responsive
+**Recent additions** (see references): `CmsLinkEntry`, `CmsSingleMediaEntry`, responsive
 tables / menu / overlay (`CmsPageType`, `pinned: (t) => ...`), a table refresh button,
 a `media_kit`-backed `CmsVideoPlayer`, public exports of `CmsManagementBaseState` /
 `OnSavedCallback` / `CmsDropdownField`, and a core `utopia_arch` to `utopia_hooks` dep

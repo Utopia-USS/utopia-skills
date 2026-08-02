@@ -28,7 +28,8 @@ violations=()
 
 # --- Read file path from stdin JSON ---
 if ! command -v jq >/dev/null 2>&1; then
-  exit 0  # no jq, can't parse - fail silent
+  echo "utopia-cms hook: jq not found - quality gate disabled (brew install jq)" >&2
+  exit 1
 fi
 
 payload="$(cat)"
