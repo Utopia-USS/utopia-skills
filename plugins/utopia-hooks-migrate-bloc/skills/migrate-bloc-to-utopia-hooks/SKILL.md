@@ -388,6 +388,8 @@ Static gates cannot catch "compiles but nothing happens" (unwired trigger, `shou
 
 Compare total lines in migrated hook+state files vs original cubit+state files. If migrated code exceeds **60%** of original line count for Complex screens (50% for Medium) - investigate. This usually means missed hook features (`useAutoComputedState`, `useSubmitState`, `useMemoizedStream`) or missing decomposition.
 
+Scope: this gate compares POST-Phase-B totals (hook + state files vs cubit + event + state files, whose freezed-generated code never appears in either count). It is inapplicable to a single Phase A parallel state file - a flat state class plus callbacks can legitimately exceed a thin delegating bloc's line count while the deleted freezed union it replaces is invisible; judge Phase A files by the reviewer's size budgets instead.
+
 **If ANY grep returns results → fix them. The migration is not done.**
 
 ## Agent Orientation - canonical reference loading

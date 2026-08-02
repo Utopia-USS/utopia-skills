@@ -153,6 +153,21 @@ const Map<Type, Object? Function()> providers = {};
 
 ---
 
+### 3b. Factory-per-screen blocs -> parameterized shared hook (no registration)
+
+Some blocs are neither app-global nor screen-private: a DI factory getter constructs a fresh
+instance per screen with different constructor flags, and 2+ screens consume it (e.g. a web
+view bloc created with `loadMap: true` on one screen and `loadDailyCheckIn: true` on
+another). Migrate these to a PARAMETERIZED SHARED HOOK DEFINITION:
+
+- One state file in `lib/state/` (it is shared code, even though each instance is
+  screen-scoped), hook signature `useXState({required <the old constructor flags>})`.
+- NO `_providers.dart` entry, ever - not in Phase A, not with the first consumer. The hook
+  takes required parameters and is screen-scoped by nature; each consumer screen's own
+  state hook calls it directly in Phase B.
+- Everything else follows the normal parallel-migration rules (old bloc annotated
+  `@Deprecated`, not deleted; flat state class; no bloc-barrel import).
+
 ## Key Differences
 
 ### Initialization Order

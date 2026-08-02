@@ -358,6 +358,18 @@ void initialize({bool force = false}) {
 }
 ```
 
+Per-trigger side effects (analytics, logging) belong in the trigger callback, NOT inside the
+compute closure: `refresh()` joins an in-flight compute instead of starting a second one, so
+a side effect folded into the closure silently drops repeats that the caller intended to fire
+once per trigger.
+
+```dart
+void initialize() {
+  unawaited(telemetry.trackOpened());   // fires per call
+  unawaited(itemsState.refresh());      // may join an in-flight compute
+}
+```
+
 ### Event streams out of global state
 
 When a global state needs to broadcast one-shot events (sync finished, item deleted elsewhere),

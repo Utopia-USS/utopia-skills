@@ -87,7 +87,9 @@ Per `global-state-migration.md`. State class:
 
 **Re-implementation ≠ duplicating business logic.** "Same underlying services" assumes the services exist. If the Cubit body contains domain logic that lives in NO service - offline sync, dedup/merge algorithms, retry orchestration, data-transformation pipelines, download queues - do NOT copy that logic into the hook. Two live copies of business logic diverge silently and both must be maintained for the whole migration window. Return `status: needs_service_extraction` with a `proposed_service` sketch (service name, method signatures, which Cubit methods' bodies move). The orchestrator will re-invoke you in `mode: extract_service` first, then again for the state migration.
 
-Litmus test: if deleting the Cubit tomorrow would delete logic no other class has, that logic needs a service first. Thin glue (call service → assign result → toggle a flag) does not count - port that freely.
+Litmus test: if deleting the Cubit tomorrow would delete logic no other class has, that logic needs a service first. Thin glue (call service → assign result → toggle a flag) does not count - port that freely. Also exempt: dependency-free PURE mappings (enum-to-string lookup tables, static format switches) - port them as private helpers in the state file; two copies existing until the bloc is deleted at finalize is acceptable for pure data.
+
+Static members on the old Cubit that tests or other files reference (e.g. `static final days = [...]`): leave them on the bloc untouched. If the hook needs the same values, duplicate them as a private const in the state file - do NOT import the bloc file from the state file (the state class names collide by design in parallel migration).
 
 If the Cubit's logic is entangled with UI/navigation/BuildContext (it shouldn't be but BLoC codebases sometimes blur this) - return `status: needs_refactor` describing what needs to move where. Do not attempt heroics.
 

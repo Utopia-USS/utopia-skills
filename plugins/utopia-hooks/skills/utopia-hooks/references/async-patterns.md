@@ -225,7 +225,8 @@ Signature and basic usage are in [hooks-reference.md](./hooks-reference.md). The
 
 `useAutoComputedState` returns `MutableComputedState<T>`, not a read-only snapshot. Three mutators sit alongside the loaded value:
 
-- `refresh()` - **joins an in-flight compute rather than always re-running**: if `value` is `inProgress` it awaits that computation; otherwise it starts a new one. Safe to call from several places without stacking requests
+- `refresh()` - **joins an in-flight compute rather than always re-running**: if `value` is `inProgress` it awaits that computation; otherwise it starts a new one. Safe to call from several places without stacking requests. Corollary: per-trigger side effects (analytics, logging) must live in the callback that calls `refresh()`, never inside the compute closure - joined refreshes would silently swallow the repeats
+- Ordering note for ported code: if the original handler awaited a side effect BEFORE exposing the new state (e.g. awaited analytics before emitting loaded), keep that ordering - put the awaited call inside the compute so the ready state still lands after it. Behavior preservation beats closure purity during a migration
 - `updateValue(T value)` - set to `ready(value)` without re-fetching. Does NOT cancel an in-flight compute - if one is running, its result overwrites yours when it completes; call `clear()` first to discard it
 - `clear()` - reset to `notInitialized`; cancels any in-flight computation
 
