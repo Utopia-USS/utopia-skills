@@ -11,8 +11,8 @@ worked example of the profile schema.
   packages - used instead of `github/stars`, which is skipped (the packages
   are not star-popular; a low count reads worse than none).
 - **lints:** `utopia_lints` - the `style: utopia_lints` badge, only on
-  packages that actually depend on it. Self-referencing, the same move as
-  bloc's `style: bloc_lint` and VGV's `style: very_good_analysis`.
+  packages that actually depend on it. Self-referencing, the same move the
+  majors make with their own lints packages.
 - **palette:** pub = shields amber (automatic for pre-1.0), license = green
   `2E8B57`, style = brand blue `0B5EA2` (the logo flame - the signature
   accent), publisher = violet `7A4FC2`. Full brand palette:

@@ -1,8 +1,8 @@
 # Badges
 
-shields.io is the ecosystem standard - flutter_hooks, riverpod, bloc, and Very Good
-all build their rows from it (CI/coverage use their provider's own badge endpoint).
-Restraint is the differentiator: VGV ships 4, riverpod ~6, flutter_hooks ~5; bloc
+shields.io is the ecosystem standard - every reference package builds its row from it
+(CI/coverage use their provider's own badge endpoint). Restraint is the differentiator:
+the tidiest agency-maintained packages ship 4 and the popular majors ~5-6, while one
 ships 13 and wraps on mobile. The header image is the hero - badges are a quiet row
 beneath it. Publisher domain, lints package, and hues come from the resolved brand
 profile ([brand-profile.md](brand-profile.md); Utopia's values in
@@ -15,16 +15,16 @@ A shields badge is either **dynamic** (queries a live source on each load) or
 **static** (a hardcoded `badge/<label>-<message>-<color>` constant). Use the dynamic
 endpoint wherever a real source exists; don't hardcode what shields can read live.
 
-- **Dynamic** (self-updating): `pub/v` (pub version - the one universal badge, used by
-  flutter_hooks + VGV), `pub/publisher` (verified publisher), CI build status, code
-  coverage, `github/stars`.
+- **Dynamic** (self-updating): `pub/v` (pub version - the one universal badge, present on
+  nearly every reference package), `pub/publisher` (verified publisher), CI build status,
+  code coverage, `github/stars`.
 - **Static by convention:** **license** and **style**. Every reference package
-  hardcodes these (`badge/license-MIT-…`, `badge/style-very_good_analysis-…`,
-  `badge/style-bloc_lint-…`) - there is no clean live source and they are effectively
-  constants, so static is correct here, not lazy. (A live `github/license/<owner>/<repo>`
-  exists, but none of the majors use it - match the prevailing static form.)
+  hardcodes these (`badge/license-MIT-…`, `badge/style-<org_lints>-…`) - there is no clean
+  live source and they are effectively constants, so static is correct here, not lazy.
+  (A live `github/license/<owner>/<repo>` exists, but none of the majors use it - match
+  the prevailing static form.)
 
-## Default set (ref-style markdown - the house form, matches VGV)
+## Default set (ref-style markdown - the house form)
 
 `<publisher-domain>` and `<lints_pkg>` come from the profile; the hex values shown are
 the Utopia palette.
@@ -53,24 +53,24 @@ the Utopia palette.
 - **license** - *static*; match the package's actual LICENSE. Set `<LICENSE>` to `MIT`
   or `BSD--2--Clause` (a literal hyphen in shields label text is escaped as `--`). Read
   the LICENSE file - do not default to MIT.
-- **style: <lints_pkg>** - *static* self-referencing badge, the same move as bloc's
-  `style: bloc_lint` and VGV's `style: very_good_analysis`. Signals ecosystem maturity
-  and promotes the org's lints. Use only on packages that depend on the profile's lints
-  package; no lints package in the profile → drop the badge. (`__` escapes the
-  underscore in shields label text.)
+- **style: <lints_pkg>** - *static* self-referencing badge, the same move the majors make
+  with their own lints packages. Signals ecosystem maturity and promotes the org's lints.
+  Use only on packages that depend on the profile's lints package; no lints package in the
+  profile → drop the badge. (`__` escapes the underscore in shields label text.)
 
 **Colour - four distinct hues, never a blue wall.** Each badge gets its own semantic colour
 at a similar saturation, so the row reads as a set, not a rainbow. The Utopia palette:
 `pub` version = shields amber (automatic for pre-1.0), `license` = green `2E8B57`
-(open-source), `style` = brand blue `0B5EA2` (the signature accent - the bloc / VGV move),
-`publisher` = violet `7A4FC2`. A profile may swap hues (its `palette` field - the signature
-accent slot is where the org colour goes) but keeps four distinct ones. Override a dynamic
+(open-source), `style` = brand blue `0B5EA2` (the signature accent - what every branded
+family does), `publisher` = violet `7A4FC2`. A profile may swap hues (its `palette`
+field - the signature accent slot is where the org colour goes) but keeps four distinct
+ones. Override a dynamic
 badge's colour with `?color=<hex>` (publisher); set a static badge's in the
 `badge/label-message-<hex>` slot (license, style). Three-plus badges in one hue is the
 failure mode - spread them.
 
 Use inline HTML `<a href><img></a>` **only** when you wrap the row in `<p align="center">`
-for a centered header (bloc/riverpod do this); ref-style markdown is the default.
+for a centered header (as some popular packages do); ref-style markdown is the default.
 
 ## Optional dynamic add-ons - only when real
 
@@ -86,17 +86,17 @@ for a centered header (bloc/riverpod do this); ref-style markdown is the default
 
 - **ci** - dynamic build status; add only with an actual CI workflow.
 - **coverage** - dynamic; codecov, or a self-hosted `coverage_badge.svg` committed by CI
-  (VGV style) - but only if coverage is enforced.
+  (the agency-package style) - but only if coverage is enforced.
 - **github stars** - `https://img.shields.io/github/stars/<repo_org>/<repo>?style=flat&logo=github&label=stars` -
-  dynamic social proof (bloc / riverpod use it instead of pub likes). **Skip it unless the
+  dynamic social proof (some majors use it instead of pub likes). **Skip it unless the
   repo is genuinely star-popular** - a low count reads worse than no badge. The publisher
   badge in the default set is the provenance signal instead (Utopia skips stars for
   exactly this reason).
 
 ## Skip
 
-`pub/likes`, `pub/points`, `pub/popularity` - none of flutter_hooks, riverpod, bloc, or
-VGV use them; pub.dev already shows these on the package page, so they are redundant
-there and low-signal on GitHub. (Provenance via the publisher badge beats popularity for
-niche packages.) Also skip "Awesome Flutter" / "Flutter Favorite" style vanity badges
+`pub/likes`, `pub/points`, `pub/popularity` - no reference package uses them; pub.dev
+already shows these on the package page, so they are redundant there and low-signal on
+GitHub. (Provenance via the publisher badge beats popularity for niche packages.) Also
+skip "Awesome Flutter" / "Flutter Favorite" style vanity badges
 and any inline-styled (`style="background:white"`) HTML badge tables - they break dark mode.

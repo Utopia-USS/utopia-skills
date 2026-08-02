@@ -67,9 +67,9 @@ schema.
 
 ## Interview (when no profile resolves)
 
-Derive first, ask only the gaps, confirm once. The `pubdev-brand-setup` skill
-in this plugin runs this flow and writes the file; when composing without it,
-follow the same steps inline:
+Derive first, ask only the gaps, confirm once. The `utopia-pubdev:brand-setup`
+skill in this plugin runs this flow and writes the file; when composing without
+it, follow the same steps inline:
 
 1. **Derive from the repo:** `org` and `repo_org` from pubspec
    `repository`/`homepage` and the git remote; `publisher` from existing

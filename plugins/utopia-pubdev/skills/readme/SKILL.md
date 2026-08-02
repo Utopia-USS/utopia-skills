@@ -1,5 +1,5 @@
 ---
-name: utopia-pubdev
+name: readme
 description: >
   Compose and standardize pub.dev READMEs for Dart/Flutter packages -
   brand-profile-driven header image and restrained badge row, house voice,
@@ -13,14 +13,14 @@ description: >
   public API design, doc sites, or CHANGELOG/pubspec content.
 ---
 
-# utopia-pubdev - package README & brand standard
+# utopia-pubdev:readme - package README & brand standard
 
 The presentation layer for Dart/Flutter open-source packages: how a package
 looks and reads on pub.dev and GitHub. Distilled from a 12-package
-cross-analysis (bloc, riverpod, Very Good Ventures, dio, freezed, and the
-Utopia flagships). The composition rules below are generic; everything
-brand-specific - attribution, publisher, lints badge, header image, house
-mark - comes from a **brand profile**, never from this file.
+cross-analysis of the most popular pub.dev packages plus the Utopia flagships.
+The composition rules below are generic; everything brand-specific -
+attribution, publisher, lints badge, header image, house mark - comes from a
+**brand profile**, never from this file.
 
 ## When to apply
 
@@ -50,8 +50,8 @@ Before composing anything, resolve the brand profile, in this order:
    conventions), then ask the user the remaining profile questions before
    continuing - the question list and file template are in
    [brand-profile.md](references/brand-profile.md) - and offer to save the
-   answers as `docs/pubdev-brand.md` (the `pubdev-brand-setup` skill in this
-   plugin is that interview).
+   answers as `docs/pubdev-brand.md` (the `utopia-pubdev:brand-setup` skill in
+   this plugin is that interview).
 
 The profile supplies: attribution line, pub.dev publisher domain, lints
 package, badge palette, header-image policy, house mark, sibling sources, and
@@ -61,8 +61,8 @@ AI-assistants wording. Schema and template:
 ## Brand voice
 
 Engineer-to-engineer, pragmatic, confident, calm. Code-first, why-before-how, zero
-hype. Match Very Good Ventures' consistency and terseness; keep pedagogical
-depth for flagship packages only.
+hype. Match the consistency and terseness of the best agency-maintained
+packages; keep pedagogical depth for flagship packages only.
 
 - DO: open with one grounded sentence, then a working snippet; explain design
   choices plainly; right-size (utils stay short, flagships teach); 2nd person for
@@ -95,11 +95,12 @@ pub.dev themes, generated or exported - never hand-drawn - flush-left at
 natural width. Utopia's visual recipe: [brand-spec.md](references/brand-spec.md);
 live gallery: [docs/gallery.html](docs/gallery.html).
 
-Beneath it, a **restrained** badge row - not BLoC's 13. Default:
-`pub version` · `publisher` · `license` · `style: <lints>`, with the publisher
-domain and lints package taken from the profile (no source in the profile →
-drop that badge, a shorter row is correct). Snippets + rules (and why
-likes/points/popularity are skipped): [badges.md](references/badges.md).
+Beneath it, a **restrained** badge row - not the 13-badge pileup some popular
+packages carry. Default: `pub version` · `publisher` · `license` ·
+`style: <lints>`, with the publisher domain and lints package taken from the
+profile (no source in the profile → drop that badge, a shorter row is correct).
+Snippets + rules (and why likes/points/popularity are skipped):
+[badges.md](references/badges.md).
 
 ## Footer (no sponsors)
 
@@ -126,7 +127,7 @@ The chip generator is bundled in `scripts/` (needs `node` + `puppeteer-core` and
 a local Chrome). From a repo root:
 
 ```sh
-cd skills/utopia-pubdev/scripts
+cd skills/readme/scripts
 npm i puppeteer-core            # once
 python3 generate.py --repo /path/to/repo     # discovers packages, writes <pkg>/docs/header.png + manifest.json
 ```

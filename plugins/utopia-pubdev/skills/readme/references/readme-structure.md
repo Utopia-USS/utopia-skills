@@ -8,8 +8,9 @@ publisher, lints, header image, house mark) come from the resolved brand profile
 values. Read this before composing; badge rules are in [badges.md](badges.md), the
 Utopia chip in [brand-spec.md](brand-spec.md).
 
-Distilled from a 12-package cross-analysis (our hooks/arch/cms + bloc, flutter_hooks,
-riverpod, very_good_cli, equatable, mason, dio, go_router, freezed).
+Distilled from a 12-package cross-analysis: our hooks/arch/cms plus nine of the most
+popular pub.dev packages (state management, hooks, codegen, equality, HTTP, routing,
+and CLI tooling).
 
 ## Header
 
@@ -30,18 +31,19 @@ Visit [<docs site>](…)                                       ← only if a doc
 
 - **H1 is mandatory and is the package name** (`# utopia_hooks` or `# Utopia Hooks`).
   Never `# Overview`, never an H3-as-title, never logo-alt-only. This is the
-  highest-signal rule we found: half the most-popular packages (bloc, riverpod, equatable,
-  mason, freezed) omit the H1 and it is a real mistake - pub.dev and GitHub use the first
+  highest-signal rule we found: five of the nine most-popular packages in the analysis
+  omit the H1 and it is a real mistake - pub.dev and GitHub use the first
   `# H1` as the title fallback, and web search and screen readers depend on it. No emoji in
   the H1 - including the profile's house mark (Utopia's 👾 belongs in plugin / marketplace
   descriptions and may accent a section heading or the Contributing line, but never the title).
 - **Header image** (when the profile ships one), flush-left, natural `width`, never
   `height` / stretch. Generated or exported, never hand-drawn; must stay legible on both
-  pub.dev themes. Flush-left (aligns with body text), not centered like the felangel
-  packages. `header_image: none` in the profile → the badge row leads.
-- **Badges: ref-style markdown**, defs at the bottom (the house form, matches VGV). Not
-  inline HTML in `<p align="center">`, not mixed md+HTML. Restrained set, publisher and
-  lints values from the profile - see [badges.md](badges.md).
+  pub.dev themes. Flush-left (aligns with body text), not the centered-header style some
+  popular packages use. `header_image: none` in the profile → the badge row leads.
+- **Badges: ref-style markdown**, defs at the bottom (the house form, matching the best
+  agency-maintained packages). Not inline HTML in `<p align="center">`, not mixed
+  md+HTML. Restrained set, publisher and lints values from the profile - see
+  [badges.md](badges.md).
 - **Optional GIF / screenshot** right after the one-liner, for packages whose value is
   visual (a demo is credibility before code). Must be **responsive** - `width="100%"` or a
   sane max, never hardcoded `width="960" height="425"` (breaks on narrow viewports).
@@ -56,7 +58,7 @@ One sentence: **"A `<category>` that `<does X>`"**, what-it-is, general→specif
 what ~9 of 12 do ("A predictable state management library…", "A declarative routing
 package for Flutter…"). Avoid "Goal of this package is to…" (see brand voice). A
 **pain-first** opening is allowed when the package removes a felt boilerplate pain
-(equatable, freezed, flutter_hooks open on the pain and land harder for it).
+(the boilerplate-killers in the analysis open on the pain and land harder for it).
 
 ### Sections (Full tier order)
 
@@ -76,25 +78,27 @@ package for Flutter…"). Avoid "Goal of this package is to…" (see brand voice
 ### Motivation - optional, with a rule
 
 Add `## Motivation` **only when the "why" isn't self-evident** - the package replaces a
-tedious manual approach and a reader could ask "why not do it by hand / use X?". equatable
-(vs hand-written `==`), freezed (vs boilerplate), utopia_cms (vs no-code) all earn it. An
-obvious utility / tool (HTTP client, router, CLI) skips it - a forced Motivation reads as
-filler. **When you write one, show don't tell:** a before/after code block or screenshot
-(freezed, flutter_hooks, equatable) beats a prose paragraph.
+tedious manual approach and a reader could ask "why not do it by hand / use X?". A
+value-equality helper (vs hand-written `==`), a codegen package (vs boilerplate),
+utopia_cms (vs no-code) all earn it. An obvious utility / tool (HTTP client, router, CLI)
+skips it - a forced Motivation reads as filler. **When you write one, show don't tell:** a
+before/after code block or screenshot beats a prose paragraph (every reference package
+that earns a Motivation shows code there).
 
 ### Flow
 
 Code-first (first real snippet within ~one screen; zero-code READMEs were a flagged
 mistake). General→specific top to bottom: intro → (motivation) → quickstart/usage →
 feature tour → reference → footer. **"See also" → docs site** to keep the body lean is the
-flagship move (bloc, riverpod, vgv, hooks all push depth to a site); utilities don't need one.
+flagship move (every framework-shaped package in the analysis, ours included, pushes depth
+to a site); utilities don't need one.
 
 ### Usage idioms worth stealing (pick what fits)
 
 Before/after comparison; DO/DON'T code blocks for rules; per-scenario titled subsections
-with one snippet each (dio); a categorized API/hook catalog table with per-entry pub.dev
-links (flutter_hooks, hooks); a GIF demo for visual/CLI packages. Section-level emoji is a
-taste call; never in the H1.
+with one snippet each (the HTTP-client idiom); a categorized API/hook catalog table with
+per-entry pub.dev links (what the hook-shaped packages do, utopia_hooks included); a GIF
+demo for visual/CLI packages. Section-level emoji is a taste call; never in the H1.
 
 ## Minimal tier (small utility packages)
 
@@ -120,10 +124,10 @@ header image + badge row are still required - the visual contract holds at every
 
 ## Tier selection
 
-- **Minimal:** the package does one obvious thing; the API fits on one screen. (go_router
-  at 82 lines, utopia_arch at 66 - correctly minimal.)
+- **Minimal:** the package does one obvious thing; the API fits on one screen. (A popular
+  router at 82 lines, utopia_arch at 66 - correctly minimal.)
 - **Full:** flagship / framework-shaped (hooks, cms, arch, cli); has concepts to teach,
-  multiple features, or a docs site. (freezed 1441, dio 988, flutter_hooks 398.)
+  multiple features, or a docs site. (Flagship READMEs run ~400-1400 lines.)
 
 ## Footer
 
@@ -152,8 +156,8 @@ MIT (or BSD-2-Clause - match the package's LICENSE). See [LICENSE](LICENSE).
 ```
 
 - **No sponsors / no funding block.** Only individual-maintainer OSS carries Sponsors
-  (bloc, flutter_hooks, riverpod, freezed - all funded personally). Every company-backed
-  project (VGV, Utopia) uses an attribution line instead - the profile's `org` field
+  (the personally-funded majors). Every company-backed project, Utopia included, uses an
+  attribution line instead - the profile's `org` field
   (Utopia: `Built by [Utopiasoft](https://utopiasoft.io).`).
 - **Related packages:** a small **table** (3-5 rows, `Package | What it adds`) of the most-
   related siblings per the profile's `siblings` field, each with a one-line gloss - a
@@ -165,12 +169,13 @@ MIT (or BSD-2-Clause - match the package's LICENSE). See [LICENSE](LICENSE).
 ## AI assistants
 
 Tool-agnostic, and a differentiator (almost nobody ships it; the nearest external analog
-is very_good_cli's MCP server, which is exactly the open framing to copy). Add **only** to
-packages the profile's `ai_assistants` field marks as shipping a dedicated skill (Utopia:
-utopia_hooks, utopia_arch → the hooks skill; utopia_cms → the cms skill). Frame it around
-the open mechanism (`AGENTS.md`, a skills marketplace, MCP); name assistants as
-*examples*, never brand it to one; don't add a filler version to packages without a
-skill, and omit the section on every package when the profile has no mechanism.
+is an agency-maintained CLI's MCP server, which is exactly the open framing to copy). Add
+**only** to packages the profile's `ai_assistants` field marks as shipping a dedicated
+skill (Utopia: utopia_hooks, utopia_arch → the hooks skill; utopia_cms → the cms skill).
+Frame it around the open mechanism (`AGENTS.md`, a skills marketplace, MCP);
+name assistants as *examples*, never brand it to one; don't add a filler version to
+packages without a skill, and omit the section on every package when the profile has no
+mechanism.
 
 The Utopia profile's wording:
 
