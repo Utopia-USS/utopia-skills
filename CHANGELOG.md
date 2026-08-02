@@ -3,6 +3,41 @@
 Per-plugin versions live in each plugin's `.claude-plugin/plugin.json`; the marketplace version tracks
 the repo as a whole. Entries below cover shipped changes since the previous bump of each component.
 
+## Marketplace 0.10.0
+
+- Palette-friendly skill names: skills no longer repeat their plugin prefix. New invocations:
+  `utopia-design:{tokens,sync,import,screen,component}`, `utopia-pubdev:{readme,brand-setup}`,
+  `utopia-ai-arch:layer`. `utopia-hooks:utopia-hooks` and `utopia-cms:utopia-cms` stay (single-skill
+  plugins keep the plugin name, matching upstream convention).
+- Migrate-bloc sub-agents prefixed (`migrate-inventory`, `migrate-foundation`, `migrate-global-state`,
+  `migrate-screen`, `migrate-review`) so they cannot collide with a consumer repo's own agents.
+- Every plugin manifest gains a `displayName`.
+- Anonymization: third-party package/vendor names from the README cross-analysis removed from skill
+  content; the standard's lessons and data points remain, unattributed.
+
+## utopia-design 0.3.0
+
+- Skills renamed to `tokens`, `sync`, `import`, `screen`, `component` (were `utopia-design-*`).
+  Cross-references, session priming, and the plugin README updated; smoke suite green.
+
+## utopia-pubdev 0.3.0
+
+- Skills renamed: `utopia-pubdev` -> `readme`, `pubdev-brand-setup` -> `brand-setup`.
+- Research-citation names scrubbed from the standard's prose (see Marketplace 0.10.0).
+
+## utopia-ai-arch 0.3.0
+
+- Skill renamed: `utopia-ai-arch` -> `layer`.
+
+## utopia-hooks-migrate-bloc 0.3.0
+
+- The five sub-agents renamed with the `migrate-` prefix; orchestrator and docs updated.
+
+## utopia-hooks 0.4.2, utopia-cms 0.3.1, utopia-dart-lsp 0.1.2, utopia-reviews 0.1.1
+
+- `displayName` added to plugin manifests; utopia-reviews swept for em dashes (130 across skills,
+  references and commands, plus the manifest descriptions) and its Codex manifest synced to 0.1.1.
+
 ## Marketplace 0.9.0
 
 - `utopia-pubdev` entry description and version synced to the generalized plugin (0.2.0).
@@ -13,7 +48,7 @@ the repo as a whole. Entries below cover shipped changes since the previous bump
   brand values move to a **brand profile**. Resolution order: a committed
   `docs/pubdev-brand.md` always wins; a detected Utopia codebase gets the bundled Utopia
   profile; with neither, the skill interviews the user before composing.
-- New `pubdev-brand-setup` skill: derives what the repo already answers, asks only the
+- New `brand-setup` skill: derives what the repo already answers, asks only the
   gaps, and writes `docs/pubdev-brand.md`.
 - New references: `brand-profile.md` (schema, resolution order, Utopia detection - a lone
   `utopia_` prefix is not enough, forks keep the prefix without the brand) and
