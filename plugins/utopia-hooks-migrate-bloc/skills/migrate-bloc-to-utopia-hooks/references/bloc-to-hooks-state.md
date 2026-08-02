@@ -96,10 +96,10 @@ TaskListScreenState useTaskListScreenState() {
 - Cubit `close()` disposal → automatic hook cleanup
 
 **What MUST be eliminated (not carried over):**
-- `copyWith()` — hooks use individual `useState` per field, not immutable state objects
-- `Equatable` / `props` — hooks don't do equality-based rebuild
-- `Status` enum — use nullable `T?` for loading and `bool` flags for actions (see section 5)
-- File name `_cubit.dart` / `_bloc.dart` — rename to `_state.dart`
+- `copyWith()` - hooks use individual `useState` per field, not immutable state objects
+- `Equatable` / `props` - hooks don't do equality-based rebuild
+- `Status` enum - use nullable `T?` for loading and `bool` flags for actions (see section 5)
+- File name `_cubit.dart` / `_bloc.dart` - rename to `_state.dart`
 
 ---
 
@@ -208,10 +208,10 @@ final count = context.select<TaskListCubit, int>((c) => c.state.tasks.length);
 ### utopia_hooks
 
 ```dart
-// In state hook — always reactive (no read/watch distinction)
+// In state hook - always reactive (no read/watch distinction)
 final tasksState = useProvided<TaskListState>();
 
-// For derived values — useMemoized instead of context.select
+// For derived values - useMemoized instead of context.select
 final count = useMemoized(() => tasksState.tasks?.length ?? 0, [tasksState.tasks]);
 ```
 
@@ -279,7 +279,7 @@ Widget build(BuildContext context) {
 
 ## 5. Status Enum → Built-in Hook State Machines
 
-BLoC `Status` enums (idle/loading/success/failure) map to hook built-in state tracking — don't recreate them.
+BLoC `Status` enums (idle/loading/success/failure) map to hook built-in state tracking - don't recreate them.
 
 ### Download (read data) → useAutoComputedState
 
@@ -291,7 +291,7 @@ BLoC `Status` enums (idle/loading/success/failure) map to hook built-in state tr
 | `Status.failure` / `error` | `.failed(exception)` | error callback or `.value.when(failed: ...)` |
 
 ```dart
-// ❌ BLoC — manual Status tracking
+// ❌ BLoC - manual Status tracking
 class TaskListState extends Equatable {
   final Status status;
   final List<Task> tasks;
@@ -306,7 +306,7 @@ class TaskListCubit extends Cubit<TaskListState> {
   }
 }
 
-// ✅ Hooks — ComputedStateValue handles all states
+// ✅ Hooks - ComputedStateValue handles all states
 class TaskListScreenState {
   final IList<Task>? tasks;  // null = loading, non-null = loaded
   // No Status enum. No copyWith. No Equatable.
@@ -384,7 +384,7 @@ SettingsScreenState useSettingsScreenState() {
 ```
 
 **What changed (BLoC → hooks mapping):**
-- `HydratedCubit` + `fromJson`/`toJson` → `usePersistedState(get, set)` — no serialization boilerplate
+- `HydratedCubit` + `fromJson`/`toJson` → `usePersistedState(get, set)` - no serialization boilerplate
 - `themeMode.isSynchronized` tells you if the value has been saved
 
 ---
@@ -443,7 +443,7 @@ Cubits sometimes carry top-level mutable variables or `static` fields acting as 
 ### BLoC
 
 ```dart
-// Top-level mutable state — shared across Cubit instances
+// Top-level mutable state - shared across Cubit instances
 final Map<int, CollapseState> _globalCollapseStates = {};
 DateTime? _retryAfterDateTime;
 
@@ -477,22 +477,22 @@ See `utopia-hooks:references/global-state.md` and `utopia-hooks:references/di-se
 
 ## Common Pitfalls During Migration
 
-- **Keeping BLoC state union types** — don't port the Freezed union; flatten to nullable fields + bools (section 4)
-- **Creating a "HookCubit"** — don't wrap hooks in a class; the hook function IS the replacement for the Cubit class
-- **Keeping `emit()` mental model** — there's no emit; `useState` is direct mutation, `useAutoComputedState` is automatic
-- **Migrating one file at a time within a screen** — migrate the entire screen (Screen + State + View) at once
-- **Leaving `flutter_bloc` as a dependency "just in case"** — remove it when all screens are migrated
-- **Cascade trap (the #1 BLoC-brain mistake)** — In BLoC: event → handler → compute derived value → `emit(state.copyWith(derived: value))`. Naively translated to hooks: source changes → `useEffect` fires → writes to `useState` → triggers rebuild → repeat. Each `useEffect` → `useState` write is an extra rebuild frame. Three cascading effects = four rebuilds where one suffices. **Rule:** If a value is computable from other state, use `useMemoized` (runs synchronously during build, single rebuild). Only use `useEffect` for fire-and-forget side effects (analytics, stream subscriptions, external writes).
+- **Keeping BLoC state union types** - don't port the Freezed union; flatten to nullable fields + bools (section 4)
+- **Creating a "HookCubit"** - don't wrap hooks in a class; the hook function IS the replacement for the Cubit class
+- **Keeping `emit()` mental model** - there's no emit; `useState` is direct mutation, `useAutoComputedState` is automatic
+- **Migrating one file at a time within a screen** - migrate the entire screen (Screen + State + View) at once
+- **Leaving `flutter_bloc` as a dependency "just in case"** - remove it when all screens are migrated
+- **Cascade trap (the #1 BLoC-brain mistake)** - In BLoC: event → handler → compute derived value → `emit(state.copyWith(derived: value))`. Naively translated to hooks: source changes → `useEffect` fires → writes to `useState` → triggers rebuild → repeat. Each `useEffect` → `useState` write is an extra rebuild frame. Three cascading effects = four rebuilds where one suffices. **Rule:** If a value is computable from other state, use `useMemoized` (runs synchronously during build, single rebuild). Only use `useEffect` for fire-and-forget side effects (analytics, stream subscriptions, external writes).
 
 ## Related
 
-- [bloc-to-hooks-widget.md](./bloc-to-hooks-widget.md) — widget-layer mapping (BlocBuilder/Listener/Consumer, TextEditingController, stream.listen, StatefulWidget lifecycle, WidgetsBindingObserver)
-- `utopia-hooks:references/screen-state-view.md` — full Screen/State/View pattern reference
-- `utopia-hooks:references/hooks-reference.md` — complete hook catalog
-- `utopia-hooks:references/async-patterns.md` — download/upload mental model, useSubmitState, useAutoComputedState, stream hooks
-- `utopia-hooks:references/global-state.md` — `_providers`, `useProvided`, StateClass
-- `utopia-hooks:references/di-services.md` — `useInjected`, service injection
-- `utopia-hooks:references/flutter-conventions.md` — IList/IMap, TextEditingControllerWrapper
-- [migration-steps.md](./migration-steps.md) — step-by-step migration checklist
-- [global-state-migration.md](./global-state-migration.md) — provider tree migration
-- [complex-cubit-patterns.md](./complex-cubit-patterns.md) — advanced stream/global patterns
+- [bloc-to-hooks-widget.md](./bloc-to-hooks-widget.md) - widget-layer mapping (BlocBuilder/Listener/Consumer, TextEditingController, stream.listen, StatefulWidget lifecycle, WidgetsBindingObserver)
+- `utopia-hooks:references/screen-state-view.md` - full Screen/State/View pattern reference
+- `utopia-hooks:references/hooks-reference.md` - complete hook catalog
+- `utopia-hooks:references/async-patterns.md` - download/upload mental model, useSubmitState, useAutoComputedState, stream hooks
+- `utopia-hooks:references/global-state.md` - `_providers`, `useProvided`, StateClass
+- `utopia-hooks:references/di-services.md` - `useInjected`, service injection
+- `utopia-hooks:references/flutter-conventions.md` - IList/IMap, TextEditingControllerWrapper
+- [migration-steps.md](./migration-steps.md) - step-by-step migration checklist
+- [global-state-migration.md](./global-state-migration.md) - provider tree migration
+- [complex-cubit-patterns.md](./complex-cubit-patterns.md) - advanced stream/global patterns

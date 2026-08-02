@@ -1,13 +1,13 @@
 ---
-description: "Design→code pipeline — reads design from <design-tool> or claude.design, then runs architect → maintainer ↔ reviewer loop. Does NOT commit."
+description: "Design→code pipeline - reads design from <design-tool> or claude.design, then runs architect → maintainer ↔ reviewer loop. Does NOT commit."
 argument-hint: "[paper | handoff <path>] [--no-analyze-baseline]"
 allowed-tools: Task, Read, Bash, Glob, Grep, Edit
 model: inherit
 ---
 
-<!-- BLUEPRINT — adapt per-repo. Workflow-style slash command paired with REPO-design/SKILL.md. Open only if Phase 0.4 confirmed design-tool integration. Substitute <prefix> tokens. Strip this banner after substitution. -->
+<!-- BLUEPRINT - adapt per-repo. Workflow-style slash command paired with REPO-design/SKILL.md. Open only if Phase 0.4 confirmed design-tool integration. Substitute <prefix> tokens. Strip this banner after substitution. -->
 
-# /<prefix>-design — design→code orchestrator
+# /<prefix>-design - design→code orchestrator
 
 You coordinate design acquisition, then `<prefix>-architect`,
 `<prefix>-maintainer`, and `<prefix>-reviewer` to land a design
@@ -29,7 +29,7 @@ Raw arguments: `$ARGUMENTS`
   reviewer again. If still failing, stop and hand both reports to the user.
 - **Scope stays constant across retries.**
 
-## Step 0 — Acquire design
+## Step 0 - Acquire design
 
 Detect the design source from `$ARGUMENTS`:
 
@@ -88,21 +88,21 @@ Artboard(s): <name, dimensions>
 <icons, images that need handling>
 ```
 
-## Step 1 — Parse remaining arguments
+## Step 1 - Parse remaining arguments
 
 Extract from `$ARGUMENTS`:
 
-- `--no-analyze-baseline` — skip baseline analyze capture.
+- `--no-analyze-baseline` - skip baseline analyze capture.
 
-## Step 2 — Baseline analyze (unless skipped)
+## Step 2 - Baseline analyze (unless skipped)
 
 Capture per-file issue counts by severity using the repo's analyzer tool
 (`mcp__<prefix>-dart__analyze_files` or `dart analyze`). The reviewer's
 exit gate is **"zero NEW issues in `files_touched` vs baseline"**.
 
-## Step 3 — Planning (always on for designs)
+## Step 3 - Planning (always on for designs)
 
-Always invoke `<prefix>-architect`. Designs need planning — the architect
+Always invoke `<prefix>-architect`. Designs need planning - the architect
 determines which files to create/modify, which components to use, and
 what Screen/State/View structure is needed.
 
@@ -120,12 +120,12 @@ interactions. Use the <prefix> master skill for component knowledge and
 utopia-hooks for state patterns.
 ```
 
-## Step 4 — Code (maintainer, attempt 1)
+## Step 4 - Code (maintainer, attempt 1)
 
 Invoke `<prefix>-maintainer` via the Task tool:
 
 ```
-Implement the following design. The result must be production-ready —
+Implement the following design. The result must be production-ready -
 use the repo's component catalogue (no custom widgets where catalogue
 equivalents exist), design tokens (no raw literals), and utopia-hooks
 Screen/State/View for full pages.
@@ -151,13 +151,13 @@ Extract from the maintainer's self-report: `status`, `files_touched`,
 If `status = needs_human` → stop. Surface the report.
 If `analyze` is non-clean and not justified → bounce back before review.
 
-## Step 5 — Review (reviewer, attempt 1)
+## Step 5 - Review (reviewer, attempt 1)
 
 Invoke `<prefix>-reviewer` via the Task tool, **fresh context**:
 
 ```
 Review the following change set against the <prefix> + utopia-hooks skill
-surface. You are independent — you do NOT see the maintainer's reasoning,
+surface. You are independent - you do NOT see the maintainer's reasoning,
 self-report, or warnings. Verify the diff from scratch.
 
 files_touched:
@@ -167,7 +167,7 @@ proposed_commit_message:
 <draft from maintainer self-report>
 
 baseline_analyze (pre-change analyzer issue counts per file):
-<map or "not captured — use zero-absolute gate">
+<map or "not captured - use zero-absolute gate">
 
 Produce your classified report (BLOCKER / WARN / NIT) per your agent
 definition. Exit gate: zero BLOCKERS in files_touched, zero NEW
@@ -177,7 +177,7 @@ analyzer issues vs baseline. WARNs and NITs are advisory.
 - **Pass** (no BLOCKERS) → Step 7.
 - **Fail** (any BLOCKER) → Step 6.
 
-## Step 6 — Retry (maintainer, attempt 2)
+## Step 6 - Retry (maintainer, attempt 2)
 
 Re-invoke `<prefix>-maintainer` with the reviewer's BLOCKERS:
 
@@ -196,7 +196,7 @@ New analyzer issues vs baseline:
 <list or "none">
 
 Re-read the current state of files_touched, apply fixes, re-run output
-hygiene (formatter on files_touched only — do NOT bulk-format unrelated
+hygiene (formatter on files_touched only - do NOT bulk-format unrelated
 files), re-run the analyzer, and return a fresh self-report.
 ```
 
@@ -205,12 +205,12 @@ Then re-invoke `<prefix>-reviewer` with fresh-context discipline.
 If reviewer passes → Step 7. If fails again → Step 7 with
 `status: review_double_fail`.
 
-## Step 7 — Exit
+## Step 7 - Exit
 
 Hand off to the user. Print:
 
 ```
-# /<prefix>-design — <design label>
+# /<prefix>-design - <design label>
 
 source: <<design-tool> / claude.design>
 status: <passed | partial | review_double_fail | needs_human>
@@ -243,14 +243,14 @@ Brief text updates at meaningful moments:
 
 - "Acquiring design from <design-tool>…"
 - "Design brief compiled: 3 artboards, ~12 components identified."
-- "Running architect — planning component mapping + Screen/State/View
+- "Running architect - planning component mapping + Screen/State/View
   structure."
 - "Maintainer done. files_touched: 6 files, 2 design gaps flagged.
   Handing to reviewer."
-- "Reviewer flagged 1 BLOCKER — retrying maintainer with fix list."
+- "Reviewer flagged 1 BLOCKER - retrying maintainer with fix list."
 - "Review passed. Summary below; commit is yours."
 
-## Failure modes — stop, do not improvise
+## Failure modes - stop, do not improvise
 
 - Paper MCP not available → inform user, suggest `handoff <path>`
   alternative.

@@ -51,6 +51,8 @@ This is the AI tooling we use ourselves. We open-sourced it so the rest of the F
 | <a href="plugins/utopia-hooks-migrate-bloc/"><img src="docs/tiles/utopia-hooks-migrate-bloc.png" width="302" alt="Utopia Migrate BLoC"/></a> | Migrate BLoC/Cubit codebases to `utopia_hooks` - two-phase (global states first, then screens), per-commit granularity, and orchestrated inventory / foundation / global-state / screen / review sub-agents. |
 | <a href="plugins/utopia-reviews/"><img src="docs/tiles/utopia-reviews.png" width="254" alt="Utopia Reviews"/></a> | Code reviews as a two-way agent conversation on GitHub / GitLab / Bitbucket. `utopia-code-review` gives a severity-ranked, Utopia-aware review of a PR/MR or a local branch pair; `utopia-resolve-code-review` triages the comments on your own PR and - after one approval gate - fixes, pushes, replies, and resolves. |
 | <a href="plugins/utopia-pubdev/"><img src="docs/tiles/utopia-pubdev.png" width="249" alt="Utopia Pub.dev"/></a> | Standardize pub.dev package READMEs - brand-chip header, house voice, section structure, restrained four-colour badge row, sibling footer, and a tool-agnostic AI-assistants section. Bundles the brand-chip header generator. |
+| <a href="plugins/utopia-design/"><img src="docs/tiles/utopia-design.png" width="236" alt="Utopia Design"/></a> | The Utopia Design Protocol for `utopia_ui` apps - DTCG design tokens with validation gates, imports from Figma / Tailwind / handoff bundles, a generated Flutter theme plus HTML twin, screens built from the component manifest, and project component scaffolding. |
+| <a href="plugins/utopia-dart-lsp/"><img src="docs/tiles/utopia-dart-lsp.png" width="249" alt="Utopia Dart LSP"/></a> | Dart/Flutter language server for Claude Code - live analyzer diagnostics on every `.dart` edit, plus hover, go-to-definition, find-references, symbols, and call hierarchy. fvm-aware SDK selection, zero configuration. |
 
 Canonical hook reference list lives in [`plugins/utopia-hooks/skills/utopia-hooks/SKILL.md`](plugins/utopia-hooks/skills/utopia-hooks/SKILL.md).
 
@@ -86,6 +88,8 @@ dart pub global activate utopia_cli
 /plugin install utopia-hooks-migrate-bloc@utopia-flutter-skills
 /plugin install utopia-reviews@utopia-flutter-skills
 /plugin install utopia-pubdev@utopia-flutter-skills
+/plugin install utopia-design@utopia-flutter-skills
+/plugin install utopia-dart-lsp@utopia-flutter-skills
 ```
 
 ### Codex
@@ -126,6 +130,7 @@ You get a Flutter app with `utopia_hooks` + `utopia_arch` scaffolding **and** an
 - [Screen/State/View pattern](plugins/utopia-hooks/skills/utopia-hooks/SKILL.md)
 - [Hook catalog](plugins/utopia-hooks/skills/utopia-hooks/references/)
 - [CMS / admin-panel guide](plugins/utopia-cms/skills/utopia-cms/SKILL.md)
+- [Utopia Design Protocol - tokens & rebranding](plugins/utopia-design/skills/utopia-design-tokens/SKILL.md) (companion tooling ships as `utopia_design_tools`; a git dependency until it reaches pub.dev - see the skill's validation reference)
 
 ## Companion packages
 

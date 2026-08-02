@@ -1,6 +1,6 @@
 # team bundle
 
-Command-only bundle. Installs `.claude/commands/<prefix>-team.md` — an
+Command-only bundle. Installs `.claude/commands/<prefix>-team.md` - an
 orchestrator that runs architect → parallel maintainer batches → reviewer
 → pre-commit auditor for cross-cutting work.
 
@@ -13,10 +13,10 @@ more genuinely disjoint chunks** worth implementing in parallel:
   simultaneously (UI + backend + data, app + admin, etc.), and
 - The disjoint chunks have minimal file overlap (so parallel maintainer
   calls don't fight over the same files), and
-- Wall-clock matters — saving 30-90 seconds per PR by parallelising is
+- Wall-clock matters - saving 30-90 seconds per PR by parallelising is
   worth the coordination overhead.
 
-**Not auto-inspectable** — having multiple packages doesn't imply parallel
+**Not auto-inspectable** - having multiple packages doesn't imply parallel
 maintainer fan-out is worth it. Phase 0.4 must surface this with a user
 prompt:
 
@@ -27,37 +27,37 @@ If most PRs are single-area or the chunks aren't independent enough to
 parallelise safely, reject this bundle and use `/<prefix>-implement`
 instead.
 
-## Reversal — when **not** to open
+## Reversal - when **not** to open
 
 - Most PRs touch a single area and run cleanly through
   `/<prefix>-implement`.
-- The repo's "disjoint" chunks aren't actually disjoint — parallel
+- The repo's "disjoint" chunks aren't actually disjoint - parallel
   maintainers would step on each other's edits.
 - The team prefers sequential implementation for predictability and
   doesn't value the wall-clock saving.
 
 ## What this bundle ships
 
-- `command/<prefix>-team.md` — full cross-cutting orchestration: architect
+- `command/<prefix>-team.md` (ships as [`command/REPO-team.md`](command/REPO-team.md)) - full cross-cutting orchestration: architect
   plans + splits → optional domain-auditor gate → parallel maintainer
   batches (when disjoint) → reviewer → optional domain-auditor re-check
   → pre-commit auditor → user-driven commit.
 
-No skill — orchestration is the whole content; the agents this command
+No skill - orchestration is the whole content; the agents this command
 invokes carry the domain knowledge.
 
 ## Substitution checklist
 
-- `<prefix>` — repo command/agent prefix (e.g. `aap`).
-- Agent references — `<prefix>-architect`, `<prefix>-maintainer`,
+- `<prefix>` - repo command/agent prefix (e.g. `aap`).
+- Agent references - `<prefix>-architect`, `<prefix>-maintainer`,
   `<prefix>-reviewer`, `<prefix>-precommit-auditor`.
-- Domain auditor — `<prefix>-security-auditor` is repo-specific (example). If the
+- Domain auditor - `<prefix>-security-auditor` is repo-specific (example). If the
   repo has a domain auditor (security, perf, migrations, accessibility,
   …), keep the gate steps and rename. If not, **drop steps 2 and 5
   entirely**.
-- Sister-command references — `/<prefix>-implement`, `/<prefix>-audit`
+- Sister-command references - `/<prefix>-implement`, `/<prefix>-audit`
   must exist in the repo, or remove the cross-links.
-- Domain-specific gate criteria — the production version triggers
+- Domain-specific gate criteria - the production version triggers
   security-auditor on "auth, crypto, key management, native crypto FFI, key-exchange primitives,
   Supabase RLS". Replace with the repo's actual security-sensitive surface
   (or perf-sensitive, or migration-touching, depending on what the domain
@@ -70,7 +70,7 @@ five-agent roster (architect / security-auditor / maintainer / reviewer /
 precommit-auditor) is documented in repo-A's
 `.claude/docs/claude-architecture.md` §Decisions.
 
-## Load-bearing pieces — keep when adapting
+## Load-bearing pieces - keep when adapting
 
 - **Plan → STOP → user approval before implementation.** Cross-cutting
   work is expensive to redo; the user approves the architect's split
@@ -87,14 +87,14 @@ precommit-auditor) is documented in repo-A's
   chunk in turn, waiting for the report before the next.
 - **Reviewer fresh context.** As in `/<prefix>-implement`, the reviewer
   sees only `files_touched`, the proposed commit message, and the
-  baseline analyze — never the maintainer's reasoning.
+  baseline analyze - never the maintainer's reasoning.
 - **Retry cap 2.** Per chunk. Two maintainer attempts max before stopping
   and surfacing to the user.
 - **Domain-auditor re-check on final diff** (step 5). If security-/perf-/
   migration-sensitive code actually changed, run the auditor again on the
   resulting diff.
 - **Pre-commit audit as a gate, not a commit.** The command never commits
-  on the user's behalf — `/<prefix>-audit` runs the precommit-auditor and
+  on the user's behalf - `/<prefix>-audit` runs the precommit-auditor and
   surfaces findings, but the user types the final commit.
 
 ## Strip-the-banner reminder

@@ -19,13 +19,13 @@ metadata:
   tags: claude-code, ai-architecture, agents, skills, blueprint, project-layer, hooks, flutter
 ---
 
-# utopia-ai-arch — Project `.claude/` Layer
+# utopia-ai-arch - Project `.claude/` Layer
 
 ## Overview
 
-Holistic guide for the **AI architecture** of a Utopia Flutter project — everything under `.claude/` plus `CLAUDE.md` / `AGENTS.md`. Two layers: the **foundation** (the `utopia-hooks` plugin, ambient, repo-agnostic) and the **project** (your repo's `.claude/`, only what exists because of *this* project's domain, topology, and workflow). This skill teaches the project layer — how to **create** it from the blueprint, **maintain** it as the repo evolves, and avoid the drift modes that have actually happened in production repos.
+Holistic guide for the **AI architecture** of a Utopia Flutter project - everything under `.claude/` plus `CLAUDE.md` / `AGENTS.md`. Two layers: the **foundation** (the `utopia-hooks` plugin, ambient, repo-agnostic) and the **project** (your repo's `.claude/`, only what exists because of *this* project's domain, topology, and workflow). This skill teaches the project layer - how to **create** it from the blueprint, **maintain** it as the repo evolves, and avoid the drift modes that have actually happened in production repos.
 
-Project skills cross-link to foundation references; they never restate foundation content. A skill whose description matches every Dart file but only adds project-specific content is a router-in-disguise — split or merge until each skill has a real positive AND negative scope.
+Project skills cross-link to foundation references; they never restate foundation content. A skill whose description matches every Dart file but only adds project-specific content is a router-in-disguise - split or merge until each skill has a real positive AND negative scope.
 
 ## When to Apply
 
@@ -52,10 +52,10 @@ Full documentation with verbatim file skeletons and quoted invariants in [refere
 | [slash-commands.md][slash-commands] | HIGH | 3-base commands (/implement, /audit, /audit-skills), implement-loop shape with retry cap = 2, never-commit/never-push, when to add `/plan` `/team` `/design` `/ship` |
 | [architecture-doc.md][architecture-doc] | HIGH | `.claude/docs/claude-architecture.md` 9-section spine, rejected-alternative 4-field entry shape, toolchain canon, MCP-assumption rules |
 | [claude-md.md][claude-md] | HIGH | What belongs in `CLAUDE.md` (always-loaded inventory) vs deep content (references), table shapes, `AGENTS.md` symlink convention and rationale |
-| [bootstrap-procedure.md][bootstrap-procedure] | HIGH | Step-by-step "create the Claude layer for a new repo" — what to gather first, 7-step apply, validation checklist |
+| [bootstrap-procedure.md][bootstrap-procedure] | HIGH | Step-by-step "create the Claude layer for a new repo" - what to gather first, 7-step apply, validation checklist |
 | [settings-json.md][settings-json] | MEDIUM | Canonical settings.json shape: `extraKnownMarketplaces`, `enabledPlugins`, `permissions.allow` (why git push is OFF), `hooks.PostToolUse` matcher, MCP wiring |
 
-**Templates** for bootstrapping a new repo's `.claude/` layer live in [`templates/`][templates]; the map of what-goes-where + placeholder vocabulary is in [`templates/TEMPLATES.md`][templates-readme]. Read [`bootstrap-procedure.md`][bootstrap-procedure] before applying — Phase 0 (Gather) and Phase 1 (Design the skill split) come BEFORE any file copy.
+**Templates** for bootstrapping a new repo's `.claude/` layer live in [`templates/`][templates]; the map of what-goes-where + placeholder vocabulary is in [`templates/TEMPLATES.md`][templates-readme]. Read [`bootstrap-procedure.md`][bootstrap-procedure] before applying - Phase 0 (Gather) and Phase 1 (Design the skill split) come BEFORE any file copy.
 
 ## Quick Reference
 
@@ -63,7 +63,7 @@ Pointer-paragraph per critical area. Follow the link for the contract; don't ext
 
 ### Two-layer model → [layer-model.md][layer-model]
 
-Foundation = `utopia-hooks` plugin (ambient, marketplace-installed, repo-agnostic). Project = `.claude/` in the repo (only domain / topology / workflow concerns). Project references foundation, never duplicates. `.claude/refs/` = content for the agent; `.claude/docs/` = meta about the layer — never mix.
+Foundation = `utopia-hooks` plugin (ambient, marketplace-installed, repo-agnostic). Project = `.claude/` in the repo (only domain / topology / workflow concerns). Project references foundation, never duplicates. `.claude/refs/` = content for the agent; `.claude/docs/` = meta about the layer - never mix.
 
 ### Agent roster → [agent-roster.md][agent-roster]
 
@@ -81,7 +81,7 @@ Every skill needs positive AND negative applicability. "Cross-cutting" or "share
 
 The pillar this skill exists for. Operations on a live layer paired with the 21-symptom drift catalogue. Re-read `claude-architecture.md` before acting when: new techstack, new MCP, new external integration, recent incident, or a roster proposal.
 
-## Diagnostic routing — when the agent is acting wrong
+## Diagnostic routing - when the agent is acting wrong
 
 | Symptom | Start with |
 |---------|------------|
@@ -95,7 +95,7 @@ The pillar this skill exists for. Operations on a live layer paired with the 21-
 | Reviewer accepting blockers that don't cite a rule | [agent-roster.md][agent-roster] (reviewer invariants) |
 | Hook never fires / fires in an unrelated repo | [enforcement-hooks.md][enforcement-hooks] (Scope guards) + [bootstrap-procedure.md][bootstrap-procedure] (validation checklist) |
 | Skill `references/` accumulating cross-cutting content | [evolution-and-drift.md][evolution-and-drift] (symptom A) |
-| "Should we add a `<prefix>-shared` skill?" / "a `git push` guard?" / "a 5th agent?" | [skill-design.md][skill-design] / [enforcement-hooks.md][enforcement-hooks] / [agent-roster.md][agent-roster] (each says NO — read why) |
+| "Should we add a `<prefix>-shared` skill?" / "a `git push` guard?" / "a 5th agent?" | [skill-design.md][skill-design] / [enforcement-hooks.md][enforcement-hooks] / [agent-roster.md][agent-roster] (each says NO - read why) |
 
 For non-diagnostic lookups (adding a new skill / agent / command / hook, editing CLAUDE.md or the architecture doc), the References table above maps directly.
 
@@ -138,12 +138,12 @@ The diagnostic checklist is concentrated in [evolution-and-drift.md][evolution-a
 2. Does it restate foundation conventions (Screen/State/View, hooks, IList rules)? → Move to cross-links into `utopia-hooks`.
 3. Does a new path nudge match the surfaced skill's applicability EXACTLY and point at ≥2 references? → If not, the nudge surfaces wrong / no content.
 4. Does `CLAUDE.md`'s inventory match `.claude/skills/` + `.claude/agents/` + `.claude/commands/` listings? → Run `/<prefix>-audit-skills`.
-5. Does `claude-architecture.md` reflect the change (Skill split / Agent roster / Slash commands / Rejected alternatives — whichever applies)? → Update §Rollout status; if a rejected alternative was reversed, flip in place.
+5. Does `claude-architecture.md` reflect the change (Skill split / Agent roster / Slash commands / Rejected alternatives - whichever applies)? → Update §Rollout status; if a rejected alternative was reversed, flip in place.
 
 ## Companion Plugins
 
-- **[utopia-hooks](https://github.com/Utopia-USS/utopia-flutter-skills)** — the foundation this layer assumes. Always installed alongside.
-- **[utopia-hooks-migrate-bloc](https://github.com/Utopia-USS/utopia-flutter-skills)** — orchestrated BLoC → utopia_hooks migration. Independent surface; not part of `.claude/` AI architecture.
+- **[utopia-hooks](https://github.com/Utopia-USS/utopia-flutter-skills)** - the foundation this layer assumes. Always installed alongside.
+- **[utopia-hooks-migrate-bloc](https://github.com/Utopia-USS/utopia-flutter-skills)** - orchestrated BLoC → utopia_hooks migration. Independent surface; not part of `.claude/` AI architecture.
 
 ## Attribution
 

@@ -1,7 +1,7 @@
 {
   "name": "utopia-ai-arch",
   "description": "👾 Create and maintain the Claude Code `.claude/` layer (agents, skills, slash commands, enforcement hooks, settings.json, refs, claude-architecture.md decision log) for Utopia Flutter projects. Encodes the project-claude-layer blueprint plus the invariants and decision criteria distilled from production implementations across multiple Utopia repos. Use when bootstrapping a new repo's AI architecture, adding a skill/agent/command/hook script, recording a rejected alternative, auditing for drift, or diagnosing why the agent keeps forgetting a project convention.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "UtopiaSoftware"
   },

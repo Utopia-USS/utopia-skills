@@ -1,5 +1,5 @@
 <!--
-  BLUEPRINT FILE — not a production CLAUDE.md.
+  BLUEPRINT FILE - not a production CLAUDE.md.
 
   Adapt per-repo when applying the utopia-ai-arch project layer.
   Replace <repo>, <REPO>, <project name>, <repo-folder-name>, <area-N>
@@ -30,7 +30,7 @@
 This repo's Claude layer is layered on top of the **utopia-hooks** plugin
 (marketplace, declared at project scope in `.claude/settings.json` under
 `extraKnownMarketplaces` + `enabledPlugins`). Project skills assume it's
-installed — they do not restate hook idioms, Screen/State/View, async
+installed - they do not restate hook idioms, Screen/State/View, async
 patterns, DI, IList/IMap/ISet, or strict-analyzer style. See
 [.claude/docs/claude-architecture.md](.claude/docs/claude-architecture.md)
 for the layer model.
@@ -61,17 +61,17 @@ the full setup>
 
 | Skill | Applicability | Fires on |
 |---|---|---|
-| `<repo>-<area-1>` | <positive scope> — NOT <negative scope> | <typical edits> |
+| `<repo>-<area-1>` | <positive scope> - NOT <negative scope> | <typical edits> |
 | `<repo>-<area-2>` | ... | ... |
 
-(Inventory only — descriptions live in each `SKILL.md` frontmatter.)
+(Inventory only - descriptions live in each `SKILL.md` frontmatter.)
 
 ## Agents
 
 | Agent | Role |
 |---|---|
 | `<repo>-architect` | Plans, splits work, identifies affected skills |
-| `<repo>-maintainer` | Implements plans (write) — used by `/<repo>-implement` |
+| `<repo>-maintainer` | Implements plans (write) - used by `/<repo>-implement` |
 | `<repo>-reviewer` | Post-implementation classified review |
 | `<repo>-precommit-auditor` | Staged-diff commit-readiness audit |
 | `<repo>-<domain>-auditor` | <optional per-repo addition with one-line trigger> |
@@ -102,10 +102,10 @@ non-generated-file violations blocking.
 
 | Situation | Skill / references that fire | Agents to involve |
 |---|---|---|
-| <typical task A> | <skill + ref> | <agent or —> |
-| <typical task B> | <skill + ref> | <agent or —> |
+| <typical task A> | <skill + ref> | <agent or -> |
+| <typical task B> | <skill + ref> | <agent or -> |
 
-(The highest-leverage table in this file — add a row every time a typical
+(The highest-leverage table in this file - add a row every time a typical
 task gets mis-routed.)
 
 ## Common Commands
@@ -121,11 +121,11 @@ task gets mis-routed.)
 <!-- Optional section - cross-links to repo-root docs outside the Claude layer. -->
 ## Documentation
 
-- [.claude/docs/claude-architecture.md](.claude/docs/claude-architecture.md) — Claude layer decision log
-- [docs/<other>.md](docs/<other>.md) — <repo-specific design docs>
+- [.claude/docs/claude-architecture.md](.claude/docs/claude-architecture.md) - Claude layer decision log
+- [docs/<other>.md](docs/<other>.md) - <repo-specific design docs>
 
 ## Architecture decisions
 
-See [.claude/docs/claude-architecture.md](.claude/docs/claude-architecture.md) —
+See [.claude/docs/claude-architecture.md](.claude/docs/claude-architecture.md) -
 skill split rationale, enforcement mode, agent roster, rejected alternatives,
 reversal criteria, toolchain canon.

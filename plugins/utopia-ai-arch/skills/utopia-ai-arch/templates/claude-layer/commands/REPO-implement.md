@@ -5,9 +5,9 @@ allowed-tools: Task, Read, Bash, Glob, Grep, Edit
 model: inherit
 ---
 
-<!-- BLUEPRINT — adapt per-repo. Strip this banner after substitution. -->
+<!-- BLUEPRINT - adapt per-repo. Strip this banner after substitution. -->
 
-# /<repo>-implement — code ↔ review orchestrator
+# /<repo>-implement - code ↔ review orchestrator
 
 Drives one scoped change through the maintainer ↔ reviewer loop and hands
 the result back to the user. This command coordinates subagents; it does
@@ -22,13 +22,13 @@ Raw arguments: `$ARGUMENTS`
 - **Never push.** Period.
 - **Reviewer runs on fresh context.** When invoking `<repo>-reviewer`, pass only
   `files_touched` + `proposed_commit_message` + `baseline_analyze`. Withhold the
-  maintainer's self-report, reasoning, and warnings — independence is the
+  maintainer's self-report, reasoning, and warnings - independence is the
   reviewer's only superpower.
 - **Retry cap: 2.** Maintainer runs, reviewer fails → maintainer retries once
   with the fix list → reviewer runs again. If it still fails, stop and hand the
   two failing reports to the user. Do NOT loop further.
 - **Scope stays constant across retries.** Retry is for fixing the maintainer's
-  mistakes against the existing scope — not for expanding scope.
+  mistakes against the existing scope - not for expanding scope.
 
 ## Step 1 - Parse arguments
 

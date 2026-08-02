@@ -10,11 +10,11 @@ description: >
   utopia-hooks plugin.
 ---
 
-<!-- BLUEPRINT — adapt per-repo. Workflow-style skill paired with the REPO-design.md command. Open only if Phase 0.4 confirmed design-tool integration. Substitute <prefix> tokens. Strip this banner after substitution. -->
+<!-- BLUEPRINT - adapt per-repo. Workflow-style skill paired with the REPO-design.md command. Open only if Phase 0.4 confirmed design-tool integration. Substitute <prefix> tokens. Strip this banner after substitution. -->
 
 # <prefix>-design
 
-Workflow-style skill — format intentionally diverges from the
+Workflow-style skill - format intentionally diverges from the
 module / pattern / cheatsheet trichotomy that skill-design.md prescribes
 for project reference docs. Knowledge is organised around
 **sources / acquisition / translation steps**, because the value is in
@@ -42,17 +42,17 @@ For repo topology, environments, and the skills inventory see the always-on
 
 Two supported sources:
 
-- **<design-tool>** — live MCP connection. Tools:
+- **<design-tool>** - live MCP connection. Tools:
   `mcp__paper__get_basic_info`, `get_tree_summary`, `get_screenshot`,
   `get_jsx`, `get_selection`, `get_computed_styles`, `get_fill_image`,
   `get_font_family_info`.
-- **claude.design** — handoff bundle export. Structure:
+- **claude.design** - handoff bundle export. Structure:
   `.claude-handoff/` directory with `PROMPT.md` (designer intent), `tokens/`
   (token definitions), `components/` (component structure), `assets/`
   (referenced images / icons).
 
 If the team uses Figma exports instead, the bundle structure differs but
-the principles are the same — read tokens, read components, compile a brief.
+the principles are the same - read tokens, read components, compile a brief.
 
 ## When this skill fires
 
@@ -75,22 +75,22 @@ Infer from the design scope; the user can always override.
 
 ## Translation workflow
 
-1. **Acquire** — read the design using the appropriate source workflow
+1. **Acquire** - read the design using the appropriate source workflow
    (<design-tool> tools, or `ls` + `Read` over the handoff bundle).
-2. **Visual reference** — always get a screenshot or visual first for
+2. **Visual reference** - always get a screenshot or visual first for
    context. Without it, naming and layout intent are guesses.
-3. **Identify structure** — page type? Sections? Cards? Tables? Navigation?
+3. **Identify structure** - page type? Sections? Cards? Tables? Navigation?
    What's repeatable, what's bespoke?
-4. **Map to the repo's component vocabulary** — consult the master skill's
+4. **Map to the repo's component vocabulary** - consult the master skill's
    component catalogue / cheatsheet. **Reuse existing components**; don't
    reinvent.
-5. **Use design tokens** — the repo's token primitives (colors, spacing,
+5. **Use design tokens** - the repo's token primitives (colors, spacing,
    typography). No raw hex colors, no raw px spacing, no raw font
    definitions.
-6. **Flag gaps** — design elements without a component equivalent must be
+6. **Flag gaps** - design elements without a component equivalent must be
    listed explicitly with a recommendation: raw Flutter widget, propose
    new component, or approximate with an existing one.
-7. **Generate code** — at the correct depth, following master-skill +
+7. **Generate code** - at the correct depth, following master-skill +
    `utopia-hooks` conventions.
 
 ## <design-tool> acquisition
@@ -112,7 +112,7 @@ first instead of `get_tree_summary`.
 For typography work, call `get_font_family_info` before any styling so the
 mapping to the design system's font tokens is accurate.
 
-For image fills, `get_fill_image` returns the actual asset — copy into
+For image fills, `get_fill_image` returns the actual asset - copy into
 `assets/` and reference via the repo's image-loading convention.
 
 ## claude.design acquisition
@@ -130,7 +130,7 @@ Standard sequence:
 
 ## Design brief format
 
-Compile the acquired design into a structured brief — this is what gets
+Compile the acquired design into a structured brief - this is what gets
 passed into the architect and maintainer prompts in the
 `/<prefix>-design` command:
 
@@ -159,9 +159,9 @@ Artboard(s): <name, dimensions>
 
 - Always consult the repo's component catalogue before writing custom
   widgets.
-- Always use design tokens — no raw hex colors, px spacing, or font
+- Always use design tokens - no raw hex colors, px spacing, or font
   definitions.
-- Flag gaps explicitly — never silently drop design elements or use raw
+- Flag gaps explicitly - never silently drop design elements or use raw
   widgets without calling it out.
 - Buttons use theme variants from the design system, not direct color
   overrides.
@@ -171,9 +171,9 @@ Artboard(s): <name, dimensions>
 
 ## See also
 
-- Sister skill: the repo's master skill — component vocabulary, design
+- Sister skill: the repo's master skill - component vocabulary, design
   tokens, services, models. The primary source of component knowledge.
-- Orchestration: [`/<prefix>-design`](../../commands/<prefix>-design.md) —
+- Orchestration: [`/<prefix>-design`](../../commands/<prefix>-design.md) -
   full design→code pipeline with architect, maintainer, and reviewer.
-- `utopia-hooks` plugin — Screen/State/View, hooks, async patterns.
+- `utopia-hooks` plugin - Screen/State/View, hooks, async patterns.
 - Always-on context: [`CLAUDE.md`](../../../CLAUDE.md).

@@ -393,10 +393,10 @@ paginated "value" is the coupled `(items, cursor)` pair, so the hook exposes a s
 override - the paginated analogue of `MutableComputedState.updateValue`:
 
 ```dart
-// In-place single-row edit — cursor untouched, in-flight load left running:
+// In-place single-row edit - cursor untouched, in-flight load left running:
 state.posts.updateAt(index, (p) => p.copyWith(title: newTitle));
 
-// Single-row delete — pass cursor on offset/page pagination (see drift warning below):
+// Single-row delete - pass cursor on offset/page pagination (see drift warning below):
 state.posts.deleteAt(index, cursor: (offset) => offset - 1);
 
 // Bulk buffer rewrite:
@@ -430,7 +430,7 @@ void deletePost(Post post) {
   deleteSubmitState.runSimple<void, Never>(
     beforeSubmit: () => state.posts.deleteAt(
       index,
-      cursor: (offset) => offset - 1, // OFFSET pagination — omit for keyset
+      cursor: (offset) => offset - 1, // OFFSET pagination - omit for keyset
     ),
     submit: () async => api.deletePost(post.id),
     // On failure, roll back the buffer (re-insert) and the cursor:
@@ -608,7 +608,7 @@ test("loadMore appends items and advances cursor", () async {
 - **Expecting `shouldCompute: false` to cancel or clear** - it only skips the automatic loads; in-flight loads finish, items stay, and manual `loadMore()`/`refresh()` still work. Pass `clearOnShouldComputeFalse: true` if you need the state wiped when the gate closes.
 - **Wondering why infinite scroll stopped after a failure** - the wrapper suppresses auto-`loadMore` while `error != null` (no retry loops). Render a retry affordance that calls `loadMore()`; it clears the error and resumes.
 - **Returning a non-scrollable from the wrapper's `builder`** - the scroll listener can never fire, so `loadMore()` is never triggered. Must be a `ListView` / `GridView` / `CustomScrollView` / any scrollable.
-- **Deleting on offset/page pagination without correcting the cursor** - `updateValues((items) => …)` on the buffer alone leaves the cursor stale, so the next `loadMore` **skips** an element at the page boundary (a skip, not a duplicate — `deduplicateBy` won't catch it). Pass `cursor: (offset) => offset - 1` in the same call. Keyset cursors are immune. See [Optimistic mutations](#optimistic-mutations-on-a-paginated-list).
+- **Deleting on offset/page pagination without correcting the cursor** - `updateValues((items) => …)` on the buffer alone leaves the cursor stale, so the next `loadMore` **skips** an element at the page boundary (a skip, not a duplicate - `deduplicateBy` won't catch it). Pass `cursor: (offset) => offset - 1` in the same call. Keyset cursors are immune. See [Optimistic mutations](#optimistic-mutations-on-a-paginated-list).
 - **Reaching for an overlay when the mutation is already confirmed** - use the `updateValues` / `updateAt` buffer override for committed edits/deletes; reserve the render-time override layer for *transient* UI state (pending multi-select, inline drafts).
 - **Using `usePaginatedComputedState` for non-paged data** - single-shot loads should use `useAutoComputedState`, streams should use `useMemoizedStream`. Paginated is for cursor-driven pages.
 

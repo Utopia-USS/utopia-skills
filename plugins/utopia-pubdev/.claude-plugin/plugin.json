@@ -1,7 +1,7 @@
 {
   "name": "utopia-pubdev",
   "description": "👾 Compose and standardize pub.dev READMEs for Utopia Dart/Flutter packages - brand-chip header, house voice, section structure (minimal vs full tiers), a restrained badge set (incl. style: utopia_lints), a no-sponsor footer with sibling links, and a tool-agnostic AI assistants section. Bundles the brand-chip header generator (package name to Clay PNG via headless Chrome). Use when creating or refreshing a package README or its header image; not for app code or non-package docs.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "UtopiaSoftware"
   },

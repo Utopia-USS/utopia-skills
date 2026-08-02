@@ -5,7 +5,7 @@ allowed-tools: Task, Read, Glob, Grep
 model: inherit
 ---
 
-<!-- BLUEPRINT — adapt per-repo. Open only if Phase 0.4 confirmed routine cross-package planning need. Substitute <prefix>. Strip this banner after substitution. -->
+<!-- BLUEPRINT - adapt per-repo. Open only if Phase 0.4 confirmed routine cross-package planning need. Substitute <prefix>. Strip this banner after substitution. -->
 
 Plan this work without writing code: $ARGUMENTS
 
@@ -21,7 +21,7 @@ Plan this work without writing code: $ARGUMENTS
    such agents.
 3. Bring in `<prefix>-reviewer` for test strategy and risk-matrix
    analysis.
-4. Surface the architect's plan verbatim — sections in this order:
+4. Surface the architect's plan verbatim - sections in this order:
    scope + assumptions · affected packages · API / model / data-layer
    impact · domain-specific surface (security / migrations / perf as
    applicable) · testing plan · risks + open questions · task split ·

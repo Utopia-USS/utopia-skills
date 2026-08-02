@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BLUEPRINT — adapt per-repo. Strip this banner after substitution.
+# BLUEPRINT - adapt per-repo. Strip this banner after substitution.
 # <repo>_skills_drift.sh - Drift scan over .claude/**/*.md and CLAUDE.md.
 #
 # Finds dead markdown links - inline `[text](path)` and reference-style

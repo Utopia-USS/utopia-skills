@@ -1,6 +1,6 @@
 {
   "name": "utopia-cms",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Flutter CMS and admin-panel patterns with utopia_cms. CmsWidget shell, CmsTablePage, CmsDelegate integrations, CmsEntry catalog, filters, custom actions, and management sections.",
   "author": {
     "name": "UtopiaSoftware",

@@ -1,6 +1,6 @@
-<!-- BLUEPRINT — adapt per-repo. Strip this banner after substitution. -->
+<!-- BLUEPRINT - adapt per-repo. Strip this banner after substitution. -->
 
-# Claude Architecture — <project name>
+# Claude Architecture - <project name>
 
 How this repo's `.claude/` layer is shaped, on top of the `utopia-hooks`
 foundation plugin. Decisions live here; rationale is documented so that
@@ -122,10 +122,10 @@ and to make deliberate omissions visible.)
 
 ## 9. Rollout status
 
-1. Foundation wiring — <status>
-2. Skeleton — <status>
-3. Enforcement — <status>
-4. Agents — <status>
-5. Skills — <status>
-6. CLAUDE.md trim — <status>
-7. Validation — <status>
+1. Foundation wiring - <status>
+2. Skeleton - <status>
+3. Enforcement - <status>
+4. Agents - <status>
+5. Skills - <status>
+6. CLAUDE.md trim - <status>
+7. Validation - <status>

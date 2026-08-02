@@ -1,0 +1,12 @@
+name: without_utopia_ui_fixture
+description: Fixture app with no utopia_ui dependency (usage gate should NOT fire).
+publish_to: none
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

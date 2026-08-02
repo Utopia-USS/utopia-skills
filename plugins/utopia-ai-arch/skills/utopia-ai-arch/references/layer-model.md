@@ -1,17 +1,17 @@
 ---
-title: Two-Layer Model — Foundation vs Project
+title: Two-Layer Model - Foundation vs Project
 impact: CRITICAL
 tags: architecture, layering, scope, foundation, project
 ---
 
-# Two-Layer Model — Foundation vs Project
+# Two-Layer Model - Foundation vs Project
 
 ## What this is
 
 Every Utopia repo's AI architecture has exactly two layers, hard-separated:
 
-1. **Foundation** — the `utopia-hooks` plugin. Marketplace-installed, ambient, repo-agnostic. Teaches Screen / State / View, the hook catalog, async patterns, global state, DI, `IList`/`IMap`/`ISet`, lambda style, strict analyzer. **Knows nothing about your repo.**
-2. **Project** — `.claude/` inside the repo, plus `CLAUDE.md` / `AGENTS.md`. Only the concerns that exist because of *this* project's domain, monorepo topology, and workflow.
+1. **Foundation** - the `utopia-hooks` plugin. Marketplace-installed, ambient, repo-agnostic. Teaches Screen / State / View, the hook catalog, async patterns, global state, DI, `IList`/`IMap`/`ISet`, lambda style, strict analyzer. **Knows nothing about your repo.**
+2. **Project** - `.claude/` inside the repo, plus `CLAUDE.md` / `AGENTS.md`. Only the concerns that exist because of *this* project's domain, monorepo topology, and workflow.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -22,8 +22,8 @@ Every Utopia repo's AI architecture has exactly two layers, hard-separated:
 │  - <prefix>-<area> skills (your domain)                  │
 │  - /<prefix>-implement, /<prefix>-audit, ...             │
 │  - <prefix>_quality_check.sh path-→-skill nudges         │
-│  - .claude/refs/ — cross-skill shared markdown           │
-│  - .claude/docs/claude-architecture.md — decision log    │
+│  - .claude/refs/ - cross-skill shared markdown           │
+│  - .claude/docs/claude-architecture.md - decision log    │
 └──────────────────────────────────────────────────────────┘
                           ▲ referenced, never duplicated
                           │
@@ -51,9 +51,9 @@ Every Utopia repo's AI architecture has exactly two layers, hard-separated:
 
 Cross-link via `utopia-hooks:references/<file>.md` or a plain reference to the file path. Every project SKILL.md opens with a "Relationship to the foundation" table that lists what `utopia-hooks` owns and explicitly disclaims those concerns.
 
-> "Project references foundation, never duplicates. Cross-reference via `utopia-hooks:references/<file>.md`. If utopia renames something, we find out and fix; we don't inherit silently." — `production-repo-A/.claude/docs/claude-architecture.md:88-91`
+> "Project references foundation, never duplicates. Cross-reference via `utopia-hooks:references/<file>.md`. If utopia renames something, we find out and fix; we don't inherit silently." - `production-repo-A/.claude/docs/claude-architecture.md:88-91`
 
-**Why.** A repo that restates "use IList not List" inside its own skill diverges silently the day `utopia-hooks` updates its convention. A cross-link breaks loud — the link or the rule on the other end is what fails review, not behaviour months later.
+**Why.** A repo that restates "use IList not List" inside its own skill diverges silently the day `utopia-hooks` updates its convention. A cross-link breaks loud - the link or the rule on the other end is what fails review, not behaviour months later.
 
 ### 2. Foundation concerns stay in the foundation.
 
@@ -72,30 +72,30 @@ These belong to `utopia-hooks`, NEVER to a project skill:
 
 A concern is project-level when it requires knowing your repo's specifics:
 
-- Monorepo topology (which workspace owns what — `<area-1>/`, `admin/`, `<crypto-package>/`, `packages/<crypto-pkg>/`)
+- Monorepo topology (which workspace owns what - `<area-1>/`, `admin/`, `<crypto-package>/`, `packages/<crypto-pkg>/`)
 - Domain logic (domain-specific business logic per repo)
 - Design system tokens / components specific to this product
 - Backend contracts (Supabase RLS, gRPC proto, Firestore rules, Cloud Functions)
 - External integrations (Linear, `<ticketing-tool>`, `<design-tool>`, RevenueCat)
 - Build-runner / codegen specifics (proto, freezed, retrofit, route, localization)
-- Toolchain canon (FVM yes/no — a binary repo-level choice)
+- Toolchain canon (FVM yes/no - a binary repo-level choice)
 
 ### 4. Within `.claude/`, refs and docs are different things.
 
 ```
-.claude/refs/  — CONTENT for the agent (cross-skill shared markdown)
-.claude/docs/  — META about the layer (decision log, authoring helpers)
+.claude/refs/  - CONTENT for the agent (cross-skill shared markdown)
+.claude/docs/  - META about the layer (decision log, authoring helpers)
 ```
 
 **Why.** Mixing them invites the agent to load decision-log content as guidance, or to skip shared markdown thinking it's internal docs. They render the same in markdown viewers; only the directory split keeps the agent's loading model honest.
 
-> "`.claude/refs/` — content for the agent (cross-skill shared markdown). `.claude/docs/` — meta about the layer (decisions, architecture log, authoring helpers). Mixing them invites the agent to load decision-log content as guidance, or to skip shared markdown thinking it's internal docs." — blueprint README v1
+> "`.claude/refs/` - content for the agent (cross-skill shared markdown). `.claude/docs/` - meta about the layer (decisions, architecture log, authoring helpers). Mixing them invites the agent to load decision-log content as guidance, or to skip shared markdown thinking it's internal docs." - blueprint README v1
 
 ### 5. Foundation hooks and project hooks coexist; guarded scope is mandatory.
 
 `<prefix>_quality_check.sh` and the foundation hook fire on the same `Edit|Write|MultiEdit` events. They must coexist without conflict. Each script proves it's in scope (jq, file type, pubspec, repo-basename match) BEFORE doing anything. Out-of-scope = silent `exit 0`. See [enforcement-hooks.md](enforcement-hooks.md).
 
-> "Hooks from different layers coexist without conflict." — `production-repo-A/.claude/docs/claude-architecture.md:75`
+> "Hooks from different layers coexist without conflict." - `production-repo-A/.claude/docs/claude-architecture.md:75`
 
 ## Concrete shape
 
@@ -109,7 +109,7 @@ myrepo/
     ├── settings.json               hook wiring + plugin enablement + permissions
     ├── docs/
     │   └── claude-architecture.md  per-repo decision log (rationale, alternatives)
-    ├── refs/                       cross-skill shared markdown (passive — only via "See also")
+    ├── refs/                       cross-skill shared markdown (passive - only via "See also")
     │   ├── README.md
     │   └── <shared-doc>.md
     ├── agents/
@@ -142,7 +142,7 @@ myrepo/
 
 ### "Why have foundation if we restate everything anyway?"
 
-This is the symptom: a project skill that restates Screen/State/View, hook idioms, or IList rules. Fix: replace the restatement with a one-line "see foundation: utopia-hooks" and delete the duplicated material. The cross-link is the contract — restatement is silent divergence.
+This is the symptom: a project skill that restates Screen/State/View, hook idioms, or IList rules. Fix: replace the restatement with a one-line "see foundation: utopia-hooks" and delete the duplicated material. The cross-link is the contract - restatement is silent divergence.
 
 ### Mixing `.claude/refs/` and `.claude/docs/`
 
@@ -152,19 +152,19 @@ This is the symptom: a project skill that restates Screen/State/View, hook idiom
 
 ### Cross-skill content stuck inside one skill's references/
 
-If `<prefix>/references/foo.md` is referenced by two or more sister skills, it doesn't belong in one skill — it belongs in `.claude/refs/`, linked from each consuming SKILL.md's See also section. See [skill-design.md](skill-design.md) for the cross-link discipline rule.
+If `<prefix>/references/foo.md` is referenced by two or more sister skills, it doesn't belong in one skill - it belongs in `.claude/refs/`, linked from each consuming SKILL.md's See also section. See [skill-design.md](skill-design.md) for the cross-link discipline rule.
 
 ### "We don't need utopia-hooks, we write our own conventions"
 
-> "A Claude config for this repo without `utopia-hooks` is missing the foundation this codebase is written on — do not score its absence as self-containment; score it as missing baseline alignment." — `production-repo-A/.claude/docs/claude-architecture.md:120`
+> "A Claude config for this repo without `utopia-hooks` is missing the foundation this codebase is written on - do not score its absence as self-containment; score it as missing baseline alignment." - `production-repo-A/.claude/docs/claude-architecture.md:120`
 
 If the code uses utopia_hooks / utopia_arch, the foundation plugin is non-optional. A "self-contained" `.claude/` is a layer missing its base.
 
 ## See also
 
-- [skill-design.md](skill-design.md) — applicability scopes, no-router rule, cross-link discipline
-- [enforcement-hooks.md](enforcement-hooks.md) — guarded scope, foundation+project hook coexistence
-- [claude-md.md](claude-md.md) — AGENTS.md symlink, top-of-context inventory
-- [bootstrap-procedure.md](bootstrap-procedure.md) — applying the blueprint to a new repo
+- [skill-design.md](skill-design.md) - applicability scopes, no-router rule, cross-link discipline
+- [enforcement-hooks.md](enforcement-hooks.md) - guarded scope, foundation+project hook coexistence
+- [claude-md.md](claude-md.md) - AGENTS.md symlink, top-of-context inventory
+- [bootstrap-procedure.md](bootstrap-procedure.md) - applying the blueprint to a new repo
 - Foundation plugin: `utopia-hooks` at https://github.com/Utopia-USS/utopia-flutter-skills
-- Inline templates: [`../templates/`](../templates/) — canonical placeholder files for bootstrap; see [`../templates/TEMPLATES.md`](../templates/TEMPLATES.md) for the map
+- Inline templates: [`../templates/`](../templates/) - canonical placeholder files for bootstrap; see [`../templates/TEMPLATES.md`](../templates/TEMPLATES.md) for the map

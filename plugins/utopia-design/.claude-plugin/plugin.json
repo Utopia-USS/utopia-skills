@@ -1,0 +1,9 @@
+{
+  "name": "utopia-design",
+  "description": "👾 The Utopia Design Protocol for utopia_ui apps. Edit/rebrand DTCG design tokens (design/tokens.json) with validation gates, import external designs (Figma DTCG exports, tokens.css / Tailwind @theme, handoff bundles, DESIGN.md), regenerate the Flutter theme and HTML twin from tokens, build screens from the component manifest with explicit gap reporting, and scaffold project components registered in the project/merged manifest. SessionStart detection plus PostToolUse token/literal gates; silent outside utopia_ui projects.",
+  "version": "0.2.0",
+  "author": {
+    "name": "UtopiaSoftware"
+  },
+  "license": "BSD-2-Clause"
+}

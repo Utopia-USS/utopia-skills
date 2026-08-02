@@ -5,7 +5,7 @@ allowed-tools: Bash, Read, Edit
 model: inherit
 ---
 
-<!-- BLUEPRINT — adapt per-repo. Strip this banner after substitution. -->
+<!-- BLUEPRINT - adapt per-repo. Strip this banner after substitution. -->
 
 # /<repo>-audit-skills
 

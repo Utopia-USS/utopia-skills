@@ -1,6 +1,6 @@
-# `*-pattern.md` — cross-cutting convention style
+# `*-pattern.md` - cross-cutting convention style
 
-Use this style for **technical conventions that span features** —
+Use this style for **technical conventions that span features** -
 naming rules, model shape, service taxonomy, layout idioms, code-gen
 contracts. The defining property: there is no product story to tell.
 The convention exists because the code is shaped this way, and an
@@ -12,7 +12,7 @@ intent), use `*-module.md` instead. If it's a flat lookup
 `*-cheatsheet.md` instead.
 
 Common suffixes for this style: `*-pattern.md`, `*-system.md`,
-`*-services.md`, `*-models.md`. They're interchangeable — pick the
+`*-services.md`, `*-models.md`. They're interchangeable - pick the
 one that reads best in the parent skill's reference table.
 
 ---
@@ -32,7 +32,7 @@ under `proto/<area>/<feature>/`, base classes in `…/activity/base/`,
 and registration in `…/<feature>_registry.dart`."*
 
 If you can't summarise the pattern in two sentences, the document is
-trying to be a module — switch styles.
+trying to be a module - switch styles.
 
 ### `## When this applies`
 
@@ -45,9 +45,9 @@ pattern only applies in part of the skill's scope, say so explicitly
 
 The actual conventions, as a numbered list or table. Each rule is:
 
-- **What** — the convention itself, stated as an instruction.
-- **Why** — what would break or get inconsistent if it weren't
-  followed (this is the load-bearing part — it lets the agent
+- **What** - the convention itself, stated as an instruction.
+- **Why** - what would break or get inconsistent if it weren't
+  followed (this is the load-bearing part - it lets the agent
   generalise to edge cases not explicitly covered).
 
 Example:
@@ -62,7 +62,7 @@ testing), use sub-headings.
 
 ### `## How to apply`
 
-Concrete walk-through of "I'm adding a new <thing> — what do I do?".
+Concrete walk-through of "I'm adding a new <thing> - what do I do?".
 Step-by-step, file paths, command names. This is the section that
 turns the pattern from theory into action.
 
@@ -75,7 +75,7 @@ looks like the existing code, without needing to read 20 files first.
 
 ### `## Reference shapes`
 
-Type signatures, base classes, registration entries — small
+Type signatures, base classes, registration entries - small
 snippets that document the surface. Keep them short. If you find
 yourself reproducing 50 lines of a base class, link to the source
 file instead and quote only the signatures.
@@ -88,7 +88,7 @@ fine but diverges from the codebase".
 
 ### `## See also`
 
-Cross-links to related patterns or modules. Use sparingly — the
+Cross-links to related patterns or modules. Use sparingly - the
 parent skill's `SKILL.md` is the routing hub; if this section gets
 long, the link probably belongs there instead.
 

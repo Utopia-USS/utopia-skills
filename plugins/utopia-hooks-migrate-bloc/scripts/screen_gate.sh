@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# screen_gate.sh — per-screen migration gate for BLoC → utopia_hooks.
+# screen_gate.sh - per-screen migration gate for BLoC → utopia_hooks.
 #
 # Invoked as a Claude Code PostToolUse hook. Mechanizes Phase 3 (Self-Review)
 # and Phase 4 (Exit Gate) from screen-migration-flow.md, scoped to the single
@@ -70,142 +70,142 @@ add() { violations+=("$1"); }
 # --- Filename: old BLoC conventions ---
 case "$(basename "$file")" in
   *_cubit.dart|*_bloc.dart)
-    add "filename still uses *_cubit.dart / *_bloc.dart — rename to *_state.dart"
+    add "filename still uses *_cubit.dart / *_bloc.dart - rename to *_state.dart"
     ;;
 esac
 
 # --- Phase 4b: leftover BLoC artifacts ---
 if grep -qE "^import[[:space:]]+'package:(flutter_bloc|bloc|hydrated_bloc|bloc_concurrency)/" "$file"; then
-  add "still imports package:flutter_bloc / bloc / hydrated_bloc — remove after migration"
+  add "still imports package:flutter_bloc / bloc / hydrated_bloc - remove after migration"
 fi
 if grep -qE '\b(BlocBuilder|BlocListener|BlocConsumer|BlocProvider|MultiBlocProvider|RepositoryProvider)\b' "$file"; then
-  add "still uses BLoC widgets (BlocBuilder/BlocListener/BlocProvider/…) — convert to HookWidget + useProvided / useEffect"
+  add "still uses BLoC widgets (BlocBuilder/BlocListener/BlocProvider/…) - convert to HookWidget + useProvided / useEffect"
 fi
 if grep -qE 'context\.(read|watch|select)<' "$file"; then
-  add "still uses context.read / context.watch / context.select — use useProvided<StateType>() instead"
+  add "still uses context.read / context.watch / context.select - use useProvided<StateType>() instead"
 fi
 if grep -qE '\bemit\(' "$file"; then
-  add "still calls emit() — mutate useState fields directly instead"
+  add "still calls emit() - mutate useState fields directly instead"
 fi
 
 # --- Equatable (BLoC idiom) ---
 if grep -qE 'extends Equatable\b' "$file"; then
-  add "uses 'extends Equatable' — hooks don't need equality; use plain class with final fields"
+  add "uses 'extends Equatable' - hooks don't need equality; use plain class with final fields"
 fi
 
 # --- State file checks (Phase 3a, 3d, 3f, 3g) ---
 if [[ $in_state -eq 1 ]]; then
   # 3a: manual stream subscriptions
   if grep -qE '\.listen\(' "$file"; then
-    add "uses .listen( in state file — replace with useStreamSubscription / useMemoizedStream"
+    add "uses .listen( in state file - replace with useStreamSubscription / useMemoizedStream"
   fi
 
   # 3d: manual loading/status state
   if grep -qE 'useState<bool>.*[lL]oading|useState<bool>.*isLoading|useState<[A-Za-z]*Status>' "$file"; then
-    add "manual loading/status useState — use useAutoComputedState or useSubmitState instead"
+    add "manual loading/status useState - use useAutoComputedState or useSubmitState instead"
   fi
 
   # copyWith (BLoC thinking)
   if grep -qE '\bcopyWith\(' "$file"; then
-    add "uses copyWith() — one useState per mutable field instead"
+    add "uses copyWith() - one useState per mutable field instead"
   fi
 
   # 3f: nav / UI in state
   if grep -qE '\b(BuildContext|Navigator\.|GoRouter|context\.(push|pop|go)|Overlay\.|MediaQuery\.|ScaffoldMessenger|showSnackBar)\b' "$file"; then
-    add "state file references BuildContext / Navigator / UI APIs — must be callbacks injected from Screen"
+    add "state file references BuildContext / Navigator / UI APIs - must be callbacks injected from Screen"
   fi
 
   # 3g: top-level mutable state
   if grep -qE '^final[[:space:]]+(Map|List|Set)\b|^(int|bool|double|String|DateTime\??)[[:space:]]+[a-zA-Z_]+[[:space:]]*=' "$file"; then
-    add "state file has top-level mutable state — move to useInjected service or _providers"
+    add "state file has top-level mutable state - move to useInjected service or _providers"
   fi
 
   # 3h: mutable collections in State class body / hook body (indented)
-  # flutter-conventions §2 — always use IList / IMap / ISet, not List / Map / Set
+  # flutter-conventions §2 - always use IList / IMap / ISet, not List / Map / Set
   if grep -qE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' "$file"; then
-    add "state file declares mutable List/Map/Set field — use IList/IMap/ISet from fast_immutable_collections (flutter-conventions §2)"
+    add "state file declares mutable List/Map/Set field - use IList/IMap/ISet from fast_immutable_collections (flutter-conventions §2)"
   fi
 
   # emit() wrapper
   if grep -qE 'void[[:space:]]+emit\(' "$file"; then
-    add "defines an emit() wrapper — mutate useState fields directly"
+    add "defines an emit() wrapper - mutate useState fields directly"
   fi
 fi
 
 # --- Screen file checks (Phase 3b) ---
 if [[ $in_screen -eq 1 ]]; then
   if grep -qE 'extends[[:space:]]+StatefulWidget\b' "$file"; then
-    add "screen uses StatefulWidget — use HookWidget with useEffect / useStreamSubscription"
+    add "screen uses StatefulWidget - use HookWidget with useEffect / useStreamSubscription"
   fi
-  # Screen must be pure wiring — only useXScreenState(...) allowed.
+  # Screen must be pure wiring - only useXScreenState(...) allowed.
   # Services, global state, effects, local state all belong in the state hook.
   if grep -qE '\b(useInjected|useProvided|useEffect|useImmediateEffect|useStreamSubscription|useAutoComputedState|useComputedState|useSubmitState|useSubmitButtonState|useMemoizedStream|useMemoizedStreamData|useStreamData|useStreamController|useMemoizedFuture|useMemoizedFutureData|useFutureData|useFieldState|useGenericFieldState|usePersistedState|usePreferencesPersistedState|useState|useMemoized|useMemoizedIf|useListenable|useValueListenable|useListenableListener|useListenableValueListener|useNotifiable|useAnimationController|useFocusNode|useScrollController|useAppLifecycleState|useDebounced|usePeriodicalSignal|usePreviousValue|usePreviousIfNull|useValueChanged|useMap|useIf|useIfNotNull|useKeyed|useIsMounted|useCombinedInitializationState)\b' "$file"; then
-    add "screen calls a forbidden hook — Screen must only call useXScreenState(...); services, state, and effects belong in the state hook"
+    add "screen calls a forbidden hook - Screen must only call useXScreenState(...); services, state, and effects belong in the state hook"
   fi
 fi
 
 # --- View file checks (screen-state-view rule: View is StatelessWidget, no hooks) ---
 if [[ $in_view -eq 1 ]]; then
   if grep -qE 'extends[[:space:]]+HookWidget\b' "$file"; then
-    add "view extends HookWidget — View must be StatelessWidget"
+    add "view extends HookWidget - View must be StatelessWidget"
   fi
   if grep -qE '\buse[A-Z][A-Za-z0-9_]*\s*\(' "$file"; then
-    add "view file calls hooks — View must be StatelessWidget with no hooks (state/logic belongs in the state hook)"
+    add "view file calls hooks - View must be StatelessWidget with no hooks (state/logic belongs in the state hook)"
   fi
 fi
 
 # --- Global: navigation must not be injected (Screen -> State -> View as callbacks) ---
 if grep -qE 'useProvided\s*<\s*NavigatorKey\b' "$file"; then
-  add "useProvided<NavigatorKey> is forbidden — navigation flows Screen -> State -> View as callbacks"
+  add "useProvided<NavigatorKey> is forbidden - navigation flows Screen -> State -> View as callbacks"
 fi
 if grep -qE 'useInjected\s*<\s*(App)?Router\b' "$file"; then
-  add "useInjected<Router> is forbidden — navigation flows Screen -> State -> View as callbacks"
+  add "useInjected<Router> is forbidden - navigation flows Screen -> State -> View as callbacks"
 fi
 
 # --- Global: TextEditingController anti-pattern ---
-# useMemoized(TextEditingController.new) / useMemoized(() => TextEditingController(...)) — always wrong
+# useMemoized(TextEditingController.new) / useMemoized(() => TextEditingController(...)) - always wrong
 if grep -qE 'useMemoized\s*\([^)]*TextEditingController' "$file"; then
-  add "useMemoized(TextEditingController...) is forbidden — use useFieldState + TextEditingControllerWrapper (flutter-conventions.md section 9)"
+  add "useMemoized(TextEditingController...) is forbidden - use useFieldState + TextEditingControllerWrapper (flutter-conventions.md section 9)"
 fi
 # Manual sync via useEffect + controller.text = ... in state files
 if [[ $in_state -eq 1 ]] && ! grep -q 'TextEditingControllerWrapper' "$file"; then
   if grep -qE '\buseEffect\b' "$file" && grep -qE '\.text\s*=\s*[A-Za-z_]' "$file"; then
-    add "state file appears to sync controller.text via useEffect — use useFieldState + TextEditingControllerWrapper instead"
+    add "state file appears to sync controller.text via useEffect - use useFieldState + TextEditingControllerWrapper instead"
   fi
 fi
 
 # --- flutter_hooks confusion ---
 if grep -qE "^import[[:space:]]+'package:flutter_hooks/" "$file"; then
-  add "imports package:flutter_hooks — utopia_hooks is a separate package, not flutter_hooks"
+  add "imports package:flutter_hooks - utopia_hooks is a separate package, not flutter_hooks"
 fi
 
 # --- Phase 3c: size budgets (advisory at target, red flag at 400+) ---
 lines="$(wc -l < "$file" | tr -d ' ')"
 if [[ $in_state -eq 1 ]]; then
   if [[ $lines -gt 400 ]]; then
-    add "state file is ${lines} lines (RED FLAG >400) — decompose into sub-hooks immediately (see screen-migration-flow Phase 1c)"
+    add "state file is ${lines} lines (RED FLAG >400) - decompose into sub-hooks immediately (see screen-migration-flow Phase 1c)"
   elif [[ $lines -gt 300 ]]; then
-    add "state file is ${lines} lines (budget: 300) — decompose into sub-hooks (see screen-migration-flow Phase 1c)"
+    add "state file is ${lines} lines (budget: 300) - decompose into sub-hooks (see screen-migration-flow Phase 1c)"
   fi
 fi
 if [[ $in_screen -eq 1 ]]; then
   if [[ $lines -gt 200 ]]; then
-    add "screen file is ${lines} lines (RED FLAG >200) — screen should be a coordinator; move UI to view and logic to state"
+    add "screen file is ${lines} lines (RED FLAG >200) - screen should be a coordinator; move UI to view and logic to state"
   elif [[ $lines -gt 100 ]]; then
-    add "screen file is ${lines} lines (budget: 100) — screen should be thin coordinator"
+    add "screen file is ${lines} lines (budget: 100) - screen should be thin coordinator"
   fi
 fi
 if [[ $in_view -eq 1 ]]; then
   if [[ $lines -gt 400 ]]; then
-    add "view file is ${lines} lines (RED FLAG >400) — extract sub-widgets immediately"
+    add "view file is ${lines} lines (RED FLAG >400) - extract sub-widgets immediately"
   elif [[ $lines -gt 300 ]]; then
-    add "view file is ${lines} lines (budget: 300) — extract sub-widgets into separate files"
+    add "view file is ${lines} lines (budget: 300) - extract sub-widgets into separate files"
   fi
 fi
 if [[ $in_state -eq 1 ]]; then
   usestate_count="$(grep -cE '\b(useState|useAutoComputedState|useSubmitState|useMemoizedStream|useStreamSubscription|useEffect|useMemoized|useInjected|useProvided)\b' "$file" || true)"
   if [[ $usestate_count -gt 10 ]]; then
-    add "state hook has ${usestate_count} hook calls (budget: 10) — decompose into sub-hooks"
+    add "state hook has ${usestate_count} hook calls (budget: 10) - decompose into sub-hooks"
   fi
 fi
 
@@ -220,7 +220,7 @@ fi
     echo "  - $v"
   done
   echo ""
-  echo "(mode: $mode — set UTOPIA_MIGRATE_MODE=block to make these blocking)"
+  echo "(mode: $mode - set UTOPIA_MIGRATE_MODE=block to make these blocking)"
 } >&2
 
 if [[ "$mode" == "block" ]]; then

@@ -3,15 +3,15 @@ name: <repo>-<area>
 description: |
   <One-line WHEN-to-apply summary.>
 
-  Applicability — POSITIVE: <paths / surface where this applies>.
-  Applicability — NEGATIVE: NOT <paths / surface where this explicitly does NOT apply>.
+  Applicability - POSITIVE: <paths / surface where this applies>.
+  Applicability - NEGATIVE: NOT <paths / surface where this explicitly does NOT apply>.
 
-  Layered on top of the upstream `utopia-hooks` plugin — this skill stays
+  Layered on top of the upstream `utopia-hooks` plugin - this skill stays
   silent on hook idioms / Screen-State-View / async patterns / DI / IList
   / strict analyzer (those are foundation concerns).
 ---
 
-<!-- BLUEPRINT — adapt per-repo. Strip this banner after substitution.
+<!-- BLUEPRINT - adapt per-repo. Strip this banner after substitution.
      Authoring guides for references: utopia-ai-arch plugin,
      templates/conventions/{module,pattern,cheatsheet}-style.md - link from
      claude-architecture.md §3, never copy. -->
@@ -20,7 +20,7 @@ description: |
 
 <One-paragraph framing: what this skill owns and why it has its own
 applicability scope. Refer back to the `applicability` in the
-frontmatter — do not repeat it here, reference it.>
+frontmatter - do not repeat it here, reference it.>
 
 ## Relationship to the foundation
 
@@ -45,9 +45,9 @@ Cross-skill links live here, not deep in references. Keep them in
 this section so they're visible whenever this skill loads.
 
 - Shared snippet: [`.claude/refs/<shared-doc>.md`](../../refs/<shared-doc>.md)
-  — <one-line why this is consulted>
+  - <one-line why this is consulted>
 - Related skill: [`<repo>-<other-area>`](../<repo>-<other-area>/SKILL.md)
-  — <one-line when to switch>
+  - <one-line when to switch>
 
 ## Non-negotiable
 
