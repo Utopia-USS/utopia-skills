@@ -147,7 +147,7 @@ MIT (or BSD-2-Clause - match the package's LICENSE). See [LICENSE](LICENSE).
 
 - **No sponsors / no funding block.** Only individual-maintainer OSS carries Sponsors
   (bloc, flutter_hooks, riverpod, freezed - all funded personally). Every company-backed
-  project (VGV, us) uses an attribution line instead. We use **"Built by Utopiasoft"**.
+  project (VGV, us) uses an attribution line instead. We use **"Built by UtopiaSoftware"**.
 - **Related packages:** a small **table** (3-5 rows, `Package | What it adds`) of the most-
   related siblings, each with a one-line gloss - a static component, not a bullet list. Not
   the whole family, not a 27-row dump, not a catch-all "Community" section.

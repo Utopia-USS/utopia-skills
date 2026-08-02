@@ -11,7 +11,7 @@ description: >
   or CHANGELOG/pubspec content.
 ---
 
-# utopia-pubdev — package README & brand standard
+# utopia-pubdev - package README & brand standard
 
 The presentation layer for Utopia open-source packages: how a package looks and
 reads on pub.dev and GitHub. Distilled from our own best READMEs (utopia_hooks,
@@ -38,7 +38,7 @@ depth on flagship packages only.
   choices plainly; right-size (utils stay short, flagships teach); 2nd person for
   instructions, 3rd for concepts.
 - DON'T: "The goal of this package is to…", marketing adjectives, emoji in the H1,
-  em dashes (—; use a hyphen), badge clutter, walls of prose before the first code block,
+  em dashes (use a hyphen instead), badge clutter, walls of prose before the first code block,
   invented API.
 
 The 👾 alien is the house mark (it leads our plugin / marketplace descriptions). Use it
@@ -69,7 +69,7 @@ skip likes/points/popularity): [badges.md](references/badges.md).
 
 We have no patrons - use the VGV "company is the implicit backer" model, never a
 sponsor block. A light **sibling list** (3-5 related packages, not a 27-row
-table), a one-line "Built by Utopiasoft" attribution, then short Contributing +
+table), a one-line "Built by UtopiaSoftware" attribution, then short Contributing +
 License. Nothing forced; utils may keep only License. Shapes in
 [readme-structure.md](references/readme-structure.md#footer).
 
