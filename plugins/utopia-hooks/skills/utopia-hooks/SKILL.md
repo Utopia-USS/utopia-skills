@@ -8,7 +8,9 @@ description: >
   TextEditingControllerWrapper), unit-testing hook states (SimpleHookContext), injecting
   services, or migrating away from StatefulWidget. Covers the Screen/State/View pattern,
   the hook catalog, global state registration, async / paginated / submit hooks,
-  navigation conventions, and dependency injection.
+  navigation conventions, and dependency injection. Does NOT cover BLoC/Cubit
+  migration (use utopia-hooks-migrate-bloc) or admin/CMS table screens (use
+  utopia-cms).
 license: BSD-2-Clause
 metadata:
   author: UtopiaSoftware
