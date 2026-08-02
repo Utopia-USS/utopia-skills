@@ -1,26 +1,20 @@
 ---
 name: utopia-design-import
 description: >
-  Bring an external design source into a utopia_ui project's
-  design/tokens.json - a Figma DTCG export, a foreign tokens.css / Tailwind
-  @theme file, a Claude Design / claude.design handoff bundle directory, or a
-  DESIGN.md file. Also applies when the project does not resolve utopia_ui
-  yet, where it stops at its usage gate and surfaces install guidance
-  instead of acting. Reads the source, maps its values onto the closed
-  utopia token tree, produces a mapping proposal and diff, then applies
-  through the tokens skill's edit-and-validate loop. Applies when: identifying an
-  external source's type and parsing its values; mapping external values
-  onto design/tokens.json paths; reporting unmapped external tokens or
-  uncovered utopia slots as gaps; running a re-import 3-way diff against
-  values already synced once. Concrete triggers: "import tokens", "Figma
-  export", "tokens.css", "Tailwind theme", "design handoff", "DESIGN.md",
-  "bring in a design". Does NOT cover hand-editing design/tokens.json without
-  an external source (-> utopia-design-tokens), regenerating the Flutter
-  theme or the HTML twin (-> utopia-design-sync), building screens from a
-  design (-> utopia-design-screen), or a Figma write-API sync (out of v0
-  scope - Figma is handled only via the DTCG file-export path). Layered on
-  top of the upstream utopia-hooks plugin - stays silent on Screen/State/View
-  / hooks / Dart conventions (foundation concerns).
+  Bring an external design source into a utopia_ui project's design/tokens.json:
+  a Figma DTCG export, a foreign tokens.css / Tailwind @theme, a Claude Design
+  handoff bundle, or a DESIGN.md. Applies when: identifying the source type and
+  parsing its values; mapping them onto the closed utopia token tree; showing a
+  proposal and diff before any write, then applying via the tokens skill's edit
+  loop; reporting unmapped external tokens or uncovered utopia slots as gaps;
+  running a re-import 3-way diff against already-synced values. Without
+  utopia_ui resolved it stops at its usage gate and surfaces install guidance.
+  Does NOT cover hand-editing design/tokens.json with no external source
+  (-> utopia-design-tokens), regenerating the theme or the HTML twin
+  (-> utopia-design-sync), building screens (-> utopia-design-screen), or a
+  Figma write-API sync (out of scope; Figma only via DTCG export). Layered on
+  the upstream utopia-hooks plugin - silent on Screen/State/View, hooks, and
+  Dart conventions.
 license: BSD-2-Clause
 metadata:
   author: UtopiaSoftware
@@ -101,6 +95,8 @@ there is nothing to import into without the library and its protocol.
 - A standalone `DESIGN.md` front matter needs to be imported
 - Re-running an import against a source already synced once, to reconcile
   drift on both sides
+- Typical phrasings: "import tokens", "Figma export", "tokens.css", "Tailwind
+  theme", "design handoff", "DESIGN.md", "bring in a design"
 
 ## Out of Scope
 
@@ -121,6 +117,16 @@ there is nothing to import into without the library and its protocol.
 | 3 | [three-way-diff.md][three-way-diff] | HIGH | The proposal/diff format shown before any write, sync metadata, and re-import conflict handling |
 
 ## Non-Negotiable Rules
+
+**Where `SPEC.md` / `VERSIONING.md` live:** the protocol documents ship inside
+the `utopia_ui` package under `protocol/` (hence the `protocol/SPEC.md`
+citations), alongside the `protocol/schemas/` the validators check against.
+Resolve the installed copy the same way this plugin resolves every packaged
+artifact: read `.dart_tool/package_config.json` for `utopia_ui`'s `rootUri`
+(the snippet lives in **utopia-design-tokens**'s `getting-started.md`), then
+open `<root>/protocol/`. If it does not resolve, treat every `SPEC.md` /
+`VERSIONING.md` citation in this skill as background rationale and continue -
+never block on the missing file.
 
 - **Verify `utopia_ui` resolves before reading or mapping anything** (the
   usage gate above).

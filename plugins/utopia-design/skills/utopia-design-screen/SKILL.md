@@ -1,25 +1,20 @@
 ---
 name: utopia-design-screen
 description: >
-  Build or update a Flutter screen/widget tree from an outside design input, in a
-  project that resolves utopia_ui, using ONLY components from the component manifest -
-  the merged manifest when the project registers custom components (SPEC 3.8), else the
-  shipped library manifest. Also applies when the project does not resolve utopia_ui
-  yet, where it stops at its usage gate and surfaces install guidance instead of
-  acting. Applies when: implementing an HTML mockup or web page, a screenshot/image
-  of a design, a design handoff bundle directory, a DESIGN.md, or the packaged HTML
-  twin gallery, as utopia_ui screen code; deciding which utopia_ui component a given
-  design element maps to; reporting a design element that has no manifest mapping as a
-  gap instead of hand-rolling it. Concrete triggers: "build this screen", "implement
-  this design", "from this mockup", "from this screenshot", "recreate this page with
-  utopia_ui", "which utopia_ui component for". Does NOT cover editing
-  design/tokens.json (-> utopia-design-tokens); importing external design VALUES -
-  colors, spacing, typography (-> utopia-design-import; import maps VALUES onto
-  tokens, this skill maps STRUCTURE onto components - the two are complementary, not
-  overlapping); regenerating the Flutter theme or the HTML twin (-> utopia-design-sync);
-  or state management, screen scaffolding, navigation conventions (-> utopia-hooks,
-  defer entirely). Layered on top of the upstream utopia-hooks plugin - stays silent on
-  Screen/State/View / hooks / Dart conventions (foundation concerns).
+  Build or update a Flutter screen from an outside design input using ONLY
+  components from the utopia_ui component manifest (the merged manifest when the
+  project registers custom components). Applies when: implementing or recreating
+  an HTML mockup, a screenshot, a handoff bundle, a DESIGN.md, or the packaged
+  HTML twin gallery; deciding which utopia_ui component a design element maps to;
+  reporting an unmappable element as a gap instead of hand-rolling it. Without
+  utopia_ui resolved it stops at its usage gate and surfaces install guidance.
+  Does NOT cover editing design/tokens.json (-> utopia-design-tokens); importing
+  external design VALUES such as colors or spacing (-> utopia-design-import:
+  VALUES onto tokens there, STRUCTURE onto components here); regenerating the
+  theme or the HTML twin (-> utopia-design-sync); or state management, screen
+  scaffolding, navigation (-> utopia-hooks). Layered on the upstream
+  utopia-hooks plugin - silent on Screen/State/View, hooks, and Dart
+  conventions.
 license: BSD-2-Clause
 metadata:
   author: UtopiaSoftware
@@ -36,6 +31,17 @@ the `utopia_ui` component manifest - the machine-readable API surface described 
 to and **how it is constructed** (constructor, props, defaults). It does not own the
 token document, regenerating generated surfaces, or app/state architecture - see the
 frontmatter `description` above for the exact positive/negative boundary.
+
+**Where `SPEC.md` / `VERSIONING.md` live:** the protocol documents ship inside the
+`utopia_ui` package under `protocol/` (hence the `protocol/SPEC.md` citations),
+alongside the `protocol/schemas/` the validators check against. Resolve the installed
+copy the same way this skill resolves the manifest: read
+`.dart_tool/package_config.json` for `utopia_ui`'s `rootUri` (snippet in
+**utopia-design-tokens**'s
+[getting-started.md](../utopia-design-tokens/references/getting-started.md)), then open
+`<root>/protocol/`. If it does not resolve, treat every `SPEC.md` / `VERSIONING.md`
+citation in this skill as background rationale and continue - never block on the
+missing file.
 
 The one boundary worth stating twice: this skill maps **STRUCTURE** (an element in a
 mockup/screenshot -> a manifest component id -> a constructor call). **utopia-design-import**
@@ -73,6 +79,9 @@ against does not exist without the library present.
 - Reading the packaged HTML twin gallery as a reference input for a design
 - Reporting a design element that has no manifest mapping as a GAP, rather than
   hand-rolling a lookalike
+- Typical phrasings: "build this screen", "implement this design", "from this mockup",
+  "from this screenshot", "recreate this page with utopia_ui", "which utopia_ui
+  component for"
 
 ## Out of Scope
 

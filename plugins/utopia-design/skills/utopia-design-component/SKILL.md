@@ -1,26 +1,20 @@
 ---
 name: utopia-design-component
 description: >
-  Turn a reported component GAP (or any need for a project-specific component) into a
-  LIVE manifest id in a project that resolves utopia_ui - also applies when the project
-  does not resolve utopia_ui yet, where it stops at its usage gate and surfaces install
-  guidance instead of acting: scaffold the component in project code as a composition of
-  library primitives, write its opt-in overlay YAML at
-  design/overlay/<local-part>.yaml, regenerate the project + merged manifests
-  (generate_manifest --project, protocol SPEC.md 3.8), validate, and hand the namespaced
-  id back to screen building. Applies when: scaffolding a custom/project-specific
-  component, registering a component in the project manifest, turning a
-  utopia-design-screen gap report's component-spec seed into a live component. Concrete
-  triggers: "scaffold a component", "custom component", "register a component", "project
-  manifest", a "component gap" follow-up, "make <thing> a reusable component". Does NOT
-  cover deciding whether something is a gap and reporting it (-> utopia-design-screen);
-  building screens (-> utopia-design-screen); editing design/tokens.json (->
-  utopia-design-tokens); regenerating the Flutter theme or the HTML twin (->
-  utopia-design-sync); widget-authoring and state conventions (-> utopia-hooks, defer
-  entirely); or contributing the component UPSTREAM into utopia_ui itself (a maintainer
-  conversation, out of scope for this loop). Layered on top of the upstream utopia-hooks
-  plugin - stays silent on Screen/State/View / hooks / Dart conventions (foundation
-  concerns).
+  Turn a reported component GAP (or any need for a custom component) into a LIVE
+  manifest id: scaffold it from utopia_ui primitives, write its overlay YAML
+  (design/overlay/<local-part>.yaml), regenerate the project + merged manifests
+  (generate_manifest), validate, and hand back the namespaced id. Applies when:
+  scaffolding a custom component, registering one in the project manifest, making
+  something reusable, turning a utopia-design-screen gap report's component-spec
+  seed into a live id. Without utopia_ui resolved it stops at its usage gate and
+  surfaces install guidance. Does NOT cover deciding whether something is a gap,
+  or building screens (-> utopia-design-screen); editing design/tokens.json
+  (-> utopia-design-tokens); regenerating the theme or the HTML twin
+  (-> utopia-design-sync); widget-authoring and state conventions
+  (-> utopia-hooks); or contributing it UPSTREAM into utopia_ui. Layered on the
+  upstream utopia-hooks plugin - silent on Screen/State/View, hooks, and Dart
+  conventions.
 license: BSD-2-Clause
 metadata:
   author: UtopiaSoftware
@@ -47,6 +41,15 @@ report names a missing component -> the component is scaffolded in the project (
 via context) -> an overlay YAML registers it -> project + merged manifests regenerate ->
 the design tool re-imports the merged manifest -> the id is live in every later
 development cycle." This skill is that loop, start to finish.
+
+**Where `SPEC.md` / `VERSIONING.md` live:** the protocol documents ship inside the
+`utopia_ui` package under `protocol/` (hence the `protocol/SPEC.md` citations),
+alongside the `protocol/schemas/` the validators check against. Resolve the installed
+copy the same way this plugin resolves every packaged artifact: read
+`.dart_tool/package_config.json` for `utopia_ui`'s `rootUri` (the snippet lives in
+**utopia-design-tokens**'s `getting-started.md`), then open `<root>/protocol/`. If it
+does not resolve, treat every `SPEC.md` / `VERSIONING.md` citation in this skill as
+background rationale and continue - never block on the missing file.
 
 ## Usage Gate (do this first, non-negotiable)
 
@@ -90,6 +93,8 @@ fallback block; it is not re-derived here.
   component
 - A component already exists in project code but has no overlay YAML / manifest entry
   yet and needs registering
+- Typical phrasings: "scaffold a component", "custom component", "register a component",
+  "project manifest", a "component gap" follow-up, "make <thing> a reusable component"
 
 ## Out of Scope
 

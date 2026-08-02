@@ -2,22 +2,19 @@
 name: utopia-design-tokens
 description: >
   Edit or rebrand a consumer app's design/tokens.json - the DTCG design-tokens
-  document that is the single source of truth for the Utopia Design Protocol
-  on top of utopia_ui. Applies when: bootstrapping design/tokens.json from the
-  packaged utopia_ui default theme in a project that resolves utopia_ui, or
-  in a project that does not resolve utopia_ui yet, where it stops at its
-  usage gate and surfaces install guidance instead of acting; changing
-  colors, the spacing/radius scale (rescaling the base unit x),
-  typography (textStyle roles and their textStyle-colors siblings), or
-  semantic theme.* slots; running validate_tokens after an edit. Concrete
-  triggers: "design tokens", "rebrand", "tokens.json", "DTCG", "theme colors",
-  "spacing scale", "radius scale". Does NOT cover regenerating the Flutter
-  theme or the HTML twin from tokens (-> utopia-design-sync), importing
-  external design sources such as Figma exports, foreign tokens.css / Tailwind
-  @theme files, or handoff bundles (-> utopia-design-import), building screens
-  from a design (-> utopia-design-screen), or editing utopia_ui library
-  internals. Layered on top of the upstream utopia-hooks plugin - stays silent
-  on Screen/State/View / hooks / Dart conventions (foundation concerns).
+  document that is the single source of truth for the Utopia Design Protocol on
+  top of utopia_ui. Applies when: bootstrapping design/tokens.json from the
+  packaged utopia_ui default theme; changing theme colors, the spacing/radius
+  scale (rescaling the base unit x), typography (textStyle roles and their
+  textStyle-colors siblings), or semantic theme.* slots; running validate_tokens
+  after an edit. Without utopia_ui resolved it stops at its usage gate and
+  surfaces install guidance. Does NOT cover regenerating the Flutter theme or
+  the HTML twin (-> utopia-design-sync), importing external design sources
+  (Figma exports, foreign tokens.css / Tailwind @theme files, handoff bundles)
+  (-> utopia-design-import), building screens from a design
+  (-> utopia-design-screen), or editing utopia_ui library internals. Layered on
+  the upstream utopia-hooks plugin - silent on Screen/State/View, hooks, and
+  Dart conventions.
 license: BSD-2-Clause
 metadata:
   author: UtopiaSoftware
@@ -68,6 +65,16 @@ The exact resolution + copy commands are in
 [getting-started.md][getting-started] - read that before bootstrapping,
 don't guess the pub-cache path.
 
+**Where `SPEC.md` / `VERSIONING.md` live:** the protocol documents ship inside
+the `utopia_ui` package under `protocol/` (hence the `protocol/SPEC.md`
+citations), alongside the `protocol/schemas/` the validators check against.
+Resolve the installed copy the same way this skill resolves every packaged
+artifact: read `.dart_tool/package_config.json` for `utopia_ui`'s `rootUri`
+(snippet in [getting-started.md][getting-started]), then open
+`<root>/protocol/`. If it does not resolve, treat every `SPEC.md` /
+`VERSIONING.md` citation in this skill as background rationale and continue -
+never block on the missing file.
+
 ## When to Apply
 
 - Bootstrapping `design/tokens.json` for the first time in a project that
@@ -75,6 +82,8 @@ don't guess the pub-cache path.
 - Rebranding: colors, the spacing/radius scale, border/shadow/duration/
   breakpoint values, typography, or `theme.*` semantic slots
 - Running `validate_tokens` after any of the above
+- Typical phrasings: "design tokens", "rebrand", "tokens.json", "DTCG",
+  "theme colors", "spacing scale", "radius scale"
 
 ## Out of Scope
 

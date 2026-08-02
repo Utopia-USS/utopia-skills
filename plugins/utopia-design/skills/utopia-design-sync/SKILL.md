@@ -1,26 +1,20 @@
 ---
 name: utopia-design-sync
 description: >
-  Regenerate every generated surface of the Utopia Design Protocol from a
-  consumer's design/tokens.json after it changes, in a project that
-  resolves utopia_ui - also applies when the project does not resolve
-  utopia_ui yet, where it stops at its usage gate and surfaces install
-  guidance instead of acting: the Flutter theme code (via generate_theme)
-  and the HTML twin (via generate_twin - tokens.css,
-  tokens.tailwind.css, DESIGN.md front matter). Runs validate_tokens first
-  and refuses to regenerate when the token document fails validation; runs
-  a packageVersion drift check (validate_manifest) before fanning out;
-  optionally runs validate_twin afterward. Applies when: design/tokens.json
-  has just been edited or imported and the generated surfaces need to catch
-  up. Concrete triggers: "regenerate theme", "sync tokens", "generate
-  theme", "regenerate twin", "rebuild design surfaces", "after editing
-  tokens". Does NOT cover editing or rebranding design/tokens.json itself
-  (-> utopia-design-tokens), importing an external design source (->
-  utopia-design-import), building screens from manifest components (->
-  utopia-design-screen), or hand-editing the generated theme Dart file or
-  the twin's CSS - both are regenerated, never hand-patched. Layered on top
-  of the upstream utopia-hooks plugin - stays silent on Screen/State/View /
-  hooks / Dart conventions (foundation concerns).
+  Regenerate every generated surface of the Utopia Design Protocol from
+  design/tokens.json after it changes: the Flutter theme code (generate_theme)
+  and the HTML twin (generate_twin: tokens.css, tokens.tailwind.css, DESIGN.md
+  front matter). Runs validate_tokens first and never regenerates from a failing
+  token document; runs a packageVersion drift check (validate_manifest);
+  optionally runs validate_twin after. Applies when: design/tokens.json was just
+  edited or imported and the surfaces need to catch up. Without utopia_ui
+  resolved it stops at its usage gate and surfaces install guidance. Does NOT
+  cover editing or rebranding design/tokens.json itself
+  (-> utopia-design-tokens), importing an external design source
+  (-> utopia-design-import), building screens (-> utopia-design-screen), or
+  hand-editing the generated theme Dart or twin CSS (regenerated, never
+  hand-patched). Layered on the upstream utopia-hooks plugin - silent on
+  Screen/State/View, hooks, and Dart conventions.
 license: BSD-2-Clause
 metadata:
   author: UtopiaSoftware
@@ -85,6 +79,17 @@ contracts, what each reads/writes, and exit-code handling live in
 [regeneration.md][regeneration]; the why-first reasoning behind steps 1-2
 and 5 lives in [drift-and-verify.md][drift-and-verify].
 
+**Where `SPEC.md` / `VERSIONING.md` live** (cited by the steps below): the
+protocol documents ship inside the `utopia_ui` package under `protocol/`
+(hence the `protocol/SPEC.md` citations), alongside the `protocol/schemas/`
+the validators check against. Resolve the installed copy the same way this
+plugin resolves every packaged artifact: read
+`.dart_tool/package_config.json` for `utopia_ui`'s `rootUri` (the snippet
+lives in **utopia-design-tokens**'s `getting-started.md`), then open
+`<root>/protocol/`. If it does not resolve, treat every `SPEC.md` /
+`VERSIONING.md` citation in this skill as background rationale and continue -
+never block on the missing file.
+
 1. **`validate_tokens` FIRST.** If it fails (exit 1 or 2), **STOP** - refuse
    to regenerate from a broken source. Never propagate an invalid token
    document into the theme or the twin. This is the same gate
@@ -131,6 +136,8 @@ and 5 lives in [drift-and-verify.md][drift-and-verify].
   manifest before trusting a regenerated surface
 - Periodically re-running `validate_twin` to catch literal-value drift or
   missing `data-utopia-id` coverage in hand-authored twin markup
+- Typical phrasings: "regenerate theme", "sync tokens", "generate theme",
+  "regenerate twin", "rebuild design surfaces", "after editing tokens"
 
 ## Out of Scope
 
