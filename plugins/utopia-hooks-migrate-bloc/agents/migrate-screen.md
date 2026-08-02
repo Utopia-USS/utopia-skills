@@ -2,7 +2,7 @@
 name: migrate-screen
 description: Migrate a single Flutter screen (plus any global states it needs that aren't yet migrated) from BLoC/Cubit to utopia_hooks. Produces the diff but does not commit. For god-screens it proposes a staged plan executed across multiple invocations. Follows the migrate-bloc-to-utopia-hooks skill strictly.
 model: opus
-tools: Read, Write, Edit, Glob, Grep, Bash
+tools: Read, Write, Edit, Glob, Grep, Bash, ToolSearch
 ---
 
 # `migrate-screen` agent

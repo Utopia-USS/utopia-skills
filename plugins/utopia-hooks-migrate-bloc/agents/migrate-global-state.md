@@ -2,7 +2,7 @@
 name: migrate-global-state
 description: Migrate a single BLoC-era Cubit/Bloc to a parallel hook-based global state in isolation - no screen changes. Creates the State class + useXState() hook (registration in _providers is deferred to the first consumer screen), marks the original Cubit @Deprecated. Emits ONE diff for ONE commit. Can also run in extract_service mode to hoist domain logic out of a Cubit into a service first. Runs before any screen migration that depends on this state.
 model: opus
-tools: Read, Write, Edit, Glob, Grep, Bash
+tools: Read, Write, Edit, Glob, Grep, Bash, ToolSearch
 ---
 
 # `migrate-global-state` agent
@@ -146,7 +146,7 @@ This agent runs in one of two modes controlled by the `provider_registration` in
 - Agent does NOT read or edit `_providers.dart`.
 - Agent returns `self_report.provider_entry` - the literal string the orchestrator will insert under the `_providers` map **later, in the commit of the first migrated screen that consumes this state (Phase B)**. Registration is deferred because `HookProviderContainer` builds every registered provider eagerly at app startup - registering now would run your hook AND the old Cubit simultaneously (double fetches, double stream subscriptions) with zero consumers. Your state file stays unregistered and inert until a consumer lands; that is correct and expected.
 - Match the existing file's indentation and trailing-comma convention (peek at one existing entry if you need to - read-only, no edit).
-- Example `provider_entry` value: `    AuthState: (context) => useAuthState(),` (exact format: follow existing entries in `_providers.dart`; do not invent a new format).
+- Example `provider_entry` value: `  AuthState: useAuthState,` - a bare tear-off, because the map is typed `Map<Type, Object? Function()>` (see global-state-migration.md). If `_providers.dart` already has entries, match their exact format instead; do not invent a new one.
 
 **`self` mode (legacy / single-threaded callers):**
 - Agent touches 3 files: new state file + `_providers.dart` + annotated Cubit.
@@ -204,7 +204,7 @@ self_report:
     - "useMemoized(() => prefsService.loadLastUser()) for persistent hydration"
   deviations:                  # non-obvious structural notes for orchestrator to surface in the final report
     - "persistent-state: moved hydration from HydratedCubit<T>.fromJson/toJson to PrefsService load/save - Cubit and hook both delegate to service, diverge-safe"
-  provider_entry: "    AuthState: (context) => useAuthState(),"
+  provider_entry: "  AuthState: useAuthState,"
     # orchestrator mode: the exact string to append under the _providers map; match the
     # existing file's indentation and trailing-comma convention. Omit in self mode
     # (or set to the same string if you want - orchestrator just ignores it then).

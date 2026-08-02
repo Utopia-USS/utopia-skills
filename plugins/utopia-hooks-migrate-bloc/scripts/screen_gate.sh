@@ -136,8 +136,12 @@ if [[ $in_state -eq 1 ]]; then
   fi
 
   # 3h: mutable collections in State class body / hook body (indented)
-  # flutter-conventions §2 - always use IList / IMap / ISet, not List / Map / Set
-  if grep -qE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' "$file"; then
+  # flutter-conventions §2 - always use IList / IMap / ISet, not List / Map / Set.
+  # Applies ONLY when the project itself declares fast_immutable_collections: collection
+  # type conversion of existing data structures is out-of-scope for the migration
+  # (migration-steps.md Step 2 scope note), so repos on plain List keep plain List.
+  if grep -qE '^[[:space:]]*fast_immutable_collections[[:space:]]*:' "$project_root/pubspec.yaml" && \
+     grep -qE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' "$file"; then
     add "state file declares mutable List/Map/Set field - use IList/IMap/ISet from fast_immutable_collections (flutter-conventions §2)"
   fi
 

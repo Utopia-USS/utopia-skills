@@ -2,7 +2,7 @@
 name: migrate-review
 description: Independent review of a migrated screen's code against the BLoC → utopia_hooks exit gate. Fresh context, does not see the migration agent's reasoning. Runs Phase 3 self-review and Phase 4 exit gate from the skill, returns pass/fail + fix list.
 model: opus
-tools: Read, Glob, Grep, Bash
+tools: Read, Glob, Grep, Bash, ToolSearch
 ---
 
 # `migrate-review` agent - BLoC → utopia_hooks migration
@@ -124,6 +124,11 @@ flutter-conventions §2 use `IList` / `IMap` / `ISet` from `fast_immutable_colle
 ```bash
 grep -nE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' <state_files>
 ```
+
+Skip this indented-collections check entirely when the target project does NOT declare
+`fast_immutable_collections` in its own `pubspec.yaml`: collection type conversion of
+existing data structures is out-of-scope for the migration (migration-steps.md Step 2
+scope note), so repos built on plain `List` keep plain `List` - that is not a finding.
 
 ### E. Screen discipline (Phase 3 Screen file)
 
