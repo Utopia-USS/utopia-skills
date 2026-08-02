@@ -286,6 +286,39 @@ TextEditingControllerWrapper(
 
 See `utopia-hooks:references/hooks-reference.md` and `utopia-hooks:references/flutter-conventions.md` for `useFieldState` + `TextEditingControllerWrapper` details (validation, errors, bidirectional sync).
 
+### Pitfall: a keyed useEffect fires on mount - the old listener callbacks did not
+
+Old-code listeners (`TextEditingController.addListener` in `initState`, a dropdown's
+`onChanged`) fire only on actual change notifications, never on first build. A keyed
+`useEffect(..., [field.value, ...])` ALSO runs its body once on mount: utopia_hooks
+schedules the effect via `addPostBuildCallback` in the hook's `init()`, so it executes
+after the first frame, when a `ScrollController` is already attached. `hasClients` is
+therefore NOT a first-render guard.
+
+Porting "scroll / side-effect on user change" verbatim into a keyed effect reproduces
+the side effect on screen entry. Found twice in the field, in two independent screen
+migrations of the same codebase.
+
+Fix shape: consume one skip on the mount run, BEFORE any `hasClients` check. The
+ordering is load-bearing - if the skip sits after a false `hasClients`, the flag
+survives the mount and swallows the first real user change instead:
+
+```dart
+final hasRunOnceState = useState(false, listen: false);
+useEffect(() {
+  if (!hasRunOnceState.value) {
+    hasRunOnceState.value = true;
+    return null;
+  }
+  if (!scrollController.hasClients) return null;
+  scrollController.animateTo(/* ... */);
+  return null;
+}, [quantityField.value, selectedUnit]);
+```
+
+The same applies to any listener-triggered side effect ported to a keyed effect
+(snackbars, haptics, focus moves), not just scrolling.
+
 ---
 
 ## 6. stream.listen() → useStreamSubscription
