@@ -3,6 +3,23 @@
 Per-plugin versions live in each plugin's `.claude-plugin/plugin.json`; the marketplace version tracks
 the repo as a whole. Entries below cover shipped changes since the previous bump of each component.
 
+## Marketplace 0.9.0
+
+- `utopia-pubdev` entry description and version synced to the generalized plugin (0.2.0).
+
+## utopia-pubdev 0.2.0
+
+- The README standard is no longer Utopia-only: composition rules stay generic and all
+  brand values move to a **brand profile**. Resolution order: a committed
+  `docs/pubdev-brand.md` always wins; a detected Utopia codebase gets the bundled Utopia
+  profile; with neither, the skill interviews the user before composing.
+- New `pubdev-brand-setup` skill: derives what the repo already answers, asks only the
+  gaps, and writes `docs/pubdev-brand.md`.
+- New references: `brand-profile.md` (schema, resolution order, Utopia detection - a lone
+  `utopia_` prefix is not enough, forks keep the prefix without the brand) and
+  `utopia-brand.md` (the extracted Utopia profile). `readme-structure.md` and `badges.md`
+  parameterized on the profile; `brand-spec.md` and the chip generator stay Utopia-only.
+
 ## Marketplace 0.8.0
 
 - Per-plugin READMEs with generated brand-chip headers for all 7 plugins.

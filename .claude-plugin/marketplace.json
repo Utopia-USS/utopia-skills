@@ -6,7 +6,7 @@
     "url": "https://utopiasoft.io"
   },
   "description": "👾 Flutter skills for Claude Code by UtopiaSoftware - hooks-based state management, project architecture scaffolding, BLoC migration, admin/CMS panels, code reviews and review resolution, the Dart/Flutter language server, pub.dev README/branding, and the Utopia Design Protocol (design tokens, HTML twin, screens from designs).",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "plugins": [
     {
       "name": "utopia-hooks",
@@ -82,8 +82,8 @@
     },
     {
       "name": "utopia-pubdev",
-      "description": "👾 Compose and standardize pub.dev READMEs for Utopia Dart/Flutter packages - brand-chip header, house voice, section structure (minimal vs full tiers), a restrained badge set (incl. style: utopia_lints), a no-sponsor footer with sibling links, and a tool-agnostic AI assistants section. Bundles the brand-chip header generator. Use when creating or refreshing a package README or its header image.",
-      "version": "0.1.1",
+      "description": "👾 Compose and standardize pub.dev READMEs for Dart/Flutter packages - brand-profile-driven header and badge row, house voice, section structure (minimal vs full tiers), a no-sponsor footer with sibling links, and a tool-agnostic AI assistants section. Auto-applies the bundled Utopia profile in Utopia codebases, reads docs/pubdev-brand.md elsewhere, and ships a brand-setup interview skill plus the Utopia brand-chip header generator. Use when creating or refreshing a package README, its header image, or the repo's branding profile.",
+      "version": "0.2.0",
       "source": "./plugins/utopia-pubdev",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-pubdev",

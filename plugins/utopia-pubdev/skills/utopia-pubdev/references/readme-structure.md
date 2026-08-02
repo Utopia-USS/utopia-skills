@@ -1,9 +1,12 @@
 # README structure
 
 One skeleton, two tiers. **Two layers:** the *visual contract* (header + footer) is
-fixed - identical across every Utopia package, so the family looks like a family. The
-*content* (the body) right-sizes to the package. Read this before composing; badge rules
-are in [badges.md](badges.md), the chip in [brand-spec.md](brand-spec.md).
+fixed - identical across every package in a family, so the family looks like a family.
+The *content* (the body) right-sizes to the package. Brand values (attribution,
+publisher, lints, header image, house mark) come from the resolved brand profile
+([brand-profile.md](brand-profile.md)); examples below show the Utopia profile's
+values. Read this before composing; badge rules are in [badges.md](badges.md), the
+Utopia chip in [brand-spec.md](brand-spec.md).
 
 Distilled from a 12-package cross-analysis (our hooks/arch/cms + bloc, flutter_hooks,
 riverpod, very_good_cli, equatable, mason, dio, go_router, freezed).
@@ -13,14 +16,14 @@ riverpod, very_good_cli, equatable, mason, dio, go_router, freezed).
 **Visual contract - strict; identical across every package.** Exactly this order:
 
 ```
-<img src="docs/header.png" width="W" alt="Utopia <Name>"/>   ← brand chip, flush-left, natural width
+<img src="docs/header.png" width="W" alt="<Org> <Name>"/>    ← header image per profile, flush-left, natural width
 
-[![pub][pub_b]][pub_l] [![license][lic_b]][lic_l] [![style: utopia_lints][sty_b]][sty_l]
+[![pub][pub_b]][pub_l] [![publisher][pub2_b]][pub2_l] [![license][lic_b]][lic_l] [![style: <lints>][sty_b]][sty_l]   ← row per profile (badges.md)
 
 # <package_name>                                             ← ALWAYS present, = the pub.dev name
 
 <one grounded sentence: what it is + when to use it>
-Visit [<name>.utopiasoft.io](…)                              ← only if a docs site exists
+Visit [<docs site>](…)                                       ← only if a docs site exists
 
 <img src="docs/demo.gif" width="100%" alt="… demo"/>        ← optional; visual / UI / CLI packages only
 ```
@@ -30,14 +33,15 @@ Visit [<name>.utopiasoft.io](…)                              ← only if a doc
   highest-signal rule we found: half the most-popular packages (bloc, riverpod, equatable,
   mason, freezed) omit the H1 and it is a real mistake - pub.dev and GitHub use the first
   `# H1` as the title fallback, and web search and screen readers depend on it. No emoji in
-  the H1 - including the brand 👾 (the house mark belongs in plugin / marketplace
+  the H1 - including the profile's house mark (Utopia's 👾 belongs in plugin / marketplace
   descriptions and may accent a section heading or the Contributing line, but never the title).
-- **Brand chip**, flush-left, natural `width`, never `height` / stretch. Generated, never
-  hand-drawn. We are flush-left (aligns with body text), not centered like the felangel
-  packages.
-- **Badges: ref-style markdown**, defs at the bottom (our house form, matches VGV). Not
-  inline HTML in `<p align="center">`, not mixed md+HTML. Restrained set - see
-  [badges.md](badges.md).
+- **Header image** (when the profile ships one), flush-left, natural `width`, never
+  `height` / stretch. Generated or exported, never hand-drawn; must stay legible on both
+  pub.dev themes. Flush-left (aligns with body text), not centered like the felangel
+  packages. `header_image: none` in the profile → the badge row leads.
+- **Badges: ref-style markdown**, defs at the bottom (the house form, matches VGV). Not
+  inline HTML in `<p align="center">`, not mixed md+HTML. Restrained set, publisher and
+  lints values from the profile - see [badges.md](badges.md).
 - **Optional GIF / screenshot** right after the one-liner, for packages whose value is
   visual (a demo is credibility before code). Must be **responsive** - `width="100%"` or a
   sane max, never hardcoded `width="960" height="425"` (breaks on narrow viewports).
@@ -97,9 +101,9 @@ taste call; never in the H1.
 For single-purpose utils (e.g. utopia_bytes, utopia_collections, utopia_lints):
 
 ```
-<img src="docs/header.png" width="W" alt="Utopia <Name>"/>
+<img src="docs/header.png" width="W" alt="<Org> <Name>"/>
 
-[![pub]…] [![license]…] [![style: utopia_lints]…]
+[![pub]…] [![publisher]…] [![license]…] [![style: <lints>]…]
 
 # <package_name>
 
@@ -111,8 +115,8 @@ For single-purpose utils (e.g. utopia_bytes, utopia_collections, utopia_lints):
 ```
 
 No Motivation, no See-also, no AI section unless it genuinely has a dedicated skill. Simple
-is correct here - do not pad a 30-line package into a 200-line README. (Header H1 + chip +
-badges are still required - the visual contract holds at every tier.)
+is correct here - do not pad a 30-line package into a 200-line README. (H1 + the profile's
+header image + badge row are still required - the visual contract holds at every tier.)
 
 ## Tier selection
 
@@ -123,7 +127,9 @@ badges are still required - the visual contract holds at every tier.)
 
 ## Footer
 
-**Visual contract - strict.** Exactly this order. No sponsors.
+**Visual contract - strict.** Exactly this order. No sponsors. (The example shows the
+Utopia profile's values - substitute your profile's siblings, attribution line, and
+house mark; `house_mark: none` drops the 👾 from the Contributing line.)
 
 ```
 ## Related packages
@@ -147,21 +153,26 @@ MIT (or BSD-2-Clause - match the package's LICENSE). See [LICENSE](LICENSE).
 
 - **No sponsors / no funding block.** Only individual-maintainer OSS carries Sponsors
   (bloc, flutter_hooks, riverpod, freezed - all funded personally). Every company-backed
-  project (VGV, us) uses an attribution line instead. We use **"Built by UtopiaSoftware"**.
+  project (VGV, Utopia) uses an attribution line instead - the profile's `org` field
+  (Utopia: `Built by [Utopiasoft](https://utopiasoft.io).`).
 - **Related packages:** a small **table** (3-5 rows, `Package | What it adds`) of the most-
-  related siblings, each with a one-line gloss - a static component, not a bullet list. Not
-  the whole family, not a 27-row dump, not a catch-all "Community" section.
+  related siblings per the profile's `siblings` field, each with a one-line gloss - a
+  static component, not a bullet list. Not the whole family, not a 27-row dump, not a
+  catch-all "Community" section. `siblings: none` → drop the section.
 - **License:** a full `## License` section is **optional** - most top packages ship only
   the badge + a `LICENSE` file. A utility may drop Contributing and keep just License.
 
 ## AI assistants
 
-Tool-agnostic, and our differentiator (only Utopia ships it; the nearest external analog
+Tool-agnostic, and a differentiator (almost nobody ships it; the nearest external analog
 is very_good_cli's MCP server, which is exactly the open framing to copy). Add **only** to
-packages with a dedicated skill (utopia_hooks, utopia_arch → the hooks skill; utopia_cms →
-the cms skill). Frame it around the open mechanism (`AGENTS.md`, the skills marketplace,
-MCP); name assistants as *examples*, never brand it to one; don't add a filler version to
-packages without a skill.
+packages the profile's `ai_assistants` field marks as shipping a dedicated skill (Utopia:
+utopia_hooks, utopia_arch → the hooks skill; utopia_cms → the cms skill). Frame it around
+the open mechanism (`AGENTS.md`, a skills marketplace, MCP); name assistants as
+*examples*, never brand it to one; don't add a filler version to packages without a
+skill, and omit the section on every package when the profile has no mechanism.
+
+The Utopia profile's wording:
 
 ```
 ## AI assistants
@@ -173,7 +184,8 @@ project with `utopia init agents` / `utopia init skills`, or install the
 [Utopia skills marketplace](https://github.com/Utopia-USS/utopia-flutter-skills).
 ```
 
-Adjust the parenthetical to the package (cms → "CMS delegates, table pages, CRUD flows").
+Adjust the parenthetical to the package (cms → "CMS delegates, table pages, CRUD flows");
+for another profile, swap the skill summary, mechanism, and install command for its own.
 Placement: after the API/Example sections, before Related packages. Keep it to ~3 lines:
 what it provides, that it's tool-agnostic, how to add it. Avoid hype and
 "perfect understanding" claims.
