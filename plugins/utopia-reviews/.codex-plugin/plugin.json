@@ -1,6 +1,6 @@
 {
   "name": "utopia-reviews",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Code reviews as a two-way agent conversation on GitHub, GitLab, and Bitbucket. Perform a Utopia-aware, severity-ranked review of a PR/MR or a local branch pair, or resolve the review comments on your own PR end to end - triage, fix, verify, reply, and resolve.",
   "author": {
     "name": "UtopiaSoftware",

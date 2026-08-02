@@ -6,12 +6,12 @@
     "url": "https://utopiasoft.io"
   },
   "description": "👾 Flutter skills for Claude Code by UtopiaSoftware - hooks-based state management, project architecture scaffolding, BLoC migration, admin/CMS panels, code reviews and review resolution, the Dart/Flutter language server, pub.dev README/branding, and the Utopia Design Protocol (design tokens, HTML twin, screens from designs).",
-  "version": "0.8.0",
+  "version": "0.10.0",
   "plugins": [
     {
       "name": "utopia-hooks",
       "description": "👾 Flutter state management with utopia_hooks. Screen/State/View pattern, hook catalog, global state, async/pagination patterns, app bootstrap, global error handling, navigation conventions, hook-state testing, utopia_cli integration (describe / add screen / doctor / MCP), and enforcement of conventions via SessionStart project detection + PostToolUse checks.",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "source": "./plugins/utopia-hooks",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-hooks",
@@ -23,7 +23,7 @@
     {
       "name": "utopia-ai-arch",
       "description": "👾 Create and maintain the Claude Code `.claude/` layer (agents, skills, slash commands, enforcement hooks, settings.json, refs, claude-architecture.md decision log) for Utopia Flutter projects. Encodes the project-claude-layer blueprint plus the invariants and decision criteria distilled from production implementations across multiple Utopia repos. Use when bootstrapping a new repo's AI architecture, adding a skill/agent/command/hook script, recording a rejected alternative, auditing for drift, or diagnosing why the agent keeps forgetting a project convention.",
-      "version": "0.2.1",
+      "version": "0.3.0",
       "source": "./plugins/utopia-ai-arch",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-ai-arch",
@@ -34,8 +34,8 @@
     },
     {
       "name": "utopia-hooks-migrate-bloc",
-      "description": "👾 Migrate Flutter BLoC/Cubit codebases to utopia_hooks. Two-phase migration (global states first, then screens) with per-commit granularity, dart analyze baseline (Dart MCP preferred), screen-local vs global Cubit classification, and universal pattern-family handling (persistent-state, stream-source, reactive-input, lifecycle). Includes /utopia-hooks-migrate-bloc:migrate orchestrator coordinating inventory, foundation, global-state, screen, and review sub-agents. Recommended companion: utopia-hooks plugin.",
-      "version": "0.2.6",
+      "description": "👾 Migrate Flutter BLoC/Cubit codebases to utopia_hooks. Two-phase migration (global states first, then screens) with per-commit granularity, dart analyze baseline (Dart MCP preferred), screen-local vs global Cubit classification, and universal pattern-family handling (persistent-state, stream-source, reactive-input, lifecycle). Includes the /utopia-hooks-migrate-bloc:migrate orchestrator coordinating five sub-agents: migrate-inventory, migrate-foundation, migrate-global-state, migrate-screen, and migrate-review. Recommended companion: utopia-hooks plugin.",
+      "version": "0.3.0",
       "source": "./plugins/utopia-hooks-migrate-bloc",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-hooks-migrate-bloc",
@@ -47,7 +47,7 @@
     {
       "name": "utopia-cms",
       "description": "👾 Flutter CMS / admin panels with utopia_cms. CmsWidget shell, CmsTablePage, CmsDelegate (Firebase / Supabase / Hasura / GraphQL), CmsEntry catalog, filters, custom actions, management sections. PostToolUse hook flags the hand-rolled DataTable + service + state-class anti-pattern.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "source": "./plugins/utopia-cms",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-cms",
@@ -59,7 +59,7 @@
     {
       "name": "utopia-dart-lsp",
       "description": "👾 Dart/Flutter language server (LSP) for Claude Code. Live analyzer diagnostics injected on every .dart edit plus hover, goto-definition, find-references, workspace symbols and call hierarchy. fvm-aware: prefers a project-pinned .fvm SDK, falls back to fvm, then the dart on PATH.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "source": "./plugins/utopia-dart-lsp",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-dart-lsp",
@@ -70,8 +70,8 @@
     },
     {
       "name": "utopia-reviews",
-      "description": "👾 Code reviews as a two-way agent conversation on GitHub / GitLab / Bitbucket. Two skills: utopia-code-review performs a Utopia-aware, severity-ranked review of a PR/MR or a local branch pair (and, after one approval gate, posts it as inline comments); utopia-resolve-code-review addresses review comments on the user's own PR end to end — triage against code + spec + Utopia conventions, one gate, then fix, verify, push, reply, resolve. Includes /utopia-reviews:review and /utopia-reviews:resolve.",
-      "version": "0.1.0",
+      "description": "👾 Code reviews as a two-way agent conversation on GitHub / GitLab / Bitbucket. Two skills: utopia-code-review performs a Utopia-aware, severity-ranked review of a PR/MR or a local branch pair (and, after one approval gate, posts it as inline comments); utopia-resolve-code-review addresses review comments on the user's own PR end to end - triage against code + spec + Utopia conventions, one gate, then fix, verify, push, reply, resolve. Includes /utopia-reviews:review and /utopia-reviews:resolve.",
+      "version": "0.1.1",
       "source": "./plugins/utopia-reviews",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-reviews",
@@ -82,8 +82,8 @@
     },
     {
       "name": "utopia-pubdev",
-      "description": "👾 Compose and standardize pub.dev READMEs for Utopia Dart/Flutter packages - brand-chip header, house voice, section structure (minimal vs full tiers), a restrained badge set (incl. style: utopia_lints), a no-sponsor footer with sibling links, and a tool-agnostic AI assistants section. Bundles the brand-chip header generator. Use when creating or refreshing a package README or its header image.",
-      "version": "0.1.1",
+      "description": "👾 Compose and standardize pub.dev READMEs for Dart/Flutter packages - brand-profile-driven header and badge row, house voice, section structure (minimal vs full tiers), a no-sponsor footer with sibling links, and a tool-agnostic AI assistants section. Auto-applies the bundled Utopia profile in Utopia codebases, reads docs/pubdev-brand.md elsewhere, and ships a brand-setup interview skill plus the Utopia brand-chip header generator (package name to Clay PNG via headless Chrome). Use when creating or refreshing a package README, its header image, or the repo's branding profile; not for app code or non-package docs.",
+      "version": "0.3.0",
       "source": "./plugins/utopia-pubdev",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-pubdev",
@@ -95,7 +95,7 @@
     {
       "name": "utopia-design",
       "description": "👾 The Utopia Design Protocol for utopia_ui apps. Edit/rebrand DTCG design tokens (design/tokens.json) with validation gates, import external designs (Figma DTCG exports, tokens.css / Tailwind @theme, handoff bundles, DESIGN.md), regenerate the Flutter theme and HTML twin from tokens, build screens from the component manifest with explicit gap reporting, and scaffold project components registered in the project/merged manifest. SessionStart detection plus PostToolUse token/literal gates; silent outside utopia_ui projects.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "source": "./plugins/utopia-design",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-design",

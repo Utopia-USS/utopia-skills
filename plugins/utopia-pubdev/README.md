@@ -4,13 +4,14 @@
 
 # utopia-pubdev
 
-A Claude Code and Codex plugin that composes and standardizes pub.dev READMEs for Utopia Dart/Flutter packages: the brand-chip header, house voice, minimal vs full section tiers, a restrained badge set, and a no-sponsor footer with sibling links.
+A Claude Code and Codex plugin that composes and standardizes pub.dev READMEs for Dart/Flutter packages: a brand-profile-driven header and badge row, house voice, minimal vs full section tiers, and a no-sponsor footer with sibling links. Branding is data, not prose: the bundled Utopia profile auto-applies in Utopia codebases, any other repo commits its own `docs/pubdev-brand.md`, and with neither present the skill interviews you before composing.
 
 ## What's inside
 
-- The `utopia-pubdev` skill.
-- Three references: `readme-structure.md` (the header and footer contract, plus the two section tiers), `badges.md`, and `brand-spec.md` (the locked brand values).
-- The bundled brand-chip generator (`chip.py`, `render.mjs`, `generate.py`), which turns a package name into a Clay PNG via headless Chrome, plus a light/dark brand sheet at `skills/utopia-pubdev/docs/gallery.html`.
+- The `readme` skill (`/utopia-pubdev:readme`) - the README standard, brand-profile driven.
+- The `brand-setup` skill (`/utopia-pubdev:brand-setup`) - a derive-then-interview flow that writes a repo's `docs/pubdev-brand.md`.
+- Five references: `readme-structure.md` (the header and footer contract, plus the two section tiers), `badges.md`, `brand-profile.md` (the profile schema, resolution order, and Utopia detection rule), `utopia-brand.md` (the bundled Utopia profile), and `brand-spec.md` (the locked Utopia chip recipe).
+- The bundled brand-chip generator (`chip.py`, `render.mjs`, `generate.py`), which turns a package name into a Clay PNG via headless Chrome - Utopia profile only - plus a light/dark brand sheet at `skills/readme/docs/gallery.html`.
 
 No hooks, commands, or agents.
 
@@ -28,10 +29,14 @@ codex plugin marketplace add Utopia-USS/utopia-flutter-skills --ref main
 codex plugin install utopia-pubdev@utopia-flutter-skills
 ```
 
-## Generating a header chip
+## Bring your own brand
+
+The composition rules (structure, tiers, badges, voice) are generic; everything brand-specific - attribution line, pub.dev publisher, lints badge, palette, header image, house mark - lives in a brand profile. Resolution order: a committed `docs/pubdev-brand.md` always wins; without one, a detected Utopia codebase gets the bundled Utopia profile; anywhere else the skill asks before composing. Run the `brand-setup` skill once per repo to answer those questions and persist them.
+
+## Generating a header chip (Utopia profile only)
 
 ```sh
-cd skills/utopia-pubdev/scripts
+cd skills/readme/scripts
 npm i puppeteer-core            # once
 python3 generate.py --repo /path/to/repo     # discovers packages, writes <pkg>/docs/header.png + manifest.json
 ```

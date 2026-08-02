@@ -1,8 +1,8 @@
-# GitHub — reading and posting PR reviews
+# GitHub - reading and posting PR reviews
 
 All commands assume `gh` is authenticated (`gh auth status`) and run from the repo
 checkout. GraphQL is the only GitHub API that groups review comments into threads
-and exposes resolution — prefer it over REST.
+and exposes resolution - prefer it over REST.
 
 Link shape: `https://github.com/<owner>/<repo>/pull/<number>`.
 
@@ -28,7 +28,7 @@ gh pr list --head <branch> --json number,url,baseRefName   # find an open PR for
 
 ## Review threads (GraphQL)
 
-The one query that matters — threads with ids, resolution state, and all comments:
+The one query that matters - threads with ids, resolution state, and all comments:
 
 ```bash
 gh api graphql -f owner='<owner>' -f repo='<repo>' -F pr=<number> -f query='
@@ -62,7 +62,7 @@ query($owner: String!, $repo: String!, $pr: Int!, $cursor: String) {
 
 - Paginate: while `pageInfo.hasNextPage`, re-run with `-f cursor=<endCursor>`.
 - `id` is the thread id used by the reply and resolve mutations below.
-- Skip `isResolved: true`. Keep `isOutdated: true` — the code moved, but nobody
+- Skip `isResolved: true`. Keep `isOutdated: true` - the code moved, but nobody
   confirmed the concern is addressed.
 - The last comment's author tells you whether the thread already has an answer.
 
@@ -96,7 +96,7 @@ mutation($threadId: ID!, $body: String!) {
 }'
 ```
 
-Post the approved text verbatim — the gate already fixed the wording.
+Post the approved text verbatim - the gate already fixed the wording.
 
 ## Resolving a thread
 
@@ -113,7 +113,7 @@ mutation($threadId: ID!) {
 
 ## Posting a review with inline comments
 
-One batched review — summary in the body, findings as inline comments. Build the
+One batched review - summary in the body, findings as inline comments. Build the
 JSON in a file to keep quoting sane:
 
 ```bash
@@ -123,9 +123,9 @@ cat > /tmp/review.json <<'EOF'
   "body": "## Review: feature/x → main\nVerdict: ship after fixes\n…",
   "comments": [
     { "path": "lib/screen/main_screen.dart", "line": 42, "side": "RIGHT",
-      "body": "1. `useSubmitState` swallows the error here — rethrow or surface it in the view." },
+      "body": "1. `useSubmitState` swallows the error here - rethrow or surface it in the view." },
     { "path": "lib/state/foo_state.dart", "start_line": 10, "line": 14, "side": "RIGHT",
-      "body": "2. This block re-creates the controller on every build — hoist it into the hook." }
+      "body": "2. This block re-creates the controller on every build - hoist it into the hook." }
   ]
 }
 EOF
@@ -133,7 +133,7 @@ gh api -X POST "repos/<owner>/<repo>/pulls/<number>/reviews" --input /tmp/review
 ```
 
 - `line` anchors to the NEW side of the diff (`side: RIGHT`); multi-line comments
-  add `start_line`. Anchors must lie inside the PR diff — a comment on an untouched
+  add `start_line`. Anchors must lie inside the PR diff - a comment on an untouched
   line is rejected; put such remarks in the review body instead.
 - `event` stays `COMMENT` unless the user explicitly asked to approve
   (`APPROVE`) or request changes (`REQUEST_CHANGES`).
@@ -141,7 +141,7 @@ gh api -X POST "repos/<owner>/<repo>/pulls/<number>/reviews" --input /tmp/review
 
 ## REST fallbacks
 
-When GraphQL is unavailable (rare — e.g. a token without GraphQL scope):
+When GraphQL is unavailable (rare - e.g. a token without GraphQL scope):
 
 ```bash
 # Flat list of review comments; group into threads via in_reply_to_id
@@ -152,5 +152,5 @@ gh api -X POST "repos/<owner>/<repo>/pulls/<number>/comments/<comment-id>/replie
   -f body='<reply text>'
 ```
 
-There is no REST endpoint for resolving threads — resolution is GraphQL-only. If
+There is no REST endpoint for resolving threads - resolution is GraphQL-only. If
 only REST works, reply but leave resolution to the user, and say so in the report.

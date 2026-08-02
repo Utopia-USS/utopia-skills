@@ -386,7 +386,7 @@ Compare total lines in migrated hook+state files vs original cubit+state files. 
 
 ## Agent Orientation - canonical reference loading
 
-Every migration agent (`foundation`, `global-state`, `screen`, `review`) runs in a fresh context and needs to load the authoritative references before writing code. This table is the single source of truth - each agent's pre-flight points here with its own role-specific subset.
+Every migration agent (`migrate-foundation`, `migrate-global-state`, `migrate-screen`, `migrate-review`) runs in a fresh context and needs to load the authoritative references before writing code. This table is the single source of truth - each agent's pre-flight points here with its own role-specific subset.
 
 ### Resolving reference paths (CRITICAL)
 
@@ -406,12 +406,12 @@ The installed plugin is the authoritative source - load from there first. If `${
 | Reference | Purpose | Loaded by |
 |---|---|---|
 | `SKILL.md` (this file) | Concept map + anti-patterns + exit gate + this table | all agents |
-| `references/bloc-to-hooks-state.md` | State-layer patterns → hooks (Cubit/Bloc, events, context.read, Status, persistence, global mutable state) | global-state, screen, review |
-| `references/bloc-to-hooks-widget.md` | Widget-layer patterns → hooks (BlocBuilder/Listener/Consumer, TextEditingController, stream.listen, StatefulWidget lifecycle, WidgetsBindingObserver) | screen, review |
-| `references/global-state-migration.md` | `_providers` + `useInjected` bridge patterns | foundation, global-state, screen |
-| `references/pubspec-migration.md` | Dependency changes, version fetching | foundation |
-| `references/screen-migration-flow.md` | Phase 1–4 per-screen flow | screen, review |
-| `references/complex-cubit-patterns.md` | Decomposition, streams, lifecycle - **conditional** | global-state (if Cubit has `.listen`, lifecycle, or >10 methods), screen (if complexity=complex) |
+| `references/bloc-to-hooks-state.md` | State-layer patterns → hooks (Cubit/Bloc, events, context.read, Status, persistence, global mutable state) | migrate-global-state, migrate-screen, migrate-review |
+| `references/bloc-to-hooks-widget.md` | Widget-layer patterns → hooks (BlocBuilder/Listener/Consumer, TextEditingController, stream.listen, StatefulWidget lifecycle, WidgetsBindingObserver) | migrate-screen, migrate-review |
+| `references/global-state-migration.md` | `_providers` + `useInjected` bridge patterns | migrate-foundation, migrate-global-state, migrate-screen |
+| `references/pubspec-migration.md` | Dependency changes, version fetching | migrate-foundation |
+| `references/screen-migration-flow.md` | Phase 1–4 per-screen flow | migrate-screen, migrate-review |
+| `references/complex-cubit-patterns.md` | Decomposition, streams, lifecycle - **conditional** | migrate-global-state (if Cubit has `.listen`, lifecycle, or >10 methods), migrate-screen (if complexity=complex) |
 | `references/migration-steps.md` | Project-level orchestration | orchestrator only |
 
 ### Foundation-skill references (sibling `utopia-hooks` plugin)
@@ -420,17 +420,17 @@ Path resolution: see "Resolving reference paths" above. In short: read `~/.claud
 
 | Reference | Purpose | Loaded by |
 |---|---|---|
-| `SKILL.md` (foundation) | Screen/State/View + hook rules | global-state, screen |
-| `references/async-patterns.md` | Loading/submitting patterns | global-state, screen |
-| `references/paginated.md` | Pagination - **conditional** | screen (if Cubit paginates) |
-| `references/composable-hooks.md` | Decomposition - **conditional** | screen (if complex) |
-| `references/complex-state-examples.md` | Reference shapes - **conditional** | global-state, screen (non-trivial cases) |
+| `SKILL.md` (foundation) | Screen/State/View + hook rules | migrate-global-state, migrate-screen |
+| `references/async-patterns.md` | Loading/submitting patterns | migrate-global-state, migrate-screen |
+| `references/paginated.md` | Pagination - **conditional** | migrate-screen (if Cubit paginates) |
+| `references/composable-hooks.md` | Decomposition - **conditional** | migrate-screen (if complex) |
+| `references/complex-state-examples.md` | Reference shapes - **conditional** | migrate-global-state, migrate-screen (non-trivial cases) |
 
 **Follow these literally.** When a pattern in the code doesn't match any mapping in the references, return `status: other_error` with the unmapped pattern cited - do not invent a translation.
 
 ## Output Hygiene Protocol - canonical for all write-capable agents
 
-`foundation`, `global-state`, and `screen` agents all write files. Before returning, every such agent must run the same output-hygiene step so the downstream review agent sees formatted code with analyzer-auto-fixable noise removed.
+The `migrate-foundation`, `migrate-global-state`, and `migrate-screen` agents all write files. Before returning, every such agent must run the same output-hygiene step so the downstream `migrate-review` agent sees formatted code with analyzer-auto-fixable noise removed.
 
 **Prefer Dart MCP** (matches the `utopia-hooks` plugin convention):
 
@@ -450,7 +450,7 @@ dart format <files_touched>
 
 **Report back** in `self_report.formatted: true` once the step succeeds.
 
-**Do NOT run `dart analyze`, `flutter pub get`, or tests here.** The review agent owns verification; `dart_fix`/`dart_format` are the sole exceptions - they are required output hygiene, not verification.
+**Do NOT run `dart analyze`, `flutter pub get`, or tests here.** The `migrate-review` agent owns verification; `dart_fix`/`dart_format` are the sole exceptions - they are required output hygiene, not verification.
 
 ## Attribution
 

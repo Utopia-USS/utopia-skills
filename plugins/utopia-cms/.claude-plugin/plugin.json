@@ -1,7 +1,8 @@
 {
   "name": "utopia-cms",
+  "displayName": "Utopia CMS",
   "description": "👾 Flutter CMS / admin panels with utopia_cms. CmsWidget shell, CmsTablePage, CmsDelegate (Firebase / Supabase / Hasura / GraphQL), CmsEntry catalog, filters, custom actions, management sections. PostToolUse hook flags the hand-rolled DataTable + service + state-class anti-pattern.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": {
     "name": "UtopiaSoftware"
   },

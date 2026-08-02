@@ -11,11 +11,11 @@ A Claude Code plugin that migrates Flutter BLoC/Cubit codebases to utopia_hooks:
 - Skill `migrate-bloc-to-utopia-hooks`, plus 8 references covering state translation, widget translation, complex Cubit patterns, global-state migration, the step sequence, screen migration flow, pubspec migration, and a post-migration refactor checklist.
 - Command `/utopia-hooks-migrate-bloc:migrate` - the orchestrator.
 - Five agents:
-  - `inventory` - read-only scanner. Builds the screen inventory, the global-state dependency graph and the next-wave plan, and regenerates `MIGRATION.md`.
-  - `foundation` - one-time setup: pubspec dependency, `_providers.dart`, a `useInjected` bridge to existing DI, and `HookProviderContainerWidget` at the app root alongside the existing `MultiBlocProvider`.
-  - `global-state` - migrates one Cubit/Bloc to a parallel hook-based global state with no screen changes, and marks the original `@Deprecated`. One diff, one commit.
-  - `screen` - migrates one screen plus any global states it still needs. Produces the diff, does not commit.
-  - `review` - independent review against the exit gate, with fresh context that never sees the migration agent's reasoning.
+  - `migrate-inventory` - read-only scanner. Builds the screen inventory, the global-state dependency graph and the next-wave plan, and regenerates `MIGRATION.md`.
+  - `migrate-foundation` - one-time setup: pubspec dependency, `_providers.dart`, a `useInjected` bridge to existing DI, and `HookProviderContainerWidget` at the app root alongside the existing `MultiBlocProvider`.
+  - `migrate-global-state` - migrates one Cubit/Bloc to a parallel hook-based global state with no screen changes, and marks the original `@Deprecated`. One diff, one commit.
+  - `migrate-screen` - migrates one screen plus any global states it still needs. Produces the diff, does not commit.
+  - `migrate-review` - independent review against the exit gate, with fresh context that never sees the migration agent's reasoning.
 - A PostToolUse migration gate (`scripts/screen_gate.sh`).
 
 ## Installation
@@ -40,7 +40,7 @@ A Claude Code plugin that migrates Flutter BLoC/Cubit codebases to utopia_hooks:
 
 Flags: `[--budget N] [--screens a,b,c] [--status]`, plus `--allow-bash-fallback` to proceed without the Dart MCP server (expect brittler reviews).
 
-The orchestrator does not migrate code itself; it coordinates the sub-agents and commits their work per screen. Every run runs `inventory` before any migration work; it regenerates `MIGRATION.md` at the repo root while preserving the Skipped section you edited by hand.
+The orchestrator does not migrate code itself; it coordinates the sub-agents and commits their work per screen. Every run runs `migrate-inventory` before any migration work; it regenerates `MIGRATION.md` at the repo root while preserving the Skipped section you edited by hand.
 
 ### The migration gate
 
