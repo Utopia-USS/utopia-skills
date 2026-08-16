@@ -55,6 +55,10 @@ You execute the skill's Phase 3 + Phase 4 checks mechanically, then (for Complex
 
 ## Scope of review
 
+**Phase A scope (global-state review):** when `files_touched` contains NO screen/view/widget file (the Phase A shape: one new `lib/state/*.dart` + one annotated bloc), sections E, F1-F4, I and L3 are structurally N/A - mark them `n/a`, do not run them as hard fails, and use the short pre-flight load set: migrate-bloc `SKILL.md` + `references/bloc-to-hooks-state.md` + `references/global-state-migration.md`, foundation `SKILL.md` + `references/global-state.md` + `references/async-patterns.md` + `references/hooks-reference.md` (add `complex-cubit-patterns.md` only for Complex items). Section I has one Phase-A-relevant variant: a state file whose hook takes REQUIRED parameters (a parameterized shared hook, see global-state-migration.md §3b) is not a global even though it lives in `lib/state/` - never flag its later consumers for "re-exporting a global".
+
+Path patterns in F1/F3/F4 (`lib/screens/<stem>/`) are the default layout, not a rule - substitute the target repo's actual screen folder layout (e.g. `lib/presentation/<stem>/`).
+
 **You check ONLY the files in `files_touched`.** You do not grep the whole repo - that's the orchestrator's job between screens. Your scope is: "is THIS screen's migration done correctly?"
 
 Exception: if a file in `files_touched` imports from a file outside the list (e.g. a shared `useInjected` hook), it's fine - you assume the outside file is already correct. Only flag if the import is clearly wrong (e.g. imports `package:flutter_hooks`).
@@ -249,7 +253,9 @@ if [ -n "$baseline_cubit_size" ]; then
 fi
 ```
 
-If **any** of checks 1-4 fires (or size ratio > 1.5 if baseline available), treat as if §M post-migration sweep is mandatory (not optional). Output field: `post_migration_sweep_required: true` with the specific patterns cited. Do NOT pass through as advisory - the agent must run the sweep before commit.
+Heuristic 5 scope (mirrors SKILL.md exit gate §8): the honest denominator is bloc + event + state part files together, and the check is INAPPLICABLE to a single Phase A parallel state file - a flat state class plus callbacks can legitimately exceed a thin delegating bloc's line count while the freezed union it replaces never appears in either count. Skip heuristic 5 for Phase A reviews; judge those by the absolute size budgets in §G instead.
+
+If **any** of checks 1-4 fires (or size ratio > 1.5 if baseline available, non-Phase-A only), treat as if §M post-migration sweep is mandatory (not optional). Output field: `post_migration_sweep_required: true` with the specific patterns cited. Do NOT pass through as advisory - the agent must run the sweep before commit.
 
 ### H. Compilation - delta vs baseline
 
