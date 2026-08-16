@@ -35,7 +35,7 @@ already passed.
               v                             v
      3. generate_theme              4. generate_twin
         (Dart theme code)              (tokens.css, tokens.tailwind.css,
-                                         DESIGN.md front matter)
+        + --check: freshness             DESIGN.md front matter)
               |                             |
               +--------------+--------------+
                              v
@@ -95,7 +95,7 @@ continue past.
 Fully contracted (verbatim, ships in `utopia_design_tools`):
 
 ```
-dart run utopia_design_tools:generate_theme [<tokens-file>] [-o <path>] [--json]
+dart run utopia_design_tools:generate_theme [<tokens-file>] [-o <path>] [--check] [--json]
 ```
 
 - Default `<tokens-file>`: `design/tokens.json` if present, else
@@ -120,6 +120,17 @@ dart run utopia_design_tools:generate_theme [<tokens-file>] [-o <path>] [--json]
   the generated Dart for the new number. Deterministic: the same input
   produces byte-identical output; the file's header comment carries the input
   path and the regeneration command.
+- `--check` turns the command into a read-only freshness gate: it runs the
+  same validation and generation in memory, then byte-compares the result
+  against the existing output file INSTEAD of writing it. Exit `0` = the file
+  on disk is exactly what this token document produces; exit `1` = stale
+  (`<path> is stale - regenerate via: <the exact command to run>`) or the
+  output file does not exist; exit `2` = the usual usage/IO error. It writes
+  NOTHING - not the file, not its parent directory. Because the comparison is
+  byte-exact and the generated header carries the token path AS INVOKED, pass
+  `--check` the SAME arguments as the generating run (same tokens path, same
+  `-o`, same working directory); a different invocation reports "stale" over
+  that one header line alone.
 - Exit codes and `--json`: the shared convention (`0`/`1`/`2`).
 - Round-trip guarantee (SPEC.md 5): the theme generated from the canonical
   default-theme export equals `UtopiaThemeData.defaultTheme` up to 8-bit
@@ -133,6 +144,17 @@ error - `UtopiaTheme.of` silently falls back to `defaultTheme`.
 `generate_theme` prints this next step after writing. Do not consider a
 first sync done until the wiring exists (once wired, it stays wired - later
 syncs only regenerate the file).
+
+**Prove the freshness, do not assume it.** After the generate step, re-run the
+identical command with `--check` and require exit `0` - that is the theme-side
+counterpart of the `tokens.css` freshness gate `validate_twin` applies to the
+twin, and it is what turns "I ran the generator" into "the committed theme
+provably matches `design/tokens.json`". The same run doubles as entry triage:
+a `--check` at the top of a sync answers "does the theme need regenerating at
+all?" for the price of one in-memory generation. Running it that early does
+not violate the validate-first rule - it writes nothing, and an invalid token
+document still exits `1` on the generator's own validation gate exactly as the
+writing path would.
 
 ### 4. `generate_twin` - the HTML twin
 
