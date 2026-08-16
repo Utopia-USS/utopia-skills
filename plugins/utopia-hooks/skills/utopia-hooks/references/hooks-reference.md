@@ -41,6 +41,8 @@ Complete reference for utopia_hooks, organized by what you're trying to do.
 
 Mutable local state. Signature: `StateHookState<T> useState<T>(T initialValue, {bool listen = true, HookKeys keys})`. `StateHookState<T>` implements `MutableValue<T>` - read `.value`, write `.value =`, or use `.modify()` for collections.
 
+The setter early-returns when the new value `==` the current one - no rebuild, no notification. Records compare structurally, so writing an identical record is a silent no-op. If a repeated identical write must still trigger downstream work (e.g. re-reading a source that changed externally), do not rely on the write - call the computed state's `refresh()` or include a changing component in the key.
+
 ```dart
 final countState = useState(0);
 final filterState = useState(FilterType.all);

@@ -54,7 +54,7 @@ Impact ratings: CRITICAL (always apply), HIGH (significant correctness/quality g
 | 1 | [screen-state-view.md][screen-state-view] | CRITICAL | 3-file screen pattern: Screen, State class + hook, View; lightweight tier; dialogs with results |
 | 2 | [hooks-reference.md][hooks-reference] | CRITICAL | Full hook catalog: `useState`, `useMemoized`, `useEffect`, `useProvided`, `useInjected`, `useIf`, `useMap`, computed states, wrappers |
 | 3 | [global-state.md][global-state] | CRITICAL | App-wide state: StateClass, `HasInitialized`, `MutableValue`, `_providers` registration, global-state idioms |
-| 4 | [async-patterns.md][async-patterns] | HIGH | `useSubmitState`, `useAutoComputedState`, `useMemoizedStream`, retryable errors, lifecycle effects, sticky values |
+| 4 | [async-patterns.md][async-patterns] | HIGH | `useSubmitState`, `useAutoComputedState`, `useMemoizedStream`, `usePersistedState`, retryable errors, lifecycle effects, sticky values |
 | 5 | [paginated.md][paginated] | HIGH | `usePaginatedComputedState` + `PaginatedComputedStateWrapper`: cursor/page/token schemes, loadMore, refresh, debounce, dedup, optimistic overlay |
 | 6 | [app-bootstrap.md][app-bootstrap] | HIGH | Ordered `_providers`, `HasInitialized` chains, combined initialization state, splash gating, SDK init races, retryable bootstrap |
 | 7 | [error-handling.md][error-handling] | HIGH | Where let-it-crash errors land: app-root catcher (zone + `FlutterError.onError`), error stream + root dialog, `Retryable` retry, typed errors to field errors |
@@ -85,6 +85,7 @@ State class (often extends `HasInitialized`) + `useXState()` hook + entry in `_p
 - **Download** (read, one-shot) → `useAutoComputedState` - auto-fetches, re-runs on `keys` change, `shouldCompute` gates prerequisites
 - **Upload** (write) → `useSubmitState` - user-triggered; tracks in-flight runs but does NOT block duplicate calls (the three guards are in [async-patterns.md][async-patterns]); let errors crash by default
 - **Stream** (reactive) → `useMemoizedStream` - subscribes continuously, re-subscribes on `keys` change
+- **Persisted setting** (per-toggle get+set) → `usePersistedState` - one `MutableValue`-shaped object per setting: `.value` reads, `.value = x` writes optimistically then persists (`isSynchronized` flags an in-flight write). The shape for settings/preferences surfaces - never split them into a read snapshot plus setter wrappers
 
 ### Paginated lists → [paginated.md][paginated]
 
@@ -101,6 +102,7 @@ From elsewhere, use the absolute form, e.g.
 grep -rl "useAutoComputedState" references/
 grep -rl "useComputedState" references/
 grep -rl "useSubmitState" references/
+grep -rl "usePersistedState" references/
 grep -rl "useMemoizedStream" references/
 grep -rl "usePaginatedComputedState\|PaginatedComputedStateWrapper" references/
 grep -rl "useDebounced" references/
@@ -178,6 +180,7 @@ doesn't show `dart`, run `claude mcp add -s user dart -- fvm dart mcp-server`
 | Navigate in reaction to global state (post-login redirect)                  | [navigation.md][navigation] |
 | Screen hosted in bottom sheet / dialog returning a result                   | [navigation.md][navigation] |
 | Form submission with loading/error                                          | [async-patterns.md][async-patterns] |
+| Settings/preferences screen with per-toggle persistence                     | [async-patterns.md][async-patterns] (`usePersistedState`) + [hooks-reference.md][hooks-reference] |
 | Form with validation (multi-field, submit gating)                           | [async-patterns.md][async-patterns] |
 | Async data with loading spinner                                             | [async-patterns.md][async-patterns] |
 | Paginated list, infinite scroll, cursor/page/token pagination               | [paginated.md][paginated] |
@@ -231,7 +234,7 @@ doesn't show `dart`, run `claude mcp add -s user dart -- fvm dart mcp-server`
 - **Navigation flows Screen → State → View as callbacks** - never `useProvided<NavigatorKey>` or `useInjected<AppRouter>`. State hook receives navigation as `void Function()` / `Future<T?> Function()` parameters. See [navigation.md][navigation].
 - **State never imports widgets** - no Flutter widget imports in `*_screen_state.dart`
 - **`useProvided` / `useInjected` only in screen state hooks** - not in Screen, not in View, not passed down as parameters
-- **No mutable collections in State classes** - always `IList`/`IMap`/`ISet`, never `List`/`Map`/`Set`, including static data
+- **No mutable collections in State classes** - always `IList`/`IMap`/`ISet`, never `List`/`Map`/`Set`, including static data (applies when the project declares `fast_immutable_collections`; brownfield exception in [flutter-conventions.md][flutter-conventions] §2)
 - **No manual loading state** - never use `useState<bool>` + `try/catch/finally` for data loading. Always `useAutoComputedState`.
 - **No hand-rolled pagination** - never use `useState<List<T>>` + `hasMore` + `cursor` for paginated lists. Always `usePaginatedComputedState` + `PaginatedComputedStateWrapper`. See [paginated.md][paginated].
 - **Never construct `ButtonState` by hand for submit-backed buttons** - always `submitState.toButtonState(onTap: ...)` or `useSubmitButtonState` (only the latter guards re-entrant taps - see [async-patterns.md][async-patterns]).
