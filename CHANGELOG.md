@@ -3,6 +3,62 @@
 Per-plugin versions live in each plugin's `.claude-plugin/plugin.json`; the marketplace version tracks
 the repo as a whole. Entries below cover shipped changes since the previous bump of each component.
 
+## Marketplace 0.11.0
+
+- Field-adapter pass across `utopia-hooks`, `utopia-hooks-migrate-bloc` and `utopia-design`, driven by
+  running the skills against real BLoC migration targets. Every API claim in this pass was re-verified
+  against `utopia_hooks` 0.4.26 and `utopia_design_tools` 0.1.0.
+
+## utopia-hooks 0.4.3
+
+- **Correction:** `MutableComputedState.updateValue` DOES cancel an in-flight compute before setting
+  the value (0.4.x, verified in `use_computed_state.dart`). `async-patterns.md` documented the opposite,
+  so ported code was being told to call `clear()` defensively for a race that cannot happen.
+- `useState`'s setter early-returns on `==`, so a repeated identical write (records compare
+  structurally) is a silent no-op. Documented in `hooks-reference.md`, with the identical-trigger
+  staleness rule in `global-state.md`: trigger `refresh()` explicitly rather than relying on a key write.
+- `usePersistedState` routed from the SKILL decision table - one `MutableValue`-shaped object per
+  setting is the shape for settings/preferences surfaces, never a read snapshot plus setter wrappers.
+- Synchronous reads belong in `useMemoized`; a computed-state hook there manufactures an `inProgress`
+  frame the operation never has. `useSubmitState` should stay internal when no UI renders a busy state.
+- Brownfield exception to the `IList`/`IMap`/`ISet` rule: it applies only when the project itself
+  declares `fast_immutable_collections`. Adopting FIC is one repo-wide decision, not a per-screen call.
+- Third case for skipping `HasInitialized`: an async load whose pre-load value is indistinguishable
+  from a loaded one by design.
+
+## utopia-hooks-migrate-bloc 0.5.0
+
+- **New reference `settings-prefs-migration.md`.** Settings/preferences blocs (wide thin-setter class,
+  generic catalog cubit, HydratedX) map to a unified per-setting persisted state. The naive port
+  produces a split read-snapshot state plus a sibling setter-wrapper state - the bloc's own read/write
+  split re-expressed in hooks, which passes every existing gate.
+- **New reference `design-review-pass.md` (6th phase).** Per-cluster solution-SHAPE review with a
+  staff-engineer framing, run per domain cluster before `--finalize`; catches wrong-shape code that
+  compliance gates pass.
+- `bloc_concurrency` transformers now have an explicit mapping table (`bloc-to-hooks-state.md` §9):
+  `sequential` usually maps to nothing, `droppable` to `skipIfInProgress: true` (which DROPS, not
+  queues), `restartable` to keyed computed state or `clear()` + `refresh()`, `concurrent` to the default.
+- Sync-throw blast radius (§10): a synchronous throw contained by `Bloc.onError` becomes an app-level
+  build error once the same call sits in a hook body of a registered global state.
+- Review agent: Phase A diffs (one new `lib/state` file + one annotated bloc) mark the screen-only
+  sections `n/a` instead of hard-failing, and the bloc/state line-count heuristic is skipped there;
+  screen-path patterns are the default layout, not a rule.
+- Also in this cycle: public `providers` name for a standalone `_providers.dart`, `@Deprecated` on
+  constructors, FIC gate conditional on project deps, tear-off `provider_entry` examples, parameterized
+  shared hooks, mount-run pitfall for listener-triggered effects, and a fix for section 8 prescribing
+  deprecated `useAppLifecycleState` callbacks plus a nonexistent `onDetached`.
+
+## utopia-design 0.3.1
+
+- `generate_theme --check` contracted in the sync skill and `regeneration.md`: a read-only freshness
+  gate that regenerates in memory and byte-compares against the file on disk (exit `0` fresh, `1` stale
+  or missing, `2` usage/IO), writing nothing. Required after the generate step as the theme-side
+  counterpart of `validate_twin`'s `tokens.css` gate, and usable as entry triage.
+- Documented the byte-exactness caveat: pass `--check` the same arguments as the generating run, since
+  the emitted `// Regenerate:` header carries the tokens path as invoked - a different working directory
+  reports a false "stale". Triage must recover those arguments from the existing header, never guess.
+- Token profile gains the 0.4.0 palette tokens.
+
 ## Marketplace 0.10.0
 
 - Palette-friendly skill names: skills no longer repeat their plugin prefix. New invocations:

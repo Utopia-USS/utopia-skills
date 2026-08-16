@@ -6,12 +6,12 @@
     "url": "https://utopiasoft.io"
   },
   "description": "👾 Flutter skills for Claude Code by UtopiaSoftware - hooks-based state management, project architecture scaffolding, BLoC migration, admin/CMS panels, code reviews and review resolution, the Dart/Flutter language server, pub.dev README/branding, and the Utopia Design Protocol (design tokens, HTML twin, screens from designs).",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "plugins": [
     {
       "name": "utopia-hooks",
       "description": "👾 Flutter state management with utopia_hooks. Screen/State/View pattern, hook catalog, global state, async/pagination patterns, app bootstrap, global error handling, navigation conventions, hook-state testing, utopia_cli integration (describe / add screen / doctor / MCP), and enforcement of conventions via SessionStart project detection + PostToolUse checks.",
-      "version": "0.4.2",
+      "version": "0.4.3",
       "source": "./plugins/utopia-hooks",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-hooks",
@@ -35,7 +35,7 @@
     {
       "name": "utopia-hooks-migrate-bloc",
       "description": "👾 Migrate Flutter BLoC/Cubit codebases to utopia_hooks. Two-phase migration (global states first, then screens) with per-commit granularity, service extraction for logic-heavy Cubits, deferred provider registration (no dual-run side effects), a flutter-test behavioral gate, staged plans for god-screens, dart analyze baseline (Dart MCP preferred), and a --finalize cleanup mode. Includes the /utopia-hooks-migrate-bloc:migrate orchestrator coordinating five sub-agents: migrate-inventory, migrate-foundation, migrate-global-state, migrate-screen, and migrate-review. Recommended companion: utopia-hooks plugin.",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "source": "./plugins/utopia-hooks-migrate-bloc",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-hooks-migrate-bloc",
@@ -95,7 +95,7 @@
     {
       "name": "utopia-design",
       "description": "👾 The Utopia Design Protocol for utopia_ui apps. Edit/rebrand DTCG design tokens (design/tokens.json) with validation gates, import external designs (Figma DTCG exports, tokens.css / Tailwind @theme, handoff bundles, DESIGN.md), regenerate the Flutter theme and HTML twin from tokens, build screens from the component manifest with explicit gap reporting, and scaffold project components registered in the project/merged manifest. SessionStart detection plus PostToolUse token/literal gates; silent outside utopia_ui projects.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "source": "./plugins/utopia-design",
       "repository": "https://github.com/Utopia-USS/utopia-flutter-skills",
       "homepage": "https://github.com/Utopia-USS/utopia-flutter-skills/tree/main/plugins/utopia-design",
