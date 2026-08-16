@@ -387,6 +387,12 @@ SettingsScreenState useSettingsScreenState() {
 - `HydratedCubit` + `fromJson`/`toJson` → `usePersistedState(get, set)` - no serialization boilerplate
 - `themeMode.isSynchronized` tells you if the value has been saved
 
+**The same primitive applies WITHOUT HydratedCubit.** Any settings/preferences bloc whose
+setters are thin persistence writes (via usecases, services, or a config DAO) maps to
+per-setting `usePersistedState` or an optimistic snapshot field - NOT to a split
+read-snapshot state plus a sibling setter-wrapper state. Pattern recognition greps,
+target shapes, and the parity checklist: [settings-prefs-migration.md](./settings-prefs-migration.md).
+
 ---
 
 ## 7. Cubit Parameter → useProvided
@@ -474,6 +480,35 @@ class CollapseService {
 See `utopia-hooks:references/global-state.md` and `utopia-hooks:references/di-services.md`. For complex cases (multiple globals, caches, rate-limit state), see [complex-cubit-patterns.md](./complex-cubit-patterns.md) section 4.
 
 ---
+
+## 9. bloc_concurrency transformers → what they become
+
+The exit-gate greps ban `bloc_concurrency`, so every `transformer:` needs a conscious mapping.
+Judge per handler and record the judgment; most delegating handlers need NOTHING because the
+ordering was never observable.
+
+| Transformer | When it actually mattered in the bloc | Hook-side mapping |
+|---|---|---|
+| `sequential()` | Only for handlers with real `await`s doing read-modify-write on shared in-memory state; a fully synchronous handler cannot interleave under ANY transformer | Usually nothing. If mutations genuinely must serialize, route them through one `useSubmitState` and await each `run` before UI can fire the next (note: submit runs do NOT queue - they run in parallel - so gate at the UI or chain the futures) |
+| `droppable()` | Ignore events while one is processing | `useSubmitState` + `skipIfInProgress: true` for writes. CAUTION: this DROPS the repeat like droppable did - do not use it to emulate sequential queueing |
+| `restartable()` | New event cancels the in-flight handler | keyed `useAutoComputedState` (a keys change cancels and re-runs), or `clear()` + `refresh()` on a manual computed state |
+| `concurrent()` | Handlers were free to interleave | Default hook behavior; nothing to port |
+
+Also: `refresh()` on computed states JOINS an in-flight compute rather than queueing a second
+run - a repeated trigger during a compute is coalesced, which is droppable-like, not
+sequential-like. If a per-trigger side effect must fire every time, keep it in the trigger
+callback, outside the compute closure.
+
+## 10. Throwing SYNC calls change blast radius
+
+A synchronous throw inside a bloc event handler was contained by `Bloc.onError` (observer
+logging, bloc goes on living). The same call moved into `useMemoized` or a hook body throws
+DURING BUILD - and once the state is registered in `_providers`, that is an app-level build
+error, not a screen-level one. When porting a sync call that can realistically throw
+(parsing, `firstWhere`, map indexing on data-dependent keys), keep the error surface
+equivalent: move the call inside the computed-state closure (failures become
+`ComputedStateValue.failed` / zone-reported) or guard it explicitly. Do not silently upgrade
+a contained per-event failure into a build crash.
 
 ## Common Pitfalls During Migration
 

@@ -66,6 +66,7 @@ result will be simpler (typically ~30% less code) with the same functionality. W
 | `buildWhen: (prev, curr) => ...` | `useMemoized` with selective keys | Rebuild control via dependency array |
 | `listenWhen: (prev, curr) => ...` | `useEffect` with selective keys | Effect runs only when keys change |
 | `BlocObserver` | No direct equivalent | Use logging in hooks or global error handler |
+| `bloc_concurrency` transformers | Mapping table in bloc-to-hooks-state.md §9 | `sequential` usually nothing (sync handlers can't interleave); `droppable` → `skipIfInProgress: true` (DROPS, not queues); `restartable` → keyed computed state / `clear()`+`refresh()`; `concurrent` → default |
 | `Cubit.close()` / `Bloc.close()` | Automatic | Hooks are disposed when widget unmounts |
 
 ## Quick Migration Example
@@ -168,6 +169,8 @@ class CounterScreenView extends StatelessWidget {
 | [screen-migration-flow.md][flow] | HIGH | Per-screen 4-phase migration: analysis (incl. pre-flight cleanup sweep for dead/fake code), migration, self-review, exit gate |
 | [complex-cubit-patterns.md][complex] | HIGH | Decomposition, ownership graph, reactive inputs, async-setup → stream, stream accumulation, dynamic streams, navigation callbacks - read for any Complex-classified screen |
 | [post-migration-refactor-checklist.md][post] | HIGH | **5th phase** - 14 named anti-patterns with grep-shapes and fix patterns for post-migration bloat that exit-gate greps don't catch (coordination in sub-hooks, per-item state in screen scope, mutable derivations, fat aggregators). Run per Complex screen after exit gate passes. |
+| [settings-prefs-migration.md][prefs] | HIGH | Settings/preferences blocs (3+ thin persist setters, catalog cubits, HydratedX) → unified per-setting persisted state. Nearly every app has this surface; the naive port produces a split read/write anti-shape that passes every gate. |
+| [design-review-pass.md][design] | HIGH | **6th phase** - per-cluster solution-SHAPE review with a staff-engineer framing; catches wrong-shape code that compliance gates pass (field data: -72% on a fully gate-compliant cluster). Run per domain cluster before `--finalize`. |
 | `complex-state-examples.md` (foundation skill - resolve per "Resolving reference paths" below) | HIGH | Five anonymised reference shapes for complex state (pipeline / dashboard / parent-owned list / per-item widget-level / multi-step flow) - what the migrated result looks like. Lives in the foundation skill because the shapes apply to new screens too. |
 | `paginated.md` (foundation skill - resolve per "Resolving reference paths" below) | HIGH | `usePaginatedComputedState` + `PaginatedComputedStateWrapper`: cursor/page/token schemes, loadMore, refresh, debounce, dedup, optimistic overlay - target pattern for any BLoC/Cubit that paginated lists manually. |
 
@@ -179,6 +182,8 @@ class CounterScreenView extends StatelessWidget {
 [flow]: references/screen-migration-flow.md
 [complex]: references/complex-cubit-patterns.md
 [post]: references/post-migration-refactor-checklist.md
+[prefs]: references/settings-prefs-migration.md
+[design]: references/design-review-pass.md
 
 ## Problem → Reference
 
@@ -203,6 +208,9 @@ class CounterScreenView extends StatelessWidget {
 | What does good look like? | `complex-state-examples.md` (foundation skill) |
 | Migrating stream.listen() calls | [bloc-to-hooks-widget.md][mapping-widget] (section 6) |
 | Migrating StatefulWidget with lifecycle | [bloc-to-hooks-widget.md][mapping-widget] (section 7) |
+| Bloc/Cubit is a settings/preferences surface (3+ thin persist setters) | [settings-prefs-migration.md][prefs] |
+| Same hook skeleton hand-written 3+ times across files | [design-review-pass.md][design] (missing combinator) |
+| Cluster passes every gate but the shape still mirrors the old bloc | [design-review-pass.md][design] |
 | Screen migrated + exit gate passed, but state/ still feels bloated | [post-migration-refactor-checklist.md][post] |
 | Sub-hook grew over ~200 LoC during migration | [post-migration-refactor-checklist.md][post] §A (coordination in wrong layer) |
 | Aggregator has 20+ `required` fields mostly proxying sub-state | [post-migration-refactor-checklist.md][post] §D1 (getter-delegate collapse) |
@@ -235,6 +243,15 @@ state.value = state.value.copyWith(isLoading: true);
 // ✅ INSTEAD: one useState per mutable field
 final isLoadingState = useState(false);
 isLoadingState.value = true;
+
+// ❌ NEVER: split a settings/prefs bloc into a read-snapshot state plus a sibling
+//           setters state (N pass-through fields + N hand-wrapped one-line submit
+//           setters) - that is the bloc's own read/write split re-expressed in hooks
+final bool usesImperialUnits;                            // read side in one class...
+final Future<void> Function(bool) setUsesImperialUnits;  // ...write side in another
+// ✅ INSTEAD: one MutableValue-shaped object per setting (usePersistedState or an
+//            optimistic snapshot field) - see references/settings-prefs-migration.md
+final MutableValue<bool?> usesImperialUnits;             // .value reads, .value = x writes
 
 // ❌ NEVER: Equatable on state classes - hooks don't need equality checks
 class MyState extends Equatable {
