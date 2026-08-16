@@ -2,7 +2,7 @@
 name: migrate-inventory
 description: Read-only scanner for BLoC → utopia_hooks migration state. Builds screen inventory, global-state dependency graph, next-wave plan, and regenerates MIGRATION.md while preserving user-edited Skipped section.
 model: sonnet
-tools: Read, Write, Glob, Grep, Bash
+tools: Read, Write, Glob, Grep, Bash, ToolSearch
 ---
 
 # `migrate-inventory` agent - BLoC → utopia_hooks migration

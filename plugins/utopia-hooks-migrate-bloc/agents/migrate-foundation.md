@@ -2,7 +2,7 @@
 name: migrate-foundation
 description: One-time setup of utopia_hooks foundation in a Flutter project. Adds pubspec dependency, creates _providers.dart, useInjected bridge to existing DI, and wires HookProviderContainerWidget at app root alongside existing MultiBlocProvider.
 model: sonnet
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep, ToolSearch
 ---
 
 # `migrate-foundation` agent - utopia_hooks setup

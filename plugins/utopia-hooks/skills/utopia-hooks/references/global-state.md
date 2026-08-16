@@ -85,6 +85,11 @@ class ThemeState {
 }
 ```
 
+Third case: the load IS async but the pre-load value is indistinguishable from a loaded one
+BY DESIGN (e.g. a single-arm freezed state whose "loading" arm carried the same empty
+payload consumers render anyway). Use Option B with sensible empty defaults - forcing
+`HasInitialized` onto it invents a loading distinction the original semantics never had.
+
 ### 2. Write the hook
 
 ```dart
@@ -237,8 +242,13 @@ SegmentedControl(
 | Use case | Pattern |
 |----------|---------|
 | UI-only selection (filter, tab, checkbox) | `MutableValue<T>` |
+| UI-only selection WITH an invariant (e.g. index must be >= 0, value must be in a set) | guarded callback (`void Function(T)`) that validates before assigning |
 | Action that triggers async work (save, delete) | `void Function()` callback |
 | Field that requires validation | `useFieldState` |
+
+A raw `MutableValue<T>` lets any consumer assign any value; if the old code guarded the
+assignment (bounds check, whitelist), keep the guard by exposing a setter callback instead -
+the read side stays a plain final field.
 
 ```dart
 // MutableValue - View drives the value, no business logic involved
@@ -333,6 +343,43 @@ ChatState useChatState() {
 useEffect(() {
   chatState.initializeChat();
 }, []);
+```
+
+**Manual-trigger variant (`useComputedState`)** - prefer it over the `shouldCompute` flag when
+either applies: (a) the read touches a service that is only usable after some bootstrap step
+(e.g. a `late` field assigned in an async `init()` - an eager or flag-latched compute at
+provider build would throw), or (b) callers need a `force` refresh / retry-after-failure.
+The flag variant latches `shouldCompute: true` and never re-runs a failed first load;
+`refresh()` re-runs it and joins an in-flight compute instead of stacking.
+
+```dart
+final itemsState = useComputedState(() async => catalogService.loadItems());
+final items = itemsState.useValueOrPrevious();
+
+void initialize({bool force = false}) {
+  if (force || !itemsState.isInitialized) {
+    unawaited(itemsState.refresh());
+  }
+}
+```
+
+Per-trigger side effects (analytics, logging) belong in the trigger callback, NOT inside the
+compute closure: `refresh()` joins an in-flight compute instead of starting a second one, so
+a side effect folded into the closure silently drops repeats that the caller intended to fire
+once per trigger.
+
+Identical-trigger staleness: when the trigger writes an input via `useState` and keys a
+compute on it, a repeated trigger with the IDENTICAL input is a silent no-op (`useState`'s
+setter early-returns on `==`; records compare structurally). If the underlying source can
+change between identical triggers (resource update, app-level re-init), the trigger must
+call `refresh()` (or `clear()` then `refresh()`) explicitly instead of relying on the
+key write.
+
+```dart
+void initialize() {
+  unawaited(telemetry.trackOpened());   // fires per call
+  unawaited(itemsState.refresh());      // may join an in-flight compute
+}
 ```
 
 ### Event streams out of global state

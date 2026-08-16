@@ -10,13 +10,16 @@ Async operations in utopia_hooks follow a **download / upload / stream** mental 
 
 | Direction | Hook | Trigger | Examples |
 |-----------|------|---------|----------|
-| **Download** (read, one-shot) | `useAutoComputedState` | Automatic (keys change) | Load screen data, fetch list, search results |
+| **Download** (read, one-shot) | `useAutoComputedState` (manual-trigger variant: `useComputedState` - see [global-state.md](./global-state.md) when the service is late-initialized or callers need `force`) | Automatic (keys change) | Load screen data, fetch list, search results |
 | **Download** (read, paginated) | `usePaginatedComputedState` | Automatic first page + `loadMore` | Feeds, paginated search, chat history - see [paginated.md](./paginated.md) |
+| **Sync read** (no await anywhere) | `useMemoized` keyed on the inputs | Automatic (keys change) | Filter/sort an in-memory list, derive from a synchronous service call - a computed-state hook here manufactures an `inProgress` frame the operation never has |
 | **Upload** (write) | `useSubmitState` | Manual (user action) | Save, delete, send, create - any mutation |
 | **Stream** (reactive) | `useMemoizedStream` | Continuous | Real-time updates, auth state, live data |
 | **Lifecycle effect** (side effect) | `useEffect` (+ `usePeriodicalSignal`) | Mount/unmount, keys change | Presence, heartbeats, wake locks, countdowns |
 
-**Default rule:** reading one-shot → `useAutoComputedState`, reading paged → `usePaginatedComputedState`, writing → `useSubmitState`, reactive → `useMemoizedStream`, managed side effect → `useEffect` (see "Lifecycle effects" below).
+**Default rule:** reading one-shot → `useAutoComputedState`, reading paged → `usePaginatedComputedState`, synchronous read/derivation → `useMemoized`, writing → `useSubmitState`, reactive → `useMemoizedStream`, managed side effect → `useEffect` (see "Lifecycle effects" below).
+
+`useSubmitState` note: expose `inProgress` (or a `ButtonState`) only when some UI actually renders a busy state; a migrated hook whose original had no busy flag should keep the submit state internal rather than invent surface.
 
 ## Why these hooks - the anti-pattern
 
@@ -225,8 +228,9 @@ Signature and basic usage are in [hooks-reference.md](./hooks-reference.md). The
 
 `useAutoComputedState` returns `MutableComputedState<T>`, not a read-only snapshot. Three mutators sit alongside the loaded value:
 
-- `refresh()` - **joins an in-flight compute rather than always re-running**: if `value` is `inProgress` it awaits that computation; otherwise it starts a new one. Safe to call from several places without stacking requests
-- `updateValue(T value)` - set to `ready(value)` without re-fetching. Does NOT cancel an in-flight compute - if one is running, its result overwrites yours when it completes; call `clear()` first to discard it
+- `refresh()` - **joins an in-flight compute rather than always re-running**: if `value` is `inProgress` it awaits that computation; otherwise it starts a new one. Safe to call from several places without stacking requests. Corollary: per-trigger side effects (analytics, logging) must live in the callback that calls `refresh()`, never inside the compute closure - joined refreshes would silently swallow the repeats
+- Ordering note for ported code: if the original handler awaited a side effect BEFORE exposing the new state (e.g. awaited analytics before emitting loaded), keep that ordering - put the awaited call inside the compute so the ready state still lands after it. Behavior preservation beats closure purity during a migration
+- `updateValue(T value)` - set to `ready(value)` without re-fetching. Since utopia_hooks 0.4.x it CANCELS any in-flight compute before setting the value (verified in 0.4.26 `use_computed_state.dart`; the doc comment on `MutableComputedState.updateValue` confirms) - a racing read cannot overwrite your value. On older versions it did not cancel; check your resolved package if behavior matters
 - `clear()` - reset to `notInitialized`; cancels any in-flight computation
 
 ```dart
@@ -410,6 +414,11 @@ final visibleProduct = usePreviousIfNull(productState.valueOrNull);  // stays on
 ```
 
 (`productState.useValueOrPrevious()` is the equivalent extension method on `ComputedState`.)
+
+Both are backed by `usePreviousValue`, which is change-gated: it updates its stored previous
+only when the incoming value CHANGES, so the last real value stays on screen across any number
+of in-progress rebuilds, not just the first one. The deprecated `usePrevious` (unconditional)
+would blink after one rebuild - do not substitute it.
 
 **2. Refresh inside the submit run** - when the refresh is caused by a mutation, await it inside `run`/`runSimple` so the button spinner only ends when the data is fresh and the screen never renders a half-updated state:
 

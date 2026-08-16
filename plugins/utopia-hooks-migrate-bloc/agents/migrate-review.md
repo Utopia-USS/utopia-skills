@@ -2,7 +2,7 @@
 name: migrate-review
 description: Independent review of a migrated screen's code against the BLoC → utopia_hooks exit gate. Fresh context, does not see the migration agent's reasoning. Runs Phase 3 self-review and Phase 4 exit gate from the skill, returns pass/fail + fix list.
 model: opus
-tools: Read, Glob, Grep, Bash
+tools: Read, Glob, Grep, Bash, ToolSearch
 ---
 
 # `migrate-review` agent - BLoC → utopia_hooks migration
@@ -54,6 +54,10 @@ You review the output of two plugins, so you load from both. Migration correctne
 You execute the skill's Phase 3 + Phase 4 checks mechanically, then (for Complex) validate against the `utopia-hooks` idiom references. If in doubt, the **utopia-hooks plugin is authoritative** for what "idiomatic hook code" means; the migrate-bloc plugin is authoritative for what a valid migration *process* looks like. Both must be satisfied.
 
 ## Scope of review
+
+**Phase A scope (global-state review):** when `files_touched` contains NO screen/view/widget file (the Phase A shape: one new `lib/state/*.dart` + one annotated bloc), sections E, F1-F4, I and L3 are structurally N/A - mark them `n/a`, do not run them as hard fails, and use the short pre-flight load set: migrate-bloc `SKILL.md` + `references/bloc-to-hooks-state.md` + `references/global-state-migration.md`, foundation `SKILL.md` + `references/global-state.md` + `references/async-patterns.md` + `references/hooks-reference.md` (add `complex-cubit-patterns.md` only for Complex items). Section I has one Phase-A-relevant variant: a state file whose hook takes REQUIRED parameters (a parameterized shared hook, see global-state-migration.md §3b) is not a global even though it lives in `lib/state/` - never flag its later consumers for "re-exporting a global".
+
+Path patterns in F1/F3/F4 (`lib/screens/<stem>/`) are the default layout, not a rule - substitute the target repo's actual screen folder layout (e.g. `lib/presentation/<stem>/`).
 
 **You check ONLY the files in `files_touched`.** You do not grep the whole repo - that's the orchestrator's job between screens. Your scope is: "is THIS screen's migration done correctly?"
 
@@ -124,6 +128,11 @@ flutter-conventions §2 use `IList` / `IMap` / `ISet` from `fast_immutable_colle
 ```bash
 grep -nE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' <state_files>
 ```
+
+Skip this indented-collections check entirely when the target project does NOT declare
+`fast_immutable_collections` in its own `pubspec.yaml`: collection type conversion of
+existing data structures is out-of-scope for the migration (migration-steps.md Step 2
+scope note), so repos built on plain `List` keep plain `List` - that is not a finding.
 
 ### E. Screen discipline (Phase 3 Screen file)
 
@@ -244,7 +253,9 @@ if [ -n "$baseline_cubit_size" ]; then
 fi
 ```
 
-If **any** of checks 1-4 fires (or size ratio > 1.5 if baseline available), treat as if §M post-migration sweep is mandatory (not optional). Output field: `post_migration_sweep_required: true` with the specific patterns cited. Do NOT pass through as advisory - the agent must run the sweep before commit.
+Heuristic 5 scope (mirrors SKILL.md exit gate §8): the honest denominator is bloc + event + state part files together, and the check is INAPPLICABLE to a single Phase A parallel state file - a flat state class plus callbacks can legitimately exceed a thin delegating bloc's line count while the freezed union it replaces never appears in either count. Skip heuristic 5 for Phase A reviews; judge those by the absolute size budgets in §G instead.
+
+If **any** of checks 1-4 fires (or size ratio > 1.5 if baseline available, non-Phase-A only), treat as if §M post-migration sweep is mandatory (not optional). Output field: `post_migration_sweep_required: true` with the specific patterns cited. Do NOT pass through as advisory - the agent must run the sweep before commit.
 
 ### H. Compilation - delta vs baseline
 

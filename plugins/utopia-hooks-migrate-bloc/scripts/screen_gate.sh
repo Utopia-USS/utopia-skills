@@ -54,6 +54,16 @@ case "$rel" in
   *) exit 0 ;;
 esac
 
+# Phase A allowance: a retained Bloc/Cubit annotated @Deprecated is the sanctioned
+# parallel-migration marker (annotate, keep alive until --finalize). Its bloc-isms
+# (filename, bloc imports, emit calls) are by design during the migration window -
+# skip the gate for such files instead of spamming violations on every annotation edit.
+case "$(basename "$file")" in
+  *_cubit.dart|*_bloc.dart)
+    grep -qE '^@Deprecated\(' "$file" && exit 0
+    ;;
+esac
+
 in_state=0
 in_screen=0
 in_view=0
@@ -126,8 +136,12 @@ if [[ $in_state -eq 1 ]]; then
   fi
 
   # 3h: mutable collections in State class body / hook body (indented)
-  # flutter-conventions §2 - always use IList / IMap / ISet, not List / Map / Set
-  if grep -qE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' "$file"; then
+  # flutter-conventions §2 - always use IList / IMap / ISet, not List / Map / Set.
+  # Applies ONLY when the project itself declares fast_immutable_collections: collection
+  # type conversion of existing data structures is out-of-scope for the migration
+  # (migration-steps.md Step 2 scope note), so repos on plain List keep plain List.
+  if grep -qE '^[[:space:]]*fast_immutable_collections[[:space:]]*:' "$project_root/pubspec.yaml" && \
+     grep -qE '^[[:space:]]+final[[:space:]]+(Map|List|Set)<' "$file"; then
     add "state file declares mutable List/Map/Set field - use IList/IMap/ISet from fast_immutable_collections (flutter-conventions §2)"
   fi
 

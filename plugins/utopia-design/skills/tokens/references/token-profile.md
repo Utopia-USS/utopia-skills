@@ -22,7 +22,7 @@ of truth - if this table and the running validator ever disagree, SPEC.md wins.
 | `fontWeight.{regular,medium,semiBold,bold}` | `fontWeight` | numeric, 100..900 step 100 | 4 steps |
 | `duration.{xs,sm,md,lg,xl}` | `duration` | unit `ms` | 5 steps |
 | `breakpoint.{tablet,web,sidebar}` | `dimension` | unit `px` | 3 steps |
-| `color.<name>` | `color` | sRGB with hex fallback | 18 names total (17 required + `divider` OPTIONAL) - see below |
+| `color.<name>` | `color` | sRGB with hex fallback | 21 names total (17 required + 4 OPTIONAL) - see below |
 | `textStyle.{header,label,text,title,caption,button}` | `typography` | see "The typography wrinkle" below | 6 roles |
 | `textStyle-colors.{header,label,text,title,caption,button}` | `color` | one per `textStyle` role, no exceptions | 6 roles |
 | `theme.borderRadius` | `dimension` | literal value or alias | |
@@ -58,10 +58,36 @@ protocol 0.1 documents stay closed to unknown names, `custom` included.
 | `onColoredSelected` | required |
 | `onColoredHover` | required |
 | `divider` | **OPTIONAL** |
+| `onPrimary` | **OPTIONAL** (0.4.0) |
+| `textBody` | **OPTIONAL** (0.4.0) |
+| `shadow` | **OPTIONAL** (0.4.0) |
 
 An absent `color.divider` is meaningful, not missing data: it means "derive a
 contrast-safe divider colour from `color.text` over `color.surface` at paint
 time." Never invent a concrete value to fill it in.
+
+The other three are optional for a different reason: they arrived in protocol
+0.4.0, so a document written against 0.3 simply has no such token. Absent means
+"this document predates it" - omit the constructor argument and let the library
+default apply. Same rule as `divider` in practice: never substitute a value of
+your own. A generator writing a 0.4.0 document SHOULD emit all three.
+
+They complete the palette, which is what makes a theme swappable by colours
+alone:
+
+- `onPrimary` - content painted on the `primary` -> `accent` sweep (the filled
+  button label). It backs `textStyle-colors.button`.
+- `textBody` - the body foreground tone, one step quieter than `text`. It backs
+  `textStyle-colors.{text,label,caption}`; `text` backs
+  `textStyle-colors.{header,title}`.
+- `shadow` - the hue every `shadow.*` preset is painted in.
+
+`shadow.*` and `color.shadow` compose rather than duplicate: the `shadow` group
+carries elevation geometry (offset, blur, spread) plus the per-layer alpha that
+gives a stack its shape, and `color.shadow` carries the hue. The runtime paints
+each layer as `color.shadow`'s RGB at that layer's own alpha, ignoring the
+tint's own alpha - which is what makes re-tinting idempotent and lets a document
+round-trip through export -> generate -> export unchanged.
 
 ## The typography wrinkle
 

@@ -2,7 +2,7 @@
 name: migrate-global-state
 description: Migrate a single BLoC-era Cubit/Bloc to a parallel hook-based global state in isolation - no screen changes. Creates the State class + useXState() hook (registration in _providers is deferred to the first consumer screen), marks the original Cubit @Deprecated. Emits ONE diff for ONE commit. Can also run in extract_service mode to hoist domain logic out of a Cubit into a service first. Runs before any screen migration that depends on this state.
 model: opus
-tools: Read, Write, Edit, Glob, Grep, Bash
+tools: Read, Write, Edit, Glob, Grep, Bash, ToolSearch
 ---
 
 # `migrate-global-state` agent
@@ -87,7 +87,9 @@ Per `global-state-migration.md`. State class:
 
 **Re-implementation ≠ duplicating business logic.** "Same underlying services" assumes the services exist. If the Cubit body contains domain logic that lives in NO service - offline sync, dedup/merge algorithms, retry orchestration, data-transformation pipelines, download queues - do NOT copy that logic into the hook. Two live copies of business logic diverge silently and both must be maintained for the whole migration window. Return `status: needs_service_extraction` with a `proposed_service` sketch (service name, method signatures, which Cubit methods' bodies move). The orchestrator will re-invoke you in `mode: extract_service` first, then again for the state migration.
 
-Litmus test: if deleting the Cubit tomorrow would delete logic no other class has, that logic needs a service first. Thin glue (call service → assign result → toggle a flag) does not count - port that freely.
+Litmus test: if deleting the Cubit tomorrow would delete logic no other class has, that logic needs a service first. Thin glue (call service → assign result → toggle a flag) does not count - port that freely. Also exempt: dependency-free PURE mappings (enum-to-string lookup tables, static format switches) - port them as private helpers in the state file; two copies existing until the bloc is deleted at finalize is acceptable for pure data.
+
+Static members on the old Cubit that tests or other files reference (e.g. `static final days = [...]`): leave them on the bloc untouched. If the hook needs the same values, duplicate them as a private const in the state file - do NOT import the bloc file from the state file (the state class names collide by design in parallel migration).
 
 If the Cubit's logic is entangled with UI/navigation/BuildContext (it shouldn't be but BLoC codebases sometimes blur this) - return `status: needs_refactor` describing what needs to move where. Do not attempt heroics.
 
@@ -97,7 +99,8 @@ Create:
 - `<target_state_path>` - State class + `useXState()` hook
 
 Modify:
-- `<cubit_path>` - add `@Deprecated('Use <target_hook_name> - see <target_state_path>')` annotation on the Cubit class. Do NOT delete the Cubit - screens that haven't been migrated still use it.
+- `<cubit_path>` - add `@Deprecated('Use <target_hook_name> - see <target_state_path>')` annotation on the Cubit class AND (same annotation string) on its constructor(s). Annotating only the class trips the `deprecated_consistency` lint on projects with strict rulesets (e.g. package:lint/strict.yaml), adding one new info per migrated Cubit and eroding the zero-new-issues review signal. Do NOT delete the Cubit - screens that haven't been migrated still use it.
+- Note on what the annotation does NOT do: depending on SDK/lint configuration, same-package `deprecated_member_use` diagnostics may never fire at the Cubit's call sites, so the marker is documentation/IDE-strikethrough only. Remaining consumers are tracked by grep (`grep -rn '<cubit_class>' lib`), never by deprecation diagnostics.
 
 **`_providers.dart` handling depends on `provider_registration`:**
 
@@ -146,7 +149,7 @@ This agent runs in one of two modes controlled by the `provider_registration` in
 - Agent does NOT read or edit `_providers.dart`.
 - Agent returns `self_report.provider_entry` - the literal string the orchestrator will insert under the `_providers` map **later, in the commit of the first migrated screen that consumes this state (Phase B)**. Registration is deferred because `HookProviderContainer` builds every registered provider eagerly at app startup - registering now would run your hook AND the old Cubit simultaneously (double fetches, double stream subscriptions) with zero consumers. Your state file stays unregistered and inert until a consumer lands; that is correct and expected.
 - Match the existing file's indentation and trailing-comma convention (peek at one existing entry if you need to - read-only, no edit).
-- Example `provider_entry` value: `    AuthState: (context) => useAuthState(),` (exact format: follow existing entries in `_providers.dart`; do not invent a new format).
+- Example `provider_entry` value: `  AuthState: useAuthState,` - a bare tear-off, because the map is typed `Map<Type, Object? Function()>` (see global-state-migration.md). If `_providers.dart` already has entries, match their exact format instead; do not invent a new one.
 
 **`self` mode (legacy / single-threaded callers):**
 - Agent touches 3 files: new state file + `_providers.dart` + annotated Cubit.
@@ -204,7 +207,7 @@ self_report:
     - "useMemoized(() => prefsService.loadLastUser()) for persistent hydration"
   deviations:                  # non-obvious structural notes for orchestrator to surface in the final report
     - "persistent-state: moved hydration from HydratedCubit<T>.fromJson/toJson to PrefsService load/save - Cubit and hook both delegate to service, diverge-safe"
-  provider_entry: "    AuthState: (context) => useAuthState(),"
+  provider_entry: "  AuthState: useAuthState,"
     # orchestrator mode: the exact string to append under the _providers map; match the
     # existing file's indentation and trailing-comma convention. Omit in self mode
     # (or set to the same string if you want - orchestrator just ignores it then).

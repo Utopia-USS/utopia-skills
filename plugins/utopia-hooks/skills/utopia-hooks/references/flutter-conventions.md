@@ -55,6 +55,13 @@ This means:
 
 **Always use `IList`, `IMap`, `ISet`** instead of `List`, `Map`, `Set`. This includes function parameters, return types, and state fields.
 
+Brownfield exception: this rule applies only when the project itself declares
+`fast_immutable_collections` in `pubspec.yaml`. In a codebase built on plain collections
+(e.g. a BLoC migration target whose whole domain layer returns `List`), do NOT convert per
+file - plain collections are acceptable provided State fields are `final` and never mutated
+after construction. Adopting FIC there is one deliberate repo-wide decision, not a
+per-screen call.
+
 ```dart
 // ❌ Mutable collections
 final List<Task> tasks = [];

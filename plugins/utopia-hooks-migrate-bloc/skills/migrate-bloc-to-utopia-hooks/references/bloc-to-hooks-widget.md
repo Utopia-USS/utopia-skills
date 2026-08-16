@@ -286,6 +286,39 @@ TextEditingControllerWrapper(
 
 See `utopia-hooks:references/hooks-reference.md` and `utopia-hooks:references/flutter-conventions.md` for `useFieldState` + `TextEditingControllerWrapper` details (validation, errors, bidirectional sync).
 
+### Pitfall: a keyed useEffect fires on mount - the old listener callbacks did not
+
+Old-code listeners (`TextEditingController.addListener` in `initState`, a dropdown's
+`onChanged`) fire only on actual change notifications, never on first build. A keyed
+`useEffect(..., [field.value, ...])` ALSO runs its body once on mount: utopia_hooks
+schedules the effect via `addPostBuildCallback` in the hook's `init()`, so it executes
+after the first frame, when a `ScrollController` is already attached. `hasClients` is
+therefore NOT a first-render guard.
+
+Porting "scroll / side-effect on user change" verbatim into a keyed effect reproduces
+the side effect on screen entry. Found twice in the field, in two independent screen
+migrations of the same codebase.
+
+Fix shape: consume one skip on the mount run, BEFORE any `hasClients` check. The
+ordering is load-bearing - if the skip sits after a false `hasClients`, the flag
+survives the mount and swallows the first real user change instead:
+
+```dart
+final hasRunOnceState = useState(false, listen: false);
+useEffect(() {
+  if (!hasRunOnceState.value) {
+    hasRunOnceState.value = true;
+    return null;
+  }
+  if (!scrollController.hasClients) return null;
+  scrollController.animateTo(/* ... */);
+  return null;
+}, [quantityField.value, selectedUnit]);
+```
+
+The same applies to any listener-triggered side effect ported to a keyed effect
+(snackbars, haptics, focus moves), not just scrolling.
+
 ---
 
 ## 6. stream.listen() → useStreamSubscription
@@ -466,7 +499,7 @@ HomeScreenState useHomeScreenState({
 | Non-text controller creation + `dispose` (`PageController`, `ScrollController`) | `useMemoized(() => Controller(), [args], (it) => it.dispose())`. **NOT for TextEditingController** - see section 5 |
 | `didChangeDependencies` | Hook body runs on every rebuild (reactive by default) |
 | `didUpdateWidget` | `useEffect` with keys matching changed widget parameters |
-| `WidgetsBindingObserver` + `didChangeAppLifecycleState` | `useAppLifecycleState(onPaused:, onResumed:, ...)` - see section 8 |
+| `WidgetsBindingObserver` + `didChangeAppLifecycleState` | `useAppLifecycleStateListener(onPaused:, onResumed:, ...)` - see section 8 |
 | Side effects in `build()` (comparing old/new) | `useEffect` with keys - never put side effects in build |
 | `context.get<T>()` / `context.watch<T>()` | `useProvided<T>()` - always reactive |
 
@@ -474,9 +507,9 @@ HomeScreenState useHomeScreenState({
 
 ---
 
-## 8. WidgetsBindingObserver / AppLifecycleState → useAppLifecycleState
+## 8. WidgetsBindingObserver / AppLifecycleState → useAppLifecycleStateListener
 
-Screens that react to the app going foreground/background (save drafts on `paused`, refresh on `resumed`, pause timers on `inactive`) typically implement `WidgetsBindingObserver` inside a `StatefulWidget`. utopia_hooks provides `useAppLifecycleState` as a drop-in. **Do not create a service wrapper** - the hook is the target.
+Screens that react to the app going foreground/background (save drafts on `paused`, refresh on `resumed`, pause timers on `inactive`) typically implement `WidgetsBindingObserver` inside a `StatefulWidget`. utopia_hooks provides `useAppLifecycleStateListener` as a drop-in. **Do not create a service wrapper** - the hook is the target.
 
 ### BLoC / StatefulWidget
 
@@ -514,15 +547,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
 ```dart
 // Inside the state hook - no service, no observer, no dispose
-useAppLifecycleState(
+useAppLifecycleStateListener(
   onPaused: () => draftService.saveDraft(draft.value),
   onResumed: () => feedState.refresh(),
 );
 ```
 
-All callbacks are optional (`onResumed`, `onPaused`, `onInactive`, `onDetached`, `onHidden`) - pass only what you need. Auto-disposed when the hook unmounts.
+All callbacks are optional (`onResumed`, `onPaused`, `onInactive`, `onHidden`, plus
+`onChanged(AppLifecycleState)` for anything else) - pass only what you need. Auto-disposed
+when the hook unmounts.
 
-**Anti-pattern during migration:** wrapping `WidgetsBindingObserver` in an `AppLifecycleService` injected via `useInjected<AppLifecycleService>()`. If you find yourself writing such a service, STOP - replace with `useAppLifecycleState` directly in the state hook.
+Two API facts, verified against the utopia_hooks source:
+
+- `useAppLifecycleState(onPaused:, ...)` still exists but every callback parameter on it is
+  `@Deprecated("Use useAppLifecycleStateListener to prevent unnecessary rebuilds")`. Use
+  `useAppLifecycleState()` (no arguments) ONLY when the hook must rebuild on every lifecycle
+  change and you need the current state as a value; use `useAppLifecycleStateListener` for
+  callbacks.
+- There is NO `onDetached` parameter on either hook. An old `didChangeAppLifecycleState`
+  branch for `AppLifecycleState.detached` migrates to
+  `onChanged: (state) { if (state == AppLifecycleState.detached) ... }`.
+
+**Anti-pattern during migration:** wrapping `WidgetsBindingObserver` in an `AppLifecycleService` injected via `useInjected<AppLifecycleService>()`. If you find yourself writing such a service, STOP - replace with `useAppLifecycleStateListener` directly in the state hook.
 
 ---
 

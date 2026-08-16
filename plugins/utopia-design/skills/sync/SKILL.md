@@ -104,7 +104,20 @@ never block on the missing file.
    (`buildUtopiaTheme()`) from `design/tokens.json`. On the FIRST sync, also
    confirm the app wires it - `UtopiaTheme(data: buildUtopiaTheme(),
    child: ...)` - or the rebrand silently changes nothing; see
-   [regeneration.md][regeneration].
+   [regeneration.md][regeneration]. Then **prove the result with `--check`**:
+   the same command plus that flag regenerates in memory and byte-compares
+   against the file on disk, so exit `0` is machine-proof that the committed
+   theme is exactly what these tokens produce (the theme-side equivalent of
+   `validate_twin`'s `tokens.css` freshness gate). Pass `--check` the SAME
+   arguments as the generating run - the comparison is byte-exact, and the
+   generated header embeds the tokens path AS GIVEN, so a different working
+   directory or a differently-spelled path reports a false "stale". The same
+   run is also the cheapest entry triage: because it writes nothing, ever, it
+   may be run at the top of a sync to answer "is the theme stale at all?"
+   (exit `1` = stale or missing) - but ONLY after recovering the original
+   arguments from the existing file: read its `// Regenerate:` header line
+   and reuse that exact tokens path and output path. Never triage with
+   guessed paths.
 4. **`generate_twin` - conditional by presence.** Produces `twin/tokens.css`,
    `twin/tokens.tailwind.css`, and the `DESIGN.md` front matter from the same
    `design/tokens.json`. Run it when the project already HAS a `twin/`
@@ -202,6 +215,8 @@ After running this skill's workflow, verify:
    [drift-and-verify.md][drift-and-verify].
 6. `validate_twin` was run whenever the twin output is going to be viewed or
    shipped (it stays optional for a purely app-side token change).
+7. The regenerated theme was proved fresh: `generate_theme --check`, run with
+   the same arguments as the generate step, exits `0`.
 
 ## See Also
 
